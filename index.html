@@ -96,7 +96,7 @@
       border: 1px solid #e9ecef;
     }
 
-    /* 포스타입 스타일 헤더 (제목 & 부제목) */
+    /* 헤더 영역 */
     .post-header {
       margin-bottom: 30px;
     }
@@ -127,14 +127,13 @@
     .title-input::placeholder { color: #adb5bd; }
     .subtitle-input::placeholder { color: #ced4da; }
 
-    /* 제목과 본문 사이 경계선 */
     .header-divider {
       border: none;
       border-top: 1px solid #f1f3f5;
       margin-bottom: 30px;
     }
 
-    /* 본문 TipTap 에디터 */
+    /* 본문 에디터 */
     .ProseMirror {
       outline: none;
       min-height: 50vh;
@@ -142,12 +141,10 @@
       line-height: 1.8;
     }
 
-    /* 본문 내 제목 스타일 */
     .ProseMirror h1 { font-size: 1.8em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
     .ProseMirror h2 { font-size: 1.4em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
     .ProseMirror h3 { font-size: 1.2em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
 
-    /* 구분선(HR) 스타일 4종 */
     .ProseMirror hr { border: none; margin: 2em 0; }
     .ProseMirror hr[data-style="line"] { border-top: 1px solid #adb5bd; }
     .ProseMirror hr[data-style="dashed"] { border-top: 2px dashed #adb5bd; }
@@ -166,16 +163,13 @@
       letter-spacing: 0.3em;
     }
 
-    /* 위/아래 첨자 */
     sup { vertical-align: super; font-size: 0.75em; }
     sub { vertical-align: sub; font-size: 0.75em; }
   </style>
 </head>
 <body class="font-maruburi">
 
-  <!-- 툴바 영역 -->
   <div class="toolbar">
-    <!-- 폰트 선택 -->
     <select id="fontSelect" title="폰트 변경">
       <optgroup label="명조 계열">
         <option value="font-maruburi" selected>마루부리</option>
@@ -190,7 +184,6 @@
       </optgroup>
     </select>
 
-    <!-- 제목 / 본문 선택 -->
     <select id="headingSelect" title="본문/제목 스타일">
       <option value="paragraph">본문</option>
       <option value="1">제목 1</option>
@@ -200,7 +193,6 @@
 
     <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
 
-    <!-- 서식 버튼 -->
     <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
     <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
     <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
@@ -209,7 +201,6 @@
 
     <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
 
-    <!-- 구분선 4종 선택 -->
     <select id="dividerSelect" class="divider-select" title="구분선 선택">
       <option value="" disabled selected>구분선 삽입</option>
       <option value="line">───── (실선)</option>
@@ -219,21 +210,16 @@
     </select>
   </div>
 
-  <!-- 에디터 용지 영역 -->
   <div class="editor-container">
-    
-    <!-- 포스타입 스타일 헤더 영역 -->
     <div class="post-header">
       <input type="text" class="title-input" placeholder="제목 없음" />
       <input type="text" class="subtitle-input" placeholder="부제목을 입력하세요." />
       <hr class="header-divider" />
     </div>
 
-    <!-- 실제 글이 써지는 본문 영역 -->
     <div id="editor"></div>
   </div>
 
-<!-- TipTap / ProseMirror CDN -->
   <script type="module">
     import { Editor } from 'https://esm.sh/@tiptap/core@2.2.4';
     import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.2.4';
@@ -244,7 +230,6 @@
     const titleInput = document.querySelector('.title-input');
     const subtitleInput = document.querySelector('.subtitle-input');
 
-    // 구분선 커스텀 확장
     const CustomHorizontalRule = HorizontalRule.extend({
       addAttributes() {
         return {
@@ -257,7 +242,6 @@
       },
     });
 
-    // 에디터 초기화
     const editor = new Editor({
       element: document.querySelector('#editor'),
       extensions: [
@@ -268,14 +252,12 @@
       ],
       content: `<p>여기에 본문을 입력하세요.</p>`,
       onTransaction({ editor }) {
-        // 버튼 활성화 상태 동기화
         document.getElementById('btnBold').classList.toggle('is-active', editor.isActive('bold'));
         document.getElementById('btnItalic').classList.toggle('is-active', editor.isActive('italic'));
         document.getElementById('btnStrike').classList.toggle('is-active', editor.isActive('strike'));
         document.getElementById('btnSub').classList.toggle('is-active', editor.isActive('subscript'));
         document.getElementById('btnSup').classList.toggle('is-active', editor.isActive('superscript'));
 
-        // 제목 선택값 동기화
         const headingSelect = document.getElementById('headingSelect');
         if (editor.isActive('heading', { level: 1 })) headingSelect.value = '1';
         else if (editor.isActive('heading', { level: 2 })) headingSelect.value = '2';
@@ -285,54 +267,53 @@
     });
 
     // ----------------------------------------------------
-    // 💡 키보드 위/아래 화살표 이동 키보드 이벤트 연결
+    // 방향키 / 엔터 이동 이벤트 (강제 포커스 및 처리 보완)
     // ----------------------------------------------------
 
-    // 1. 제목(Title)에서 아래 화살표(ArrowDown) 또는 Enter를 누르면 부제목으로 이동
+    // 1. 제목 입력창
     titleInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
         subtitleInput.focus();
+        subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
       }
     });
 
-    // 2. 부제목(Subtitle) 처리
+    // 2. 부제목 입력창
     subtitleInput.addEventListener('keydown', (e) => {
-      // 위 화살표(ArrowUp) 누르면 제목으로 이동
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         titleInput.focus();
-      } 
-      // 아래 화살표(ArrowDown) 또는 Enter를 누르면 본문 에디터 맨 앞으로 이동
-      else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+      } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
-        editor.chain().focus().setTextSelection(0).run();
+        editor.chain().focus('start').run();
       }
     });
 
-    // 3. 본문 에디터 첫 번째 줄에서 위 화살표(ArrowUp)를 누르면 부제목으로 이동
-    const editorEl = document.querySelector('#editor');
-    editorEl.addEventListener('keydown', (e) => {
+    // 3. 본문 에디터 (Capture 단계에서 이벤트 가로채기)
+    const editorDom = document.querySelector('.ProseMirror');
+    editorDom.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
         const { selection } = editor.state;
-        // 커서가 본문의 맨 첫 위치(pos가 1이거나 0)일 때 부제목으로 포커스 이동
+        // 커서 위치가 최상단(첫번째 노드의 시작 지점)일 때
         if (selection.$from.pos <= 1) {
           e.preventDefault();
+          e.stopPropagation();
           subtitleInput.focus();
+          subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
         }
       }
-    });
+    }, true); // true 옵션으로 TipTap 내부 동작보다 먼저 감지
 
     // ----------------------------------------------------
 
-    // 툴바 클릭 이벤트 연결
     document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
     document.getElementById('btnItalic').onclick = () => editor.chain().focus().toggleItalic().run();
     document.getElementById('btnStrike').onclick = () => editor.chain().focus().toggleStrike().run();
     document.getElementById('btnSub').onclick = () => editor.chain().focus().toggleSubscript().run();
     document.getElementById('btnSup').onclick = () => editor.chain().focus().toggleSuperscript().run();
 
-    // 제목/본문 스타일
     document.getElementById('headingSelect').onchange = (e) => {
       const val = e.target.value;
       if (val === 'paragraph') {
@@ -342,12 +323,10 @@
       }
     };
 
-    // 폰트 변경
     document.getElementById('fontSelect').onchange = (e) => {
       document.body.className = e.target.value;
     };
 
-    // 구분선 삽입
     document.getElementById('dividerSelect').onchange = (e) => {
       const style = e.target.value;
       if (style) {
@@ -359,7 +338,6 @@
       }
     };
 
-    // PWA Service Worker 등록
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
