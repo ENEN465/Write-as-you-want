@@ -190,10 +190,12 @@
       margin-top: 4px;
     }
 
-    /* 검색 하이라이트 스타일 */
-    .search-highlight {
-      background-color: #ffec99;
+    /* 하이라이트 스타일 (검색어 강조 노란색) */
+    mark {
+      background-color: #ffe066 !important;
+      color: #000000 !important;
       border-radius: 2px;
+      padding: 0 2px;
     }
 
     /* 메인 문서 종이 레이아웃 */
@@ -318,7 +320,7 @@
       <option value="ornament">◇ ◇ ◇ (문양)</option>
     </select>
 
-    <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">🔍 찾기</button>
+    <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
 
     <!-- 글자 수 카운터 드롭다운 UI -->
     <div class="word-counter-wrapper">
@@ -376,6 +378,7 @@
     import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.2.4';
     import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.2.4';
     import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.2.4';
+    import Highlight from 'https://esm.sh/@tiptap/extension-highlight@2.2.4'; // 하이라이트 확합 패키지
 
     const titleInput = document.querySelector('.title-input');
     const subtitleInput = document.querySelector('.subtitle-input');
@@ -399,6 +402,7 @@
         Subscript,
         Superscript,
         CustomHorizontalRule,
+        Highlight.configure({ multicolor: true }), // 하이라이트 기능 활성화
       ],
       content: `<p>여기에 본문을 입력하세요.</p>`,
       onTransaction({ editor }) {
@@ -419,17 +423,26 @@
     });
 
     // ----------------------------------------------------
-    // 💡 5. Ctrl+F 찾기 및 바꾸기 로직
+    // 💡 5. Ctrl+F 실시간 검색 하이라이트 & 바꾸기
     // ----------------------------------------------------
 
     const searchModal = document.getElementById('searchModal');
     const searchInput = document.getElementById('searchInput');
     const replaceInput = document.getElementById('replaceInput');
     const btnSearch = document.getElementById('btnSearch');
-    const btnFindNext = document.getElementById('btnFindNext');
     const btnReplaceAll = document.getElementById('btnReplaceAll');
     const btnCloseSearch = document.getElementById('btnCloseSearch');
     const searchResultCount = document.getElementById('searchResultCount');
+
+    // 하이라이트 초기화 함수
+    function clearHighlights() {
+      const html = editor.getHTML();
+      // 기존 mark 태그 제거
+      const cleanHTML = html.replace(/<mark[^>]*>(.*?)<\/mark>/gi, '$1');
+      if (html !== cleanHTML) {
+        editor.commands.setContent(cleanHTML, false);
+      }
+    }
 
     // 검색 모달 열기
     function openSearchModal() {
@@ -438,17 +451,20 @@
       searchInput.select();
     }
 
-    // 검색 모달 닫기
+    // 검색 모달 닫기 (닫을 때 하이라이트 싹 제거)
     function closeSearchModal() {
       searchModal.classList.remove('show');
       searchResultCount.innerText = '단어를 검색하세요';
+      searchInput.value = '';
+      replaceInput.value = '';
+      clearHighlights();
       editor.commands.focus();
     }
 
     btnSearch.onclick = openSearchModal;
     btnCloseSearch.onclick = closeSearchModal;
 
-    // 키보드 Shortcut: Ctrl+F 감지
+    // 단축키 Ctrl+F / Cmd+F
     window.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
@@ -459,20 +475,28 @@
       }
     });
 
-    // 검색 실행 (단어 찾기 및 결과 수 표시)
+    // 검색어 입력 시 본문 실시간 노란색 하이라이트 적용
     function performSearch() {
-      const query = searchInput.value.trim();
-      if (!query) {
+      const query = searchInput.value;
+
+      clearHighlights();
+
+      if (!query.trim()) {
         searchResultCount.innerText = '검색어를 입력하세요';
         return;
       }
 
-      const text = editor.getText();
-      const regex = new RegExp(query, 'gi');
-      const matches = text.match(regex);
+      const currentHTML = editor.getHTML();
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      
+      // HTML 태그 외부의 순수 텍스트 부분만 노란색 <mark> 태그로 감싸기
+      const regex = new RegExp(`(?<!<[^>]*)${escapedQuery}(?![^<]*>)`, 'gi');
+      const matches = currentHTML.match(regex);
       const count = matches ? matches.length : 0;
 
       if (count > 0) {
+        const highlightedHTML = currentHTML.replace(regex, `<mark>$&</mark>`);
+        editor.commands.setContent(highlightedHTML, false);
         searchResultCount.innerText = `총 ${count}개 발견`;
       } else {
         searchResultCount.innerText = '일치하는 단어가 없습니다';
@@ -488,14 +512,18 @@
 
       if (!searchVal) return;
 
+      // 먼저 하이라이트 해제 후 치환
+      clearHighlights();
       const currentHTML = editor.getHTML();
-      // HTML 태그 내부 속성은 건드리지 않고 텍스트에서만 단어 교체
-      const regex = new RegExp(searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      const escapedSearch = searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(?<!<[^>]*)${escapedSearch}(?![^<]*>)`, 'g');
+      
       const newHTML = currentHTML.replace(regex, replaceVal);
 
       editor.commands.setContent(newHTML, false);
       updateWordCount();
       searchResultCount.innerText = '모두 교체되었습니다!';
+      searchInput.value = '';
     };
 
     // ----------------------------------------------------
