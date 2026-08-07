@@ -84,6 +84,71 @@
     .toolbar button:hover, .toolbar select:hover { background: #e9ecef; }
     .toolbar button.is-active { background: #339af0; color: white; border-color: #339af0; }
 
+    /* 글자 수 카운터 드롭다운 UI 스타일 */
+    .word-counter-wrapper {
+      position: relative;
+      margin-left: auto; /* 툴바 오른쪽 끝으로 배치 */
+    }
+
+    .counter-badge {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 13px;
+      color: #495057;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .counter-badge:hover {
+      background: #e9ecef;
+    }
+
+    .counter-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      background: #ffffff;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      width: 220px;
+      padding: 8px 0;
+      z-index: 200;
+    }
+
+    .counter-dropdown.show {
+      display: block;
+    }
+
+    .counter-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #333333;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .counter-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .counter-item .check-mark {
+      color: #09a05e;
+      font-weight: bold;
+      visibility: hidden;
+    }
+
+    .counter-item.active .check-mark {
+      visibility: visible;
+    }
+
     /* 메인 문서 종이 레이아웃 */
     .editor-container {
       background: #ffffff;
@@ -169,7 +234,9 @@
 </head>
 <body class="font-maruburi">
 
+  <!-- 툴바 영역 -->
   <div class="toolbar">
+    <!-- 폰트 선택 -->
     <select id="fontSelect" title="폰트 변경">
       <optgroup label="명조 계열">
         <option value="font-maruburi" selected>마루부리</option>
@@ -184,6 +251,7 @@
       </optgroup>
     </select>
 
+    <!-- 제목 / 본문 선택 -->
     <select id="headingSelect" title="본문/제목 스타일">
       <option value="paragraph">본문</option>
       <option value="1">제목 1</option>
@@ -193,6 +261,7 @@
 
     <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
 
+    <!-- 서식 버튼 -->
     <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
     <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
     <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
@@ -201,6 +270,7 @@
 
     <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
 
+    <!-- 구분선 4종 선택 -->
     <select id="dividerSelect" class="divider-select" title="구분선 선택">
       <option value="" disabled selected>구분선 삽입</option>
       <option value="line">───── (실선)</option>
@@ -208,6 +278,29 @@
       <option value="asterisk">*** (아스테리스크)</option>
       <option value="ornament">◇ ◇ ◇ (문양)</option>
     </select>
+
+    <!-- 노벨라 스타일 글자 수 카운터 드롭다운 UI -->
+    <div class="word-counter-wrapper">
+      <div id="counterBadge" class="counter-badge">14자</div>
+      <div id="counterDropdown" class="counter-dropdown">
+        <div class="counter-item active" data-type="with-space">
+          <span>공백 포함: <b id="cntWithSpace">0자</b></span>
+          <span class="check-mark">✓</span>
+        </div>
+        <div class="counter-item" data-type="no-space">
+          <span>공백 제외: <b id="cntNoSpace">0자</b></span>
+          <span class="check-mark">✓</span>
+        </div>
+        <div class="counter-item" data-type="no-special">
+          <span>공백, 특문 제외: <b id="cntNoSpecial">0자</b></span>
+          <span class="check-mark">✓</span>
+        </div>
+        <div class="counter-item" data-type="word-count">
+          <span>단어 수: <b id="cntWords">0 단어</b></span>
+          <span class="check-mark">✓</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="editor-container">
@@ -252,6 +345,7 @@
       ],
       content: `<p>여기에 본문을 입력하세요.</p>`,
       onTransaction({ editor }) {
+        // 툴바 버튼 활성화 감지
         document.getElementById('btnBold').classList.toggle('is-active', editor.isActive('bold'));
         document.getElementById('btnItalic').classList.toggle('is-active', editor.isActive('italic'));
         document.getElementById('btnStrike').classList.toggle('is-active', editor.isActive('strike'));
@@ -263,14 +357,89 @@
         else if (editor.isActive('heading', { level: 2 })) headingSelect.value = '2';
         else if (editor.isActive('heading', { level: 3 })) headingSelect.value = '3';
         else headingSelect.value = 'paragraph';
+
+        // 글자 수 업데이트 계산
+        updateWordCount();
       }
     });
 
     // ----------------------------------------------------
-    // 방향키 / 엔터 이동 이벤트 (강제 포커스 및 처리 보완)
+    // 💡 글자 수 계산 및 드롭다운 관리
     // ----------------------------------------------------
 
-    // 1. 제목 입력창
+    let selectedCountType = 'with-space'; // 기본값: 공백 포함
+
+    function updateWordCount() {
+      // 제목, 부제목, 본문 텍스트 합산 (엔터/줄바꿈 제외)
+      const titleText = titleInput.value.replace(/\r?\n|\r/g, '');
+      const subtitleText = subtitleInput.value.replace(/\r?\n|\r/g, '');
+      const bodyText = editor.getText().replace(/\r?\n|\r/g, '');
+      
+      const fullText = titleText + subtitleText + bodyText;
+
+      // 1. 공백 포함
+      const withSpace = fullText.length;
+
+      // 2. 공백 제외 (스페이스, 탭 등 포함 모든 공백 제거)
+      const noSpace = fullText.replace(/\s+/g, '').length;
+
+      // 3. 공백 및 특수문자 제외 (한글, 영문, 숫자만 카운트)
+      const noSpecial = fullText.replace(/[^a-zA-Z0-9가-힣ㄱ-하-ㅣ]/g, '').length;
+
+      // 4. 단어 수
+      const trimmed = fullText.trim();
+      const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
+
+      // UI 텍스트 업데이트
+      document.getElementById('cntWithSpace').innerText = `${withSpace}자`;
+      document.getElementById('cntNoSpace').innerText = `${noSpace}자`;
+      document.getElementById('cntNoSpecial').innerText = `${noSpecial}자`;
+      document.getElementById('cntWords').innerText = `${wordCount} 단어`;
+
+      // 툴바 뱃지 대표 숫자 업데이트
+      const counterBadge = document.getElementById('counterBadge');
+      if (selectedCountType === 'with-space') counterBadge.innerText = `${withSpace}자`;
+      else if (selectedCountType === 'no-space') counterBadge.innerText = `${noSpace}자`;
+      else if (selectedCountType === 'no-special') counterBadge.innerText = `${noSpecial}자`;
+      else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
+    }
+
+    // 제목/부제목 입력 시에도 글자 수 연동
+    titleInput.addEventListener('input', updateWordCount);
+    subtitleInput.addEventListener('input', updateWordCount);
+
+    // 드롭다운 토글 기능
+    const counterBadge = document.getElementById('counterBadge');
+    const counterDropdown = document.getElementById('counterDropdown');
+
+    counterBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      counterDropdown.classList.toggle('show');
+    });
+
+    // 드롭다운 항목 선택 (기준 변경 & 체크표시 이동)
+    document.querySelectorAll('.counter-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        document.querySelectorAll('.counter-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        selectedCountType = item.getAttribute('data-type');
+        updateWordCount();
+        counterDropdown.classList.remove('show');
+      });
+    });
+
+    // 드롭다운 바깥 클릭 시 닫기
+    document.addEventListener('click', () => {
+      counterDropdown.classList.remove('show');
+    });
+
+    // 초깃값 계산
+    updateWordCount();
+
+    // ----------------------------------------------------
+    // 방향키 / 엔터 이동 이벤트
+    // ----------------------------------------------------
+
     titleInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
@@ -279,7 +448,6 @@
       }
     });
 
-    // 2. 부제목 입력창
     subtitleInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -291,12 +459,10 @@
       }
     });
 
-    // 3. 본문 에디터 (Capture 단계에서 이벤트 가로채기)
     const editorDom = document.querySelector('.ProseMirror');
     editorDom.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
         const { selection } = editor.state;
-        // 커서 위치가 최상단(첫번째 노드의 시작 지점)일 때
         if (selection.$from.pos <= 1) {
           e.preventDefault();
           e.stopPropagation();
@@ -304,7 +470,7 @@
           subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
         }
       }
-    }, true); // true 옵션으로 TipTap 내부 동작보다 먼저 감지
+    }, true);
 
     // ----------------------------------------------------
 
