@@ -3,30 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>write-as-you-want</title>
+  <title>Write as you want</title>
   
- <!-- PWA 및 웹 아이콘 설정 -->
+  <!-- PWA 및 웹 아이콘 설정 -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a1a1a">
   <link rel="icon" href="./icon.webp" type="image/webp">
 
-  <!-- 눈누 & Google Fonts 웹폰트 불러오기 -->
-  <!-- 1. 프리텐다드 -->
+  <!-- 웹폰트 불러오기 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <!-- 2. 나눔바른고딕 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wan2land/d2coding/d2coding-full.css"> <!-- 대체/눈누 CDN 연결 -->
   <link rel="stylesheet" href="https://hangeul.naver.com/css/webfont/nanum-barun-gothic.css">
-  <!-- 3. 본명조 (Noto Serif KR) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap">
-  <!-- 4. KoPub 바탕 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-ko-pub-batang@1.0.1/kopub-batang.min.css">
-  <!-- 5. 마루부리 (눈누 CDN) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff">
-  <!-- 6. 부크크명조 & 나눔명조 -->
   <link rel="stylesheet" href="https://hangeul.naver.com/css/webfont/nanum-myeongjo.css">
 
   <style>
-    /* 눈누 폰트 @font-face 직접 정의 (마루부리, 부크크명조 등) */
     @font-face {
       font-family: 'MaruBuri';
       src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff2') format('woff2');
@@ -44,7 +35,6 @@
     /* 폰트 클래스 정의 */
     .font-pretendard { font-family: 'Pretendard', sans-serif; }
     .font-nanum-barun { font-family: 'NanumBarunGothic', sans-serif; }
-    
     .font-maruburi { font-family: 'MaruBuri', serif; }
     .font-bookk-myungjo { font-family: 'BookkMyungjo', serif; }
     .font-nanum-myeongjo { font-family: 'NanumMyeongjo', serif; }
@@ -62,7 +52,7 @@
       padding: 20px 10px;
     }
 
-    /* 툴바 스타일 */
+    /* 상단 고정 툴바 */
     .toolbar {
       position: sticky;
       top: 10px;
@@ -94,35 +84,71 @@
     .toolbar button:hover, .toolbar select:hover { background: #e9ecef; }
     .toolbar button.is-active { background: #339af0; color: white; border-color: #339af0; }
 
-    /* 에디터 용지 스타일 */
+    /* 메인 문서 종이 레이아웃 */
     .editor-container {
       background: #ffffff;
       width: 100%;
       max-width: 800px;
       min-height: 80vh;
-      padding: 40px 30px;
+      padding: 50px 40px;
       border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       border: 1px solid #e9ecef;
     }
 
+    /* 포스타입 스타일 헤더 (제목 & 부제목) */
+    .post-header {
+      margin-bottom: 30px;
+    }
+
+    .title-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 2.2em;
+      font-weight: 700;
+      color: #212529;
+      background: transparent;
+      margin-bottom: 12px;
+      font-family: inherit;
+    }
+
+    .subtitle-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 1.1em;
+      color: #868e96;
+      background: transparent;
+      margin-bottom: 25px;
+      font-family: inherit;
+    }
+
+    .title-input::placeholder { color: #adb5bd; }
+    .subtitle-input::placeholder { color: #ced4da; }
+
+    /* 제목과 본문 사이 경계선 */
+    .header-divider {
+      border: none;
+      border-top: 1px solid #f1f3f5;
+      margin-bottom: 30px;
+    }
+
+    /* 본문 TipTap 에디터 */
     .ProseMirror {
       outline: none;
-      min-height: 70vh;
+      min-height: 50vh;
       font-size: 17px;
       line-height: 1.8;
     }
 
-    /* 제목(Heading) 스타일 */
-    .ProseMirror h1 { font-size: 2em; margin-top: 1em; margin-bottom: 0.5em; font-weight: 700; }
-    .ProseMirror h2 { font-size: 1.5em; margin-top: 1em; margin-bottom: 0.5em; font-weight: 700; }
-    .ProseMirror h3 { font-size: 1.25em; margin-top: 1em; margin-bottom: 0.5em; font-weight: 700; }
+    /* 본문 내 제목 스타일 */
+    .ProseMirror h1 { font-size: 1.8em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
+    .ProseMirror h2 { font-size: 1.4em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
+    .ProseMirror h3 { font-size: 1.2em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
 
     /* 구분선(HR) 스타일 4종 */
-    .ProseMirror hr {
-      border: none;
-      margin: 2em 0;
-    }
+    .ProseMirror hr { border: none; margin: 2em 0; }
     .ProseMirror hr[data-style="line"] { border-top: 1px solid #adb5bd; }
     .ProseMirror hr[data-style="dashed"] { border-top: 2px dashed #adb5bd; }
     .ProseMirror hr[data-style="asterisk"] { text-align: center; height: auto; }
@@ -140,7 +166,7 @@
       letter-spacing: 0.3em;
     }
 
-    /* 위/아래 첨자 CSS */
+    /* 위/아래 첨자 */
     sup { vertical-align: super; font-size: 0.75em; }
     sub { vertical-align: sub; font-size: 0.75em; }
   </style>
@@ -149,7 +175,7 @@
 
   <!-- 툴바 영역 -->
   <div class="toolbar">
-    <!-- 폰트 선택 목록 -->
+    <!-- 폰트 선택 -->
     <select id="fontSelect" title="폰트 변경">
       <optgroup label="명조 계열">
         <option value="font-maruburi" selected>마루부리</option>
@@ -164,7 +190,7 @@
       </optgroup>
     </select>
 
-    <!-- 제목 / 본문 선택 (H1, H2, H3, Paragraph) -->
+    <!-- 제목 / 본문 선택 -->
     <select id="headingSelect" title="본문/제목 스타일">
       <option value="paragraph">본문</option>
       <option value="1">제목 1</option>
@@ -193,8 +219,17 @@
     </select>
   </div>
 
-  <!-- 에디터 영역 -->
+  <!-- 에디터 용지 영역 -->
   <div class="editor-container">
+    
+    <!-- 포스타입 스타일 헤더 영역 -->
+    <div class="post-header">
+      <input type="text" class="title-input" placeholder="제목 없음" />
+      <input type="text" class="subtitle-input" placeholder="부제목을 입력하세요." />
+      <hr class="header-divider" />
+    </div>
+
+    <!-- 실제 글이 써지는 본문 영역 -->
     <div id="editor"></div>
   </div>
 
@@ -206,7 +241,7 @@
     import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.2.4';
     import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.2.4';
 
-    // 구분선 커스텀 확장을 위한 설정
+    // 구분선 커스텀 확장
     const CustomHorizontalRule = HorizontalRule.extend({
       addAttributes() {
         return {
@@ -228,16 +263,16 @@
         Superscript,
         CustomHorizontalRule,
       ],
-      content: `<h1>제목 1 예시</h1><p>원하는 폰트(마루부리, 부크크명조, 프리텐다드 등)를 선택하여 글을 작성해 보세요.</p>`,
+      content: `<p>여기에 본문을 입력하세요.</p>`,
       onTransaction({ editor }) {
-        // 1. 버튼 활성화 상태 동기화
+        // 버튼 활성화 상태 동기화
         document.getElementById('btnBold').classList.toggle('is-active', editor.isActive('bold'));
         document.getElementById('btnItalic').classList.toggle('is-active', editor.isActive('italic'));
         document.getElementById('btnStrike').classList.toggle('is-active', editor.isActive('strike'));
         document.getElementById('btnSub').classList.toggle('is-active', editor.isActive('subscript'));
         document.getElementById('btnSup').classList.toggle('is-active', editor.isActive('superscript'));
 
-        // 2. 제목 드롭다운 선택값 동기화
+        // 제목 선택값 동기화
         const headingSelect = document.getElementById('headingSelect');
         if (editor.isActive('heading', { level: 1 })) headingSelect.value = '1';
         else if (editor.isActive('heading', { level: 2 })) headingSelect.value = '2';
@@ -246,14 +281,14 @@
       }
     });
 
-    // 툴바 버튼 클릭 이벤트
+    // 툴바 클릭 이벤트 연결
     document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
     document.getElementById('btnItalic').onclick = () => editor.chain().focus().toggleItalic().run();
     document.getElementById('btnStrike').onclick = () => editor.chain().focus().toggleStrike().run();
     document.getElementById('btnSub').onclick = () => editor.chain().focus().toggleSubscript().run();
     document.getElementById('btnSup').onclick = () => editor.chain().focus().toggleSuperscript().run();
 
-    // 제목/본문 변경
+    // 제목/본문 스타일
     document.getElementById('headingSelect').onchange = (e) => {
       const val = e.target.value;
       if (val === 'paragraph') {
@@ -268,7 +303,7 @@
       document.body.className = e.target.value;
     };
 
-    // 구분선 4종 삽입
+    // 구분선 삽입
     document.getElementById('dividerSelect').onchange = (e) => {
       const style = e.target.value;
       if (style) {
