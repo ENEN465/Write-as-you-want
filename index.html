@@ -84,10 +84,10 @@
     .toolbar button:hover, .toolbar select:hover { background: #e9ecef; }
     .toolbar button.is-active { background: #339af0; color: white; border-color: #339af0; }
 
-    /* 글자 수 카운터 드롭다운 UI 스타일 */
+    /* 글자 수 카운터 드롭다운 UI */
     .word-counter-wrapper {
       position: relative;
-      margin-left: auto; /* 툴바 오른쪽 끝으로 배치 */
+      margin-left: auto;
     }
 
     .counter-badge {
@@ -102,9 +102,7 @@
       transition: all 0.2s;
     }
 
-    .counter-badge:hover {
-      background: #e9ecef;
-    }
+    .counter-badge:hover { background: #e9ecef; }
 
     .counter-dropdown {
       display: none;
@@ -120,9 +118,7 @@
       z-index: 200;
     }
 
-    .counter-dropdown.show {
-      display: block;
-    }
+    .counter-dropdown.show { display: block; }
 
     .counter-item {
       display: flex;
@@ -135,18 +131,69 @@
       transition: background 0.15s;
     }
 
-    .counter-item:hover {
-      background-color: #f8f9fa;
+    .counter-item:hover { background-color: #f8f9fa; }
+    .counter-item .check-mark { color: #09a05e; font-weight: bold; visibility: hidden; }
+    .counter-item.active .check-mark { visibility: visible; }
+
+    /* Ctrl+F 찾기 및 바꾸기 모달 UI */
+    .search-modal {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 300;
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      padding: 14px 18px;
+      width: 320px;
     }
 
-    .counter-item .check-mark {
-      color: #09a05e;
-      font-weight: bold;
-      visibility: hidden;
+    .search-modal.show { display: block; }
+
+    .search-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
     }
 
-    .counter-item.active .check-mark {
-      visibility: visible;
+    .search-row input {
+      flex: 1;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-row input:focus { border-color: #339af0; }
+
+    .search-row button {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .search-row button:hover { background: #e9ecef; }
+
+    .search-status {
+      font-size: 12px;
+      color: #868e96;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    /* 검색 하이라이트 스타일 */
+    .search-highlight {
+      background-color: #ffec99;
+      border-radius: 2px;
     }
 
     /* 메인 문서 종이 레이아웃 */
@@ -161,10 +208,7 @@
       border: 1px solid #e9ecef;
     }
 
-    /* 헤더 영역 */
-    .post-header {
-      margin-bottom: 30px;
-    }
+    .post-header { margin-bottom: 30px; }
 
     .title-input {
       width: 100%;
@@ -198,7 +242,6 @@
       margin-bottom: 30px;
     }
 
-    /* 본문 에디터 */
     .ProseMirror {
       outline: none;
       min-height: 50vh;
@@ -236,7 +279,6 @@
 
   <!-- 툴바 영역 -->
   <div class="toolbar">
-    <!-- 폰트 선택 -->
     <select id="fontSelect" title="폰트 변경">
       <optgroup label="명조 계열">
         <option value="font-maruburi" selected>마루부리</option>
@@ -251,7 +293,6 @@
       </optgroup>
     </select>
 
-    <!-- 제목 / 본문 선택 -->
     <select id="headingSelect" title="본문/제목 스타일">
       <option value="paragraph">본문</option>
       <option value="1">제목 1</option>
@@ -261,7 +302,6 @@
 
     <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
 
-    <!-- 서식 버튼 -->
     <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
     <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
     <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
@@ -270,7 +310,6 @@
 
     <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
 
-    <!-- 구분선 4종 선택 -->
     <select id="dividerSelect" class="divider-select" title="구분선 선택">
       <option value="" disabled selected>구분선 삽입</option>
       <option value="line">───── (실선)</option>
@@ -279,9 +318,11 @@
       <option value="ornament">◇ ◇ ◇ (문양)</option>
     </select>
 
-    <!-- 노벨라 스타일 글자 수 카운터 드롭다운 UI -->
+    <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">🔍 찾기</button>
+
+    <!-- 글자 수 카운터 드롭다운 UI -->
     <div class="word-counter-wrapper">
-      <div id="counterBadge" class="counter-badge">14자</div>
+      <div id="counterBadge" class="counter-badge">0자</div>
       <div id="counterDropdown" class="counter-dropdown">
         <div class="counter-item active" data-type="with-space">
           <span>공백 포함: <b id="cntWithSpace">0자</b></span>
@@ -300,6 +341,22 @@
           <span class="check-mark">✓</span>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Ctrl+F 찾기 및 바꾸기 모달 창 -->
+  <div id="searchModal" class="search-modal">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="찾을 단어 입력..." />
+      <button id="btnFindNext">찾기</button>
+    </div>
+    <div class="search-row">
+      <input type="text" id="replaceInput" placeholder="바꿀 단어 입력..." />
+      <button id="btnReplaceAll">모두 바꾸기</button>
+    </div>
+    <div class="search-status">
+      <span id="searchResultCount">단어를 검색하세요</span>
+      <button id="btnCloseSearch" style="padding: 2px 6px; font-size: 11px;">닫기 (Esc)</button>
     </div>
   </div>
 
@@ -345,7 +402,6 @@
       ],
       content: `<p>여기에 본문을 입력하세요.</p>`,
       onTransaction({ editor }) {
-        // 툴바 버튼 활성화 감지
         document.getElementById('btnBold').classList.toggle('is-active', editor.isActive('bold'));
         document.getElementById('btnItalic').classList.toggle('is-active', editor.isActive('italic'));
         document.getElementById('btnStrike').classList.toggle('is-active', editor.isActive('strike'));
@@ -358,45 +414,113 @@
         else if (editor.isActive('heading', { level: 3 })) headingSelect.value = '3';
         else headingSelect.value = 'paragraph';
 
-        // 글자 수 업데이트 계산
         updateWordCount();
       }
     });
 
     // ----------------------------------------------------
-    // 💡 글자 수 계산 및 드롭다운 관리
+    // 💡 5. Ctrl+F 찾기 및 바꾸기 로직
     // ----------------------------------------------------
 
-    let selectedCountType = 'with-space'; // 기본값: 공백 포함
+    const searchModal = document.getElementById('searchModal');
+    const searchInput = document.getElementById('searchInput');
+    const replaceInput = document.getElementById('replaceInput');
+    const btnSearch = document.getElementById('btnSearch');
+    const btnFindNext = document.getElementById('btnFindNext');
+    const btnReplaceAll = document.getElementById('btnReplaceAll');
+    const btnCloseSearch = document.getElementById('btnCloseSearch');
+    const searchResultCount = document.getElementById('searchResultCount');
+
+    // 검색 모달 열기
+    function openSearchModal() {
+      searchModal.classList.add('show');
+      searchInput.focus();
+      searchInput.select();
+    }
+
+    // 검색 모달 닫기
+    function closeSearchModal() {
+      searchModal.classList.remove('show');
+      searchResultCount.innerText = '단어를 검색하세요';
+      editor.commands.focus();
+    }
+
+    btnSearch.onclick = openSearchModal;
+    btnCloseSearch.onclick = closeSearchModal;
+
+    // 키보드 Shortcut: Ctrl+F 감지
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        openSearchModal();
+      }
+      if (e.key === 'Escape' && searchModal.classList.contains('show')) {
+        closeSearchModal();
+      }
+    });
+
+    // 검색 실행 (단어 찾기 및 결과 수 표시)
+    function performSearch() {
+      const query = searchInput.value.trim();
+      if (!query) {
+        searchResultCount.innerText = '검색어를 입력하세요';
+        return;
+      }
+
+      const text = editor.getText();
+      const regex = new RegExp(query, 'gi');
+      const matches = text.match(regex);
+      const count = matches ? matches.length : 0;
+
+      if (count > 0) {
+        searchResultCount.innerText = `총 ${count}개 발견`;
+      } else {
+        searchResultCount.innerText = '일치하는 단어가 없습니다';
+      }
+    }
+
+    searchInput.addEventListener('input', performSearch);
+
+    // 모두 바꾸기 기능
+    btnReplaceAll.onclick = () => {
+      const searchVal = searchInput.value;
+      const replaceVal = replaceInput.value;
+
+      if (!searchVal) return;
+
+      const currentHTML = editor.getHTML();
+      // HTML 태그 내부 속성은 건드리지 않고 텍스트에서만 단어 교체
+      const regex = new RegExp(searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      const newHTML = currentHTML.replace(regex, replaceVal);
+
+      editor.commands.setContent(newHTML, false);
+      updateWordCount();
+      searchResultCount.innerText = '모두 교체되었습니다!';
+    };
+
+    // ----------------------------------------------------
+    // 글자 수 계산
+    // ----------------------------------------------------
+
+    let selectedCountType = 'with-space';
 
     function updateWordCount() {
-      // 제목, 부제목, 본문 텍스트 합산 (엔터/줄바꿈 제외)
       const titleText = titleInput.value.replace(/\r?\n|\r/g, '');
       const subtitleText = subtitleInput.value.replace(/\r?\n|\r/g, '');
       const bodyText = editor.getText().replace(/\r?\n|\r/g, '');
-      
       const fullText = titleText + subtitleText + bodyText;
 
-      // 1. 공백 포함
       const withSpace = fullText.length;
-
-      // 2. 공백 제외 (스페이스, 탭 등 포함 모든 공백 제거)
       const noSpace = fullText.replace(/\s+/g, '').length;
-
-      // 3. 공백 및 특수문자 제외 (한글, 영문, 숫자만 카운트)
       const noSpecial = fullText.replace(/[^a-zA-Z0-9가-힣ㄱ-하-ㅣ]/g, '').length;
-
-      // 4. 단어 수
       const trimmed = fullText.trim();
       const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
 
-      // UI 텍스트 업데이트
       document.getElementById('cntWithSpace').innerText = `${withSpace}자`;
       document.getElementById('cntNoSpace').innerText = `${noSpace}자`;
       document.getElementById('cntNoSpecial').innerText = `${noSpecial}자`;
       document.getElementById('cntWords').innerText = `${wordCount} 단어`;
 
-      // 툴바 뱃지 대표 숫자 업데이트
       const counterBadge = document.getElementById('counterBadge');
       if (selectedCountType === 'with-space') counterBadge.innerText = `${withSpace}자`;
       else if (selectedCountType === 'no-space') counterBadge.innerText = `${noSpace}자`;
@@ -404,11 +528,9 @@
       else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
     }
 
-    // 제목/부제목 입력 시에도 글자 수 연동
     titleInput.addEventListener('input', updateWordCount);
     subtitleInput.addEventListener('input', updateWordCount);
 
-    // 드롭다운 토글 기능
     const counterBadge = document.getElementById('counterBadge');
     const counterDropdown = document.getElementById('counterDropdown');
 
@@ -417,9 +539,8 @@
       counterDropdown.classList.toggle('show');
     });
 
-    // 드롭다운 항목 선택 (기준 변경 & 체크표시 이동)
     document.querySelectorAll('.counter-item').forEach(item => {
-      item.addEventListener('click', (e) => {
+      item.addEventListener('click', () => {
         document.querySelectorAll('.counter-item').forEach(el => el.classList.remove('active'));
         item.classList.add('active');
         selectedCountType = item.getAttribute('data-type');
@@ -428,16 +549,14 @@
       });
     });
 
-    // 드롭다운 바깥 클릭 시 닫기
     document.addEventListener('click', () => {
       counterDropdown.classList.remove('show');
     });
 
-    // 초깃값 계산
     updateWordCount();
 
     // ----------------------------------------------------
-    // 방향키 / 엔터 이동 이벤트
+    // 방향키 이동 이벤트
     // ----------------------------------------------------
 
     titleInput.addEventListener('keydown', (e) => {
