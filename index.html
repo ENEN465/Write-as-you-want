@@ -233,13 +233,16 @@
     <div id="editor"></div>
   </div>
 
-  <!-- TipTap / ProseMirror CDN -->
+<!-- TipTap / ProseMirror CDN -->
   <script type="module">
     import { Editor } from 'https://esm.sh/@tiptap/core@2.2.4';
     import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.2.4';
     import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.2.4';
     import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.2.4';
     import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.2.4';
+
+    const titleInput = document.querySelector('.title-input');
+    const subtitleInput = document.querySelector('.subtitle-input');
 
     // 구분선 커스텀 확장
     const CustomHorizontalRule = HorizontalRule.extend({
@@ -280,6 +283,47 @@
         else headingSelect.value = 'paragraph';
       }
     });
+
+    // ----------------------------------------------------
+    // 💡 키보드 위/아래 화살표 이동 키보드 이벤트 연결
+    // ----------------------------------------------------
+
+    // 1. 제목(Title)에서 아래 화살표(ArrowDown) 또는 Enter를 누르면 부제목으로 이동
+    titleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        subtitleInput.focus();
+      }
+    });
+
+    // 2. 부제목(Subtitle) 처리
+    subtitleInput.addEventListener('keydown', (e) => {
+      // 위 화살표(ArrowUp) 누르면 제목으로 이동
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        titleInput.focus();
+      } 
+      // 아래 화살표(ArrowDown) 또는 Enter를 누르면 본문 에디터 맨 앞으로 이동
+      else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        editor.chain().focus().setTextSelection(0).run();
+      }
+    });
+
+    // 3. 본문 에디터 첫 번째 줄에서 위 화살표(ArrowUp)를 누르면 부제목으로 이동
+    const editorEl = document.querySelector('#editor');
+    editorEl.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        const { selection } = editor.state;
+        // 커서가 본문의 맨 첫 위치(pos가 1이거나 0)일 때 부제목으로 포커스 이동
+        if (selection.$from.pos <= 1) {
+          e.preventDefault();
+          subtitleInput.focus();
+        }
+      }
+    });
+
+    // ----------------------------------------------------
 
     // 툴바 클릭 이벤트 연결
     document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
