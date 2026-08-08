@@ -6,7 +6,7 @@
   <title>Write as you want</title>
   <link rel="icon" type="image/webp" href="icon.webp">
 
-  <!-- 웹 폰트 CDN 사전 로드 (부크크 명조 포함) -->
+  <!-- 웹 폰트 CDN 사전 로드 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css">
@@ -52,10 +52,10 @@
       </div>
 
       <div class="toolbar-section toolbar-center">
-        <!-- 폰트 선택 (부크크명조 적용) -->
+        <!-- 폰트 선택 (기본값 마루부리) -->
         <select id="select-font">
-          <option value="BookkMyungjo" selected>부크크명조</option>
-          <option value="MaruBuri">마루부리</option>
+          <option value="MaruBuri" selected>마루부리</option>
+          <option value="BookkMyungjo">부크크명조</option>
           <option value="Pretendard">프리텐다드</option>
           <option value="Nanum Myeongjo">나눔명조</option>
           <option value="Noto Serif KR">본명조</option>
@@ -117,32 +117,33 @@
       </div>
 
       <div class="toolbar-section toolbar-right">
-        <!-- 이미지 UI 맞춤 글자 수 세기 위젯 -->
+        <!-- 글자 수 세기 버튼 -->
         <div class="word-counter-wrapper">
           <button id="btn-word-count-toggle" class="word-count-pill-btn" type="button">
             <span id="word-count-label">0 자</span>
             <i data-lucide="chevron-down"></i>
           </button>
-          
-          <div class="word-count-popover" id="word-count-popover" style="display: none;">
-            <div class="word-count-option active" data-mode="withSpace">
-              <span>공백 포함: <span id="cnt-with-space">0자</span></span>
-              <i data-lucide="check" class="check-icon"></i>
-            </div>
-            <div class="word-count-option" data-mode="noSpace">
-              <span>공백 제외: <span id="cnt-no-space">0자</span></span>
-              <i data-lucide="check" class="check-icon"></i>
-            </div>
-            <div class="word-count-option" data-mode="noSpaceSpecial">
-              <span>공백, 특문 제외: <span id="cnt-no-spec">0자</span></span>
-              <i data-lucide="check" class="check-icon"></i>
-            </div>
-            <div class="word-count-option" data-mode="words">
-              <span>단어 수: <span id="cnt-words">0 단어</span></span>
-              <i data-lucide="check" class="check-icon"></i>
-            </div>
-          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 완전히 독립된 플로팅 글자 수 선택 팝오버 (Fixed layer) -->
+    <div class="word-count-popover" id="word-count-popover" style="display: none;">
+      <div class="word-count-option active" data-mode="withSpace">
+        <span>공백 포함: <span id="cnt-with-space">0자</span></span>
+        <i data-lucide="check" class="check-icon"></i>
+      </div>
+      <div class="word-count-option" data-mode="noSpace">
+        <span>공백 제외: <span id="cnt-no-space">0자</span></span>
+        <i data-lucide="check" class="check-icon"></i>
+      </div>
+      <div class="word-count-option" data-mode="noSpaceSpecial">
+        <span>공백, 특문 제외: <span id="cnt-no-spec">0자</span></span>
+        <i data-lucide="check" class="check-icon"></i>
+      </div>
+      <div class="word-count-option" data-mode="words">
+        <span>단어 수: <span id="cnt-words">0 단어</span></span>
+        <i data-lucide="check" class="check-icon"></i>
       </div>
     </div>
 
