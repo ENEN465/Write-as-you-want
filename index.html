@@ -110,18 +110,33 @@
       padding: 12px 8px;
     }
 
+    .tree-folder {
+      margin-bottom: 12px;
+      border-radius: 6px;
+      padding: 2px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .tree-folder.drag-over {
+      background: #e7f5ff;
+      outline: 2px dashed #339af0;
+    }
+
     .tree-folder-title {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
-      color: #868e96;
+      color: #495057;
       padding: 6px 8px;
-      margin-top: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      border-radius: 4px;
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      user-select: none;
     }
+
+    .tree-folder-title:hover { background: #f1f3f5; }
+    .tree-folder-title.selected { background: #edf2ff; color: #3b5bdb; }
 
     .tree-folder-title:hover .btn-del-folder { display: inline-block; }
 
@@ -139,12 +154,17 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px 10px;
+      margin-left: 8px;
       font-size: 13px;
       color: #495057;
       border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 2px;
+      cursor: grab;
+      margin-top: 2px;
+      user-select: none;
     }
+
+    .tree-item:active { cursor: grabbing; }
+    .tree-item.dragging { opacity: 0.4; }
 
     .tree-item:hover { background: #f1f3f5; }
     .tree-item.active { background: #e7f5ff; color: #1c7ed6; font-weight: 600; }
@@ -405,7 +425,7 @@
         <span class="sidebar-title">원고 목록</span>
         <div class="sidebar-actions">
           <button id="btnAddFolder" title="새 폴더">+ 폴더</button>
-          <button id="btnAddFile" title="새 파일">+ 파일</button>
+          <button id="btnAddFile" title="선택된 폴더에 새 파일 생성">+ 파일</button>
         </div>
       </div>
       <div id="fileTree" class="file-tree">
@@ -565,7 +585,7 @@
     });
 
     // ----------------------------------------------------
-    // 💡 4. 폴더 및 파일 (사이드바) 데이터 관리 로직
+    // 💡 4. 폴더 및 파일 선택 & Drag and Drop 데이터 관리
     // ----------------------------------------------------
 
     let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
@@ -575,6 +595,7 @@
       files: [
         { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>' }
       ],
+      selectedFolderId: 'folder-1', // 현재 선택/주목된 폴더
       activeFileId: 'file-1'
     };
 
@@ -596,14 +617,49 @@
       documentStore.folders.forEach(folder => {
         const folderDiv = document.createElement('div');
         folderDiv.className = 'tree-folder';
+        folderDiv.dataset.folderId = folder.id;
 
+        // 폴더 드래그 앤 드롭 영역 이벤트 (파일을 받아들이는 target)
+        folderDiv.ondragover = (e) => {
+          e.preventDefault();
+          folderDiv.classList.add('drag-over');
+        };
+
+        folderDiv.ondragleave = () => {
+          folderDiv.classList.remove('drag-over');
+        };
+
+        folderDiv.ondrop = (e) => {
+          e.preventDefault();
+          folderDiv.classList.remove('drag-over');
+          const draggedFileId = e.dataTransfer.getData('text/plain');
+          
+          if (draggedFileId) {
+            const targetFile = documentStore.files.find(f => f.id === draggedFileId);
+            if (targetFile && targetFile.folderId !== folder.id) {
+              targetFile.folderId = folder.id;
+              documentStore.selectedFolderId = folder.id;
+              saveStore();
+              renderFileTree();
+            }
+          }
+        };
+
+        // 폴더 타이틀
         const folderTitle = document.createElement('div');
-        folderTitle.className = 'tree-folder-title';
+        const isFolderSelected = folder.id === documentStore.selectedFolderId;
+        folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
         folderTitle.innerHTML = `
-          <span>${folder.name}</span>
+          <span>📁 ${folder.name}</span>
           <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
         `;
-        folderDiv.appendChild(folderTitle);
+
+        // 폴더 클릭 시 '선택된 폴더' 지정
+        folderTitle.onclick = () => {
+          documentStore.selectedFolderId = folder.id;
+          saveStore();
+          renderFileTree();
+        };
 
         // 폴더 삭제 처리
         folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
@@ -611,6 +667,10 @@
           if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
             documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
             documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
+            
+            if (documentStore.selectedFolderId === folder.id) {
+              documentStore.selectedFolderId = documentStore.folders.length > 0 ? documentStore.folders[0].id : null;
+            }
             if (documentStore.files.length > 0) {
               documentStore.activeFileId = documentStore.files[0].id;
             } else {
@@ -622,20 +682,35 @@
           }
         };
 
+        folderDiv.appendChild(folderTitle);
+
         // 폴더 안 파일목록
         const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
         filesInFolder.forEach(file => {
           const fileItem = document.createElement('div');
           fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
+          fileItem.draggable = true; // 드래그 가능하게 설정
           fileItem.innerHTML = `
-            <span>${file.title || '제목 없음'}</span>
+            <span>📄 ${file.title || '제목 없음'}</span>
             <button class="btn-del-file" data-id="${file.id}">삭제</button>
           `;
 
+          // 파일 드래그 시작 이벤트
+          fileItem.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', file.id);
+            fileItem.classList.add('dragging');
+          };
+
+          fileItem.ondragend = () => {
+            fileItem.classList.remove('dragging');
+          };
+
+          // 파일 선택시 읽기 및 선택 폴더 자동 전환
           fileItem.onclick = () => {
             if (documentStore.activeFileId !== file.id) {
               saveCurrentFileState();
               documentStore.activeFileId = file.id;
+              documentStore.selectedFolderId = folder.id;
               saveStore();
               renderFileTree();
               loadActiveFile();
@@ -681,7 +756,7 @@
         // 사이드바 파일 제목 업데이트
         const activeTreeItem = fileTree.querySelector('.tree-item.active span');
         if (activeTreeItem) {
-          activeTreeItem.innerText = titleInput.value || '제목 없음';
+          activeTreeItem.innerText = `📄 ${titleInput.value || '제목 없음'}`;
         }
       }
     }
@@ -713,22 +788,33 @@
           name: folderName
         };
         documentStore.folders.push(newFolder);
+        documentStore.selectedFolderId = newFolder.id; // 새 폴더로 자동으로 선택 이동
         saveStore();
         renderFileTree();
       }
     };
 
-    // 새 파일 추가
+    // 선택된 폴더 안에 새 파일 추가
     btnAddFile.onclick = () => {
       if (documentStore.folders.length === 0) {
         alert('먼저 폴더를 생성해주세요.');
         return;
       }
-      const fileTitle = prompt('새 원고 제목을 입력하세요:', '제목 없음');
+
+      // 현재 선택된 폴더가 없으면 첫 번째 폴더로 지정
+      let targetFolderId = documentStore.selectedFolderId;
+      const targetFolder = documentStore.folders.find(f => f.id === targetFolderId);
+      
+      if (!targetFolder) {
+        targetFolderId = documentStore.folders[0].id;
+        documentStore.selectedFolderId = targetFolderId;
+      }
+
+      const fileTitle = prompt(`'${targetFolder ? targetFolder.name : '선택 폴더'}' 안에 생성할 원고 제목:`, '제목 없음');
       if (fileTitle !== null) {
         const newFile = {
           id: 'file-' + Date.now(),
-          folderId: documentStore.folders[0].id, // 첫 번째 폴더에 기본 추가
+          folderId: targetFolderId,
           title: fileTitle,
           subtitle: '',
           content: '<p></p>'
