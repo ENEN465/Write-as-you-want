@@ -3,950 +3,437 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- 브라우저 캐시 방지 -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
   <title>Write as you want</title>
   
-  <!-- PWA 및 웹 아이콘 설정 -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1a1a1a">
-  <link rel="icon" href="./icon.webp" type="image/webp">
-
-  <!-- 웹폰트 불러오기 -->
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="https://hangeul.naver.com/css/webfont/nanum-barun-gothic.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-ko-pub-batang@1.0.1/kopub-batang.min.css">
-  <link rel="stylesheet" href="https://hangeul.naver.com/css/webfont/nanum-myeongjo.css">
-
-</head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Write as you want</title>
-  
-  <!-- ★ 외부 CSS 파일 연결 ★ -->
+  <!-- 외부 CSS 분리 파일 연결 -->
   <link rel="stylesheet" href="style.css">
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a1a1a">
   <link rel="icon" href="./icon.webp" type="image/webp">
-<body class="font-maruburi">
 
-  <div class="app-layout">
-    <div id="sidebar" class="sidebar">
-      <div class="sidebar-header">
-        <span class="sidebar-title">원고 목록</span>
-        <div class="sidebar-actions">
-          <button id="btnAddFolder" title="새 폴더">+ 폴더</button>
-          <button id="btnAddFile" title="선택된 폴더에 새 파일 생성">+ 파일</button>
+  <!-- 폰트 불러오기 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+<div class="app-layout">
+  
+  <!-- ★ 상단 밀착 & 한 줄 고정 툴바 ★ -->
+  <div class="toolbar">
+    <button id="btn-toggle-sidebar" title="사이드바 열기/닫기">📁 목록</button>
+    <button id="btn-sync-setting" title="연동 설정">☁️ 연동</button>
+    <div class="save-status" id="save-status"></div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- 폰트 & 스타일 -->
+    <select id="select-font">
+      <option value="font-maruburi">마루부리</option>
+      <option value="font-pretendard">프리텐다드</option>
+      <option value="font-bookk-myungjo">부크크명조</option>
+      <option value="font-nanum-myeongjo">나눔명조</option>
+      <option value="font-noto-serif">본명조</option>
+      <option value="font-nanum-barun">나눔바른고딕</option>
+    </select>
+
+    <select id="select-heading">
+      <option value="p">본문</option>
+      <option value="h1">제목 1</option>
+      <option value="h2">제목 2</option>
+      <option value="h3">제목 3</option>
+    </select>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- 서식 (볼드, 이탈릭, 취소선, 첨자) -->
+    <button id="btn-bold" title="굵게"><b>B</b></button>
+    <button id="btn-italic" title="기울임"><i>I</i></button>
+    <button id="btn-strike" title="취소선"><s>S</s></button>
+    <button id="btn-subscript" title="아래 첨자">X₂</button>
+    <button id="btn-superscript" title="위 첨자">X²</button>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- ★ 신규 추가 1: 글씨 색상 ★ -->
+    <input type="color" id="input-text-color" title="글자 색상 변경" value="#212529">
+
+    <!-- ★ 신규 추가 2: 정렬 ★ -->
+    <button id="btn-align-left" title="왼쪽 정렬">⬅️</button>
+    <button id="btn-align-center" title="가운데 정렬">↔️</button>
+    <button id="btn-align-right" title="오른쪽 정렬">➡️</button>
+    <button id="btn-align-justify" title="양쪽 정렬">☰</button>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- ★ 신규 추가 3: 표 & 이미지 ★ -->
+    <button id="btn-insert-table" title="표 삽입 (3x3)">📊 표</button>
+    <button id="btn-insert-image" title="이미지 삽입">🖼️ 이미지</button>
+
+    <!-- 구분선 -->
+    <select id="select-hr">
+      <option value="" disabled selected>구분선 삽입</option>
+      <option value="line">실선</option>
+      <option value="dashed">점선</option>
+      <option value="asterisk">별표 (***)</option>
+      <option value="ornament">다이아 (◇◇◇)</option>
+    </select>
+
+    <div class="toolbar-divider"></div>
+
+    <button id="btn-open-search">찾기</button>
+
+    <!-- 글자 수 카운터 -->
+    <div class="word-counter-wrapper">
+      <div class="counter-badge" id="counter-badge">0자</div>
+      <div class="counter-dropdown" id="counter-dropdown">
+        <div class="counter-item active" data-type="char-no-space">
+          <span>공백 제외 글자 수</span>
+          <span class="check-mark">✓</span>
         </div>
-      </div>
-      <div id="fileTree" class="file-tree"></div>
-    </div>
-
-    <div class="main-content">
-      <div class="toolbar">
-        <button id="btnToggleSidebar" title="사이드바 토글">목록</button>
-        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
-
-        <select id="fontSelect" title="폰트 변경">
-          <optgroup label="명조 계열">
-            <option value="font-maruburi" selected>마루부리</option>
-            <option value="font-bookk-myungjo">부크크명조</option>
-            <option value="font-nanum-myeongjo">나눔명조</option>
-            <option value="font-noto-serif">본명조 (Noto Serif)</option>
-            <option value="font-kopub">KoPub 바탕</option>
-          </optgroup>
-          <optgroup label="고딕 계열">
-            <option value="font-pretendard">프리텐다드</option>
-            <option value="font-nanum-barun">나눔바른고딕</option>
-          </optgroup>
-        </select>
-
-        <select id="headingSelect" title="본문/제목 스타일">
-          <option value="paragraph">본문</option>
-          <option value="1">제목 1</option>
-          <option value="2">제목 2</option>
-          <option value="3">제목 3</option>
-        </select>
-
-        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
-
-        <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
-        <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
-        <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
-        <button id="btnSub" title="아래 첨자">X<sub>2</sub></button>
-        <button id="btnSup" title="위 첨자">X<sup>2</sup></button>
-
-        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
-
-        <select id="dividerSelect" class="divider-select" title="구분선 선택">
-          <option value="" disabled selected>구분선 삽입</option>
-          <option value="line">───── (실선)</option>
-          <option value="dashed">╌╌╌╌╌ (점선)</option>
-          <option value="asterisk">*** (아스테리스크)</option>
-          <option value="ornament">◇ ◇ ◇ (문양)</option>
-        </select>
-
-        <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
-        <button id="btnHistory" title="버전 히스토리 보기">버전</button>
-        <button id="btnSync" title="GitHub 클라우드 연동">☁️ 연동</button>
-        <span id="saveStatus" class="save-status">저장됨</span>
-
-        <div class="word-counter-wrapper">
-          <div id="counterBadge" class="counter-badge">0자</div>
-          <div id="counterDropdown" class="counter-dropdown">
-            <div class="counter-item active" data-type="with-space">
-              <span>공백 포함: <b id="cntWithSpace">0자</b></span>
-              <span class="check-mark">✓</span>
-            </div>
-            <div class="counter-item" data-type="no-space">
-              <span>공백 제외: <b id="cntNoSpace">0자</b></span>
-              <span class="check-mark">✓</span>
-            </div>
-            <div class="counter-item" data-type="no-special">
-              <span>공백, 특문 제외: <b id="cntNoSpecial">0자</b></span>
-              <span class="check-mark">✓</span>
-            </div>
-            <div class="counter-item" data-type="word-count">
-              <span>단어 수: <b id="cntWords">0 단어</b></span>
-              <span class="check-mark">✓</span>
-            </div>
-          </div>
+        <div class="counter-item" data-type="char-with-space">
+          <span>공백 포함 글자 수</span>
+          <span class="check-mark">✓</span>
         </div>
-      </div>
-
-      <!-- GitHub 연동 설정 모달 -->
-      <div id="syncModal" class="sync-modal">
-        <div style="font-weight: bold; font-size: 14px; margin-bottom: 12px;">GitHub 클라우드 연동 설정</div>
-        <div class="modal-field">
-          <label for="ghOwner">GitHub 아이디 (Owner)</label>
-          <input type="text" id="ghOwner" placeholder="예: mygithubid" />
+        <div class="counter-item" data-type="word">
+          <span>단어 수</span>
+          <span class="check-mark">✓</span>
         </div>
-        <div class="modal-field">
-          <label for="ghRepo">저장소 이름 (Repository)</label>
-          <input type="text" id="ghRepo" placeholder="예: write-as-you-want" />
-        </div>
-        <div class="modal-field">
-          <label for="ghToken">Personal Access Token (PAT)</label>
-          <input type="password" id="ghToken" placeholder="ghp_..." />
-        </div>
-        <div style="display: flex; gap: 6px; margin-top: 14px;">
-          <button id="btnSaveSyncConfig" style="flex: 1; padding: 6px; background: #339af0; color: white; border: none; border-radius: 4px; cursor: pointer;">저장 및 연동</button>
-          <button id="btnManualPull" style="padding: 6px; background: #f1f3f5; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer;">클라우드에서 동기화</button>
-        </div>
-        <div class="search-status" style="margin-top: 10px;">
-          <span id="syncStatusMsg">설정 정보를 입력하세요.</span>
-          <button id="btnCloseSync" style="padding: 2px 6px; font-size: 11px;">닫기</button>
-        </div>
-      </div>
-
-      <!-- Ctrl+F 찾기 모달 -->
-      <div id="searchModal" class="search-modal">
-        <div class="search-row">
-          <input type="text" id="searchInput" placeholder="찾을 단어 입력..." />
-          <button id="btnFindNext">찾기</button>
-        </div>
-        <div class="search-row">
-          <input type="text" id="replaceInput" placeholder="바꿀 단어 입력..." />
-          <button id="btnReplaceAll">모두 바꾸기</button>
-        </div>
-        <div class="search-status">
-          <span id="searchResultCount">단어를 검색하세요</span>
-          <button id="btnCloseSearch" style="padding: 2px 6px; font-size: 11px;">닫기 (Esc)</button>
-        </div>
-      </div>
-
-      <!-- 버전 히스토리 모달 -->
-      <div id="historyModal" class="history-modal">
-        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">버전 기록 (타임머신)</div>
-        <div id="historyList" class="history-list"></div>
-        <div class="search-status">
-          <span>원하는 버전을 선택하여 복원하세요.</span>
-          <button id="btnCloseHistory" style="padding: 2px 6px; font-size: 11px;">닫기</button>
-        </div>
-      </div>
-
-      <div class="editor-container">
-        <div class="post-header">
-          <input type="text" class="title-input" placeholder="제목 없음" />
-          <input type="text" class="subtitle-input" placeholder="부제목을 입력하세요." />
-          <hr class="header-divider" />
-        </div>
-
-        <div id="editor"></div>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { Editor } from 'https://esm.sh/@tiptap/core@2.2.4';
-    import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.2.4';
-    import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.2.4';
-    import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.2.4';
-    import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.2.4';
-    import Highlight from 'https://esm.sh/@tiptap/extension-highlight@2.2.4';
+  <!-- 좌측 사이드바 -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">내 글 목록</span>
+      <div class="sidebar-actions">
+        <button id="btn-add-folder" title="새 폴더">+ 폴더</button>
+        <button id="btn-add-doc" title="새 문서">+ 문서</button>
+      </div>
+    </div>
+    <div class="file-tree" id="file-tree"></div>
+  </div>
 
-    const titleInput = document.querySelector('.title-input');
-    const subtitleInput = document.querySelector('.subtitle-input');
-    const saveStatus = document.getElementById('saveStatus');
+  <!-- 메인 에디터 -->
+  <div class="main-content">
+    <div class="editor-container font-maruburi" id="editor-container">
+      <div class="post-header">
+        <input type="text" class="title-input" id="title-input" placeholder="제목을 입력하세요">
+        <input type="text" class="subtitle-input" id="subtitle-input" placeholder="소제목을 입력하세요 (선택)">
+        <hr class="header-divider">
+      </div>
+      <div id="editor"></div>
+    </div>
+  </div>
+</div>
 
-    const CustomHorizontalRule = HorizontalRule.extend({
-      addAttributes() {
-        return {
-          'data-style': {
-            default: 'line',
-            parseHTML: element => element.getAttribute('data-style'),
-            renderHTML: attributes => ({ 'data-style': attributes['data-style'] }),
+<!-- 검색 모달 -->
+<div class="search-modal" id="search-modal">
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="찾을 단어...">
+    <button id="btn-search-prev">◀</button>
+    <button id="btn-search-next">▶</button>
+    <button id="btn-close-search">X</button>
+  </div>
+  <div class="search-status">
+    <span id="search-count">0/0</span>
+  </div>
+</div>
+
+<!-- Firebase 연동 설정 모달 -->
+<div class="sync-modal" id="sync-modal">
+  <h4 style="margin-bottom:12px; font-size:14px;">🔥 Firebase 실시간 연동 설정</h4>
+  <div class="modal-field">
+    <label>Database URL</label>
+    <input type="text" id="cfg-db-url" placeholder="https://your-app.firebaseio.com">
+  </div>
+  <div class="modal-field">
+    <label>API Key</label>
+    <input type="text" id="cfg-api-key" placeholder="AIzaSy...">
+  </div>
+  <div style="display:flex; justify-content:space-between; margin-top:14px;">
+    <button id="btn-save-sync" style="background:#339af0; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">저장 및 연결</button>
+    <button id="btn-close-sync" style="background:#f1f3f5; border:1px solid #dee2e6; padding:6px 12px; border-radius:4px; cursor:pointer;">닫기</button>
+  </div>
+</div>
+
+<!-- TipTap 모듈 및 필수 라이브러리 (ESM) -->
+<script type="module">
+  import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
+  import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
+  import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.1.13';
+  import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.1.13';
+  import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
+  import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.1.13';
+  import Color from 'https://esm.sh/@tiptap/extension-color@2.1.13';
+  import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
+  import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
+  import Table from 'https://esm.sh/@tiptap/extension-table@2.1.13';
+  import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.1.13';
+  import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.13';
+  import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.13';
+
+  // 커스텀 구분선 확장
+  const CustomHorizontalRule = HorizontalRule.extend({
+    addAttributes() {
+      return {
+        'data-style': {
+          default: 'line',
+          parseHTML: element => element.getAttribute('data-style'),
+          renderHTML: attributes => {
+            return { 'data-style': attributes['data-style'] };
           },
-        }
-      },
-    });
+        },
+      };
+    },
+  });
 
-    let selectedCountType = 'with-space';
-
-    function updateWordCount() {
-      const titleText = (titleInput.value || '').replace(/\r?\n|\r/g, '');
-      const subtitleText = (subtitleInput.value || '').replace(/\r?\n|\r/g, '');
-      const bodyText = editor ? editor.getText().replace(/\r?\n|\r/g, '') : '';
-      const fullText = titleText + subtitleText + bodyText;
-
-      const withSpace = fullText.length;
-      const noSpace = fullText.replace(/\s+/g, '').length;
-      const noSpecial = fullText.replace(/[^a-zA-Z0-9가-힣ㄱ-하-ㅣ]/g, '').length;
-      const trimmed = fullText.trim();
-      const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
-
-      document.getElementById('cntWithSpace').innerText = `${withSpace}자`;
-      document.getElementById('cntNoSpace').innerText = `${noSpace}자`;
-      document.getElementById('cntNoSpecial').innerText = `${noSpecial}자`;
-      document.getElementById('cntWords').innerText = `${wordCount} 단어`;
-
-      const counterBadge = document.getElementById('counterBadge');
-      if (selectedCountType === 'with-space') counterBadge.innerText = `${withSpace}자`;
-      else if (selectedCountType === 'no-space') counterBadge.innerText = `${noSpace}자`;
-      else if (selectedCountType === 'no-special') counterBadge.innerText = `${noSpecial}자`;
-      else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
+  // 데이터 구조
+  let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
+    { id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [
+        { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>글을 작성해보세요!</p>', title: '첫 번째 글', subtitle: '' }
+      ] 
     }
-
-    const editor = new Editor({
-      element: document.querySelector('#editor'),
-      extensions: [
-        StarterKit.configure({ horizontalRule: false }),
-        Subscript,
-        Superscript,
-        CustomHorizontalRule,
-        Highlight.configure({ multicolor: true }),
-      ],
-      content: `<p>여기에 본문을 입력하세요.</p>`,
-      onUpdate() {
-        updateWordCount();
-        triggerAutoSave();
-      },
-      onSelectionUpdate({ editor }) {
-        document.getElementById('btnBold').classList.toggle('is-active', editor.isActive('bold'));
-        document.getElementById('btnItalic').classList.toggle('is-active', editor.isActive('italic'));
-        document.getElementById('btnStrike').classList.toggle('is-active', editor.isActive('strike'));
-        document.getElementById('btnSub').classList.toggle('is-active', editor.isActive('subscript'));
-        document.getElementById('btnSup').classList.toggle('is-active', editor.isActive('superscript'));
-
-        const headingSelect = document.getElementById('headingSelect');
-        if (editor.isActive('heading', { level: 1 })) headingSelect.value = '1';
-        else if (editor.isActive('heading', { level: 2 })) headingSelect.value = '2';
-        else if (editor.isActive('heading', { level: 3 })) headingSelect.value = '3';
-        else headingSelect.value = 'paragraph';
-      }
-    });
-
-    let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
-      folders: [{ id: 'folder-1', name: '기본 폴더' }],
-      files: [{ id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>', history: [] }],
-      selectedFolderId: null,
-      activeFileId: 'file-1',
-      collapsedFolders: []
-    };
-
-    if (!documentStore.collapsedFolders) documentStore.collapsedFolders = [];
-
-    let saveTimeout = null;
-    let githubSyncTimeout = null;
-
-    function saveStore() {
-      localStorage.setItem('my_documents', JSON.stringify(documentStore));
-      saveStatus.innerText = '저장됨';
-      saveStatus.className = 'save-status';
-    }
-
-    function triggerAutoSave() {
-      saveStatus.innerText = '저장 중...';
-      saveStatus.className = 'save-status saving';
-
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => {
-        saveCurrentFileState();
-        triggerGitHubPushDebounced();
-      }, 800);
-    }
-
-    function saveCurrentFileState() {
-      if (!documentStore.activeFileId) return;
-      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
-      if (activeFile) {
-        activeFile.title = titleInput.value;
-        activeFile.subtitle = subtitleInput.value;
-        activeFile.content = editor.getHTML();
-        saveStore();
-
-        const activeTreeItem = fileTree.querySelector('.tree-item.active span');
-        if (activeTreeItem) {
-          activeTreeItem.innerText = titleInput.value || '제목 없음';
-        }
-      }
-    }
-
-    /* === GitHub API 동기화 엔진 === */
-    let ghConfig = JSON.parse(localStorage.getItem('gh_config')) || { owner: '', repo: '', token: '' };
-    let fileSha = null;
-
-    function triggerGitHubPushDebounced() {
-      clearTimeout(githubSyncTimeout);
-      githubSyncTimeout = setTimeout(() => {
-        pushToGitHub();
-      }, 3000);
-    }
-
-    async function pushToGitHub() {
-      if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) return;
-
-      saveStatus.innerText = '☁️ 동기화 중...';
-      saveStatus.className = 'save-status saving';
-
-      const contentStr = btoa(unescape(encodeURIComponent(JSON.stringify(documentStore, null, 2))));
-      const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/data.json`;
-
-      try {
-        if (!fileSha) {
-          const getRes = await fetch(url, { headers: { Authorization: `token ${ghConfig.token}` } });
-          if (getRes.ok) {
-            const getData = await getRes.json();
-            fileSha = getData.sha;
-          }
-        }
-
-        const body = {
-          message: 'Auto-sync from Write as you want',
-          content: contentStr,
-          sha: fileSha || undefined
-        };
-
-        const putRes = await fetch(url, {
-          method: 'PUT',
-          headers: {
-            Authorization: `token ${ghConfig.token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        });
-
-        if (putRes.ok) {
-          const resData = await putRes.json();
-          fileSha = resData.content.sha;
-          saveStatus.innerText = '☁️ 동기화 완료';
-          saveStatus.className = 'save-status synced';
-          document.getElementById('syncStatusMsg').innerText = '동기화 성공!';
-        } else {
-          const errData = await putRes.json();
-          saveStatus.innerText = '☁️ 동기화 실패';
-          document.getElementById('syncStatusMsg').innerText = `오류 (${putRes.status}): ${errData.message || '정보 확인 필요'}`;
-        }
-      } catch (err) {
-        console.error(err);
-        saveStatus.innerText = '☁️ 오류 발생';
-        document.getElementById('syncStatusMsg').innerText = '네트워크 연결 상태를 확인하세요.';
-      }
-    }
-
-    async function pullFromGitHub() {
-      if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) return;
-
-      const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/data.json`;
-      document.getElementById('syncStatusMsg').innerText = '클라우드 데이터 확인 중...';
-
-      try {
-        const res = await fetch(url, { headers: { Authorization: `token ${ghConfig.token}` } });
-        if (res.ok) {
-          const data = await res.json();
-          fileSha = data.sha;
-          const decoded = decodeURIComponent(escape(atob(data.content)));
-          documentStore = JSON.parse(decoded);
-          saveStore();
-          renderFileTree();
-          loadActiveFile();
-          document.getElementById('syncStatusMsg').innerText = '성공적으로 불러왔습니다!';
-        } else if (res.status === 404) {
-          document.getElementById('syncStatusMsg').innerText = 'data.json 파일이 없습니다. 새로 생성합니다...';
-          pushToGitHub(); // 파일이 없으면 자동으로 생성 시도
-        } else {
-          document.getElementById('syncStatusMsg').innerText = `불러오기 실패 (${res.status}): 계정/토큰 확인`;
-        }
-      } catch (err) {
-        console.error(err);
-        document.getElementById('syncStatusMsg').innerText = '동기화 중 오류가 발생했습니다.';
-      }
-    }
-
-    // 모달 및 UI 로직
-    const syncModal = document.getElementById('syncModal');
-    const btnSync = document.getElementById('btnSync');
-    const btnCloseSync = document.getElementById('btnCloseSync');
-    const btnSaveSyncConfig = document.getElementById('btnSaveSyncConfig');
-    const btnManualPull = document.getElementById('btnManualPull');
-
-    btnSync.onclick = () => {
-      document.getElementById('ghOwner').value = ghConfig.owner || '';
-      document.getElementById('ghRepo').value = ghConfig.repo || '';
-      document.getElementById('ghToken').value = ghConfig.token || '';
-      syncModal.classList.add('show');
-    };
-
-    btnCloseSync.onclick = () => syncModal.classList.remove('show');
-
-    btnSaveSyncConfig.onclick = () => {
-      ghConfig.owner = document.getElementById('ghOwner').value.trim();
-      ghConfig.repo = document.getElementById('ghRepo').value.trim();
-      ghConfig.token = document.getElementById('ghToken').value.trim();
-
-      localStorage.setItem('gh_config', JSON.stringify(ghConfig));
-      document.getElementById('syncStatusMsg').innerText = '설정 저장 중...';
-      pushToGitHub();
-    };
-
-    btnManualPull.onclick = () => {
-      pullFromGitHub();
-    };
-
-    function createHistorySnapshot() {
-      if (!documentStore.activeFileId) return;
-      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
-      if (!activeFile) return;
-
-      if (!activeFile.history) activeFile.history = [];
-      const currentContent = editor.getHTML();
-      const lastSnapshot = activeFile.history[0];
-
-      if (lastSnapshot && lastSnapshot.content === currentContent) return;
-
-      activeFile.history.unshift({
-        timestamp: new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        title: titleInput.value,
-        subtitle: subtitleInput.value,
-        content: currentContent
-      });
-
-      if (activeFile.history.length > 20) activeFile.history.pop();
-      saveStore();
-    }
-
-    setInterval(createHistorySnapshot, 60000);
-
-    const sidebar = document.getElementById('sidebar');
-    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
-    const fileTree = document.getElementById('fileTree');
-    const btnAddFolder = document.getElementById('btnAddFolder');
-    const btnAddFile = document.getElementById('btnAddFile');
-
-    if (localStorage.getItem('sidebar_collapsed') === 'true') {
-      sidebar.classList.add('collapsed');
-    }
-
-    btnToggleSidebar.onclick = () => {
-      sidebar.classList.toggle('collapsed');
-      localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
-    };
-
-    function loadActiveFile() {
-      if (!documentStore.activeFileId) {
-        titleInput.value = '';
-        subtitleInput.value = '';
-        editor.commands.setContent('', false);
-        updateWordCount();
-        return;
-      }
-
-      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
-      if (activeFile) {
-        titleInput.value = activeFile.title || '';
-        subtitleInput.value = activeFile.subtitle || '';
-        editor.commands.setContent(activeFile.content || '<p></p>', false);
-        setTimeout(updateWordCount, 50);
-      }
-    }
-
-    function closeAllMenus() {
-      document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
-    }
-
-    document.addEventListener('click', () => {
-      closeAllMenus();
-      if (documentStore.selectedFolderId !== null) {
-        documentStore.selectedFolderId = null;
-        saveStore();
-        renderFileTree();
-      }
-    });
-
-    function renderFileTree() {
-      fileTree.innerHTML = '';
-
-      documentStore.folders.forEach(folder => {
-        const folderDiv = document.createElement('div');
-        folderDiv.className = 'tree-folder';
-        folderDiv.dataset.folderId = folder.id;
-
-        folderDiv.ondragover = (e) => { e.preventDefault(); folderDiv.classList.add('drag-over'); };
-        folderDiv.ondragleave = () => folderDiv.classList.remove('drag-over');
-        folderDiv.ondrop = (e) => {
-          e.preventDefault();
-          folderDiv.classList.remove('drag-over');
-          const draggedFileId = e.dataTransfer.getData('text/plain');
-          if (draggedFileId) {
-            const targetFile = documentStore.files.find(f => f.id === draggedFileId);
-            if (targetFile && targetFile.folderId !== folder.id) {
-              targetFile.folderId = folder.id;
-              documentStore.selectedFolderId = folder.id;
-              saveStore();
-              renderFileTree();
-              triggerGitHubPushDebounced();
-            }
-          }
-        };
-
-        const isCollapsed = documentStore.collapsedFolders.includes(folder.id);
-        const folderTitle = document.createElement('div');
-        const isFolderSelected = folder.id === documentStore.selectedFolderId;
-        folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
-        
-        folderTitle.innerHTML = `
-          <div class="folder-label">
-            <span class="folder-toggle-icon">${isCollapsed ? '▶' : '▼'}</span>
-            <span>📁 ${folder.name}</span>
-          </div>
-          <div class="menu-wrapper">
-            <button class="btn-more" title="메뉴">···</button>
-            <div class="menu-dropdown">
-              <div class="menu-dropdown-item btn-edit-folder">이름 수정</div>
-              <div class="menu-dropdown-item danger btn-del-folder">삭제</div>
-            </div>
-          </div>
-        `;
-
-        folderTitle.onclick = (e) => {
-          e.stopPropagation();
-          closeAllMenus();
-          
-          if (isCollapsed) {
-            documentStore.collapsedFolders = documentStore.collapsedFolders.filter(id => id !== folder.id);
-          } else {
-            documentStore.collapsedFolders.push(folder.id);
-          }
-          
-          documentStore.selectedFolderId = folder.id;
-          saveStore();
-          renderFileTree();
-        };
-
-        const folderMoreBtn = folderTitle.querySelector('.btn-more');
-        const folderDropdown = folderTitle.querySelector('.menu-dropdown');
-
-        folderMoreBtn.onclick = (e) => {
-          e.stopPropagation();
-          const isShow = folderDropdown.classList.contains('show');
-          closeAllMenus();
-          if (!isShow) folderDropdown.classList.add('show');
-        };
-
-        folderTitle.querySelector('.btn-edit-folder').onclick = (e) => {
-          e.stopPropagation();
-          closeAllMenus();
-          const newName = prompt('변경할 폴더 이름을 입력하세요:', folder.name);
-          if (newName && newName.trim() !== '') {
-            folder.name = newName.trim();
-            saveStore();
-            renderFileTree();
-            triggerGitHubPushDebounced();
-          }
-        };
-
-        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
-          e.stopPropagation();
-          closeAllMenus();
-          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
-            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
-            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
-            documentStore.collapsedFolders = documentStore.collapsedFolders.filter(id => id !== folder.id);
-            if (documentStore.selectedFolderId === folder.id) documentStore.selectedFolderId = null;
-            documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
-            saveStore();
-            renderFileTree();
-            loadActiveFile();
-            triggerGitHubPushDebounced();
-          }
-        };
-
-        folderDiv.appendChild(folderTitle);
-
-        if (!isCollapsed) {
-          const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
-          filesInFolder.forEach(file => {
-            const fileItem = document.createElement('div');
-            fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
-            fileItem.draggable = true;
-            fileItem.innerHTML = `
-              <span>📄 ${file.title || '제목 없음'}</span>
-              <div class="menu-wrapper">
-                <button class="btn-more" title="메뉴">···</button>
-                <div class="menu-dropdown">
-                  <div class="menu-dropdown-item btn-duplicate-file">복제</div>
-                  <div class="menu-dropdown-item danger btn-del-file">삭제</div>
-                </div>
-              </div>
-            `;
-
-            fileItem.ondragstart = (e) => {
-              e.dataTransfer.setData('text/plain', file.id);
-              fileItem.classList.add('dragging');
-            };
-            fileItem.ondragend = () => fileItem.classList.remove('dragging');
-
-            fileItem.onclick = (e) => {
-              e.stopPropagation();
-              closeAllMenus();
-              if (documentStore.activeFileId !== file.id) {
-                createHistorySnapshot();
-                saveCurrentFileState();
-                documentStore.activeFileId = file.id;
-                documentStore.selectedFolderId = folder.id;
-                saveStore();
-                renderFileTree();
-                loadActiveFile();
-              }
-            };
-
-            const fileMoreBtn = fileItem.querySelector('.btn-more');
-            const fileDropdown = fileItem.querySelector('.menu-dropdown');
-
-            fileMoreBtn.onclick = (e) => {
-              e.stopPropagation();
-              const isShow = fileDropdown.classList.contains('show');
-              closeAllMenus();
-              if (!isShow) fileDropdown.classList.add('show');
-            };
-
-            fileItem.querySelector('.btn-duplicate-file').onclick = (e) => {
-              e.stopPropagation();
-              closeAllMenus();
-              saveCurrentFileState();
-
-              const duplicatedFile = {
-                id: 'file-' + Date.now(),
-                folderId: file.folderId,
-                title: (file.title || '제목 없음') + ' (사본)',
-                subtitle: file.subtitle || '',
-                content: file.content || '<p></p>',
-                history: []
-              };
-
-              documentStore.files.push(duplicatedFile);
-              documentStore.activeFileId = duplicatedFile.id;
-              saveStore();
-              renderFileTree();
-              loadActiveFile();
-              triggerGitHubPushDebounced();
-            };
-
-            fileItem.querySelector('.btn-del-file').onclick = (e) => {
-              e.stopPropagation();
-              closeAllMenus();
-              if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
-                documentStore.files = documentStore.files.filter(f => f.id !== file.id);
-                if (documentStore.activeFileId === file.id) {
-                  documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
-                }
-                saveStore();
-                renderFileTree();
-                loadActiveFile();
-                triggerGitHubPushDebounced();
-              }
-            };
-
-            folderDiv.appendChild(fileItem);
-          });
-        }
-
-        fileTree.appendChild(folderDiv);
-      });
-    }
-
-    btnAddFolder.onclick = () => {
-      const folderName = prompt('새 폴더 이름을 입력하세요:', '새 폴더');
-      if (folderName) {
-        const newFolder = { id: 'folder-' + Date.now(), name: folderName };
-        documentStore.folders.push(newFolder);
-        documentStore.selectedFolderId = newFolder.id;
-        saveStore();
-        renderFileTree();
-        triggerGitHubPushDebounced();
-      }
-    };
-
-    btnAddFile.onclick = () => {
-      if (documentStore.folders.length === 0) {
-        alert('먼저 폴더를 생성해주세요.');
-        return;
-      }
-
-      let targetFolderId = documentStore.selectedFolderId || documentStore.folders[0].id;
-      if (documentStore.collapsedFolders.includes(targetFolderId)) {
-        documentStore.collapsedFolders = documentStore.collapsedFolders.filter(id => id !== targetFolderId);
-      }
-
-      const fileTitle = prompt('새 원고 제목:', '제목 없음');
-      if (fileTitle !== null) {
-        const newFile = {
-          id: 'file-' + Date.now(),
-          folderId: targetFolderId,
-          title: fileTitle,
-          subtitle: '',
-          content: '<p></p>',
-          history: []
-        };
-        saveCurrentFileState();
-        documentStore.files.push(newFile);
-        documentStore.activeFileId = newFile.id;
-        saveStore();
-        renderFileTree();
-        loadActiveFile();
-        triggerGitHubPushDebounced();
-      }
-    };
-
-    titleInput.addEventListener('input', () => { updateWordCount(); triggerAutoSave(); });
-    subtitleInput.addEventListener('input', () => { updateWordCount(); triggerAutoSave(); });
-
-    document.addEventListener('keyup', updateWordCount);
-    document.addEventListener('paste', () => setTimeout(updateWordCount, 50));
-
-    // 접속 시 클라우드 자동 동기화 시도
-    if (ghConfig.owner && ghConfig.repo && ghConfig.token) {
-      pullFromGitHub();
-    } else {
-      renderFileTree();
-      loadActiveFile();
-    }
-
-    // 버전 히스토리
-    const btnHistory = document.getElementById('btnHistory');
-    const historyModal = document.getElementById('historyModal');
-    const historyList = document.getElementById('historyList');
-    const btnCloseHistory = document.getElementById('btnCloseHistory');
-
-    btnHistory.onclick = () => {
-      createHistorySnapshot();
-      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
-      historyList.innerHTML = '';
-
-      if (!activeFile || !activeFile.history || activeFile.history.length === 0) {
-        historyList.innerHTML = '<div style="padding: 12px; font-size: 12px; color: #868e96; text-align: center;">저장된 이전 버전이 없습니다.</div>';
-      } else {
-        activeFile.history.forEach((snap) => {
-          const item = document.createElement('div');
-          item.className = 'history-item';
-          const plainText = snap.content.replace(/<[^>]*>?/gm, '');
-          item.innerHTML = `
-            <span class="history-time">${snap.timestamp}</span>
-            <span class="history-preview">${plainText || '빈 원고'}</span>
-          `;
-          item.onclick = () => {
-            if (confirm(`${snap.timestamp} 시점의 버전으로 복원하시겠습니까?`)) {
-              createHistorySnapshot();
-              titleInput.value = snap.title || '';
-              subtitleInput.value = snap.subtitle || '';
-              editor.commands.setContent(snap.content || '<p></p>', false);
-              saveCurrentFileState();
-              updateWordCount();
-              historyModal.classList.remove('show');
-              triggerGitHubPushDebounced();
-            }
-          };
-          historyList.appendChild(item);
-        });
-      }
-
-      historyModal.classList.add('show');
-    };
-
-    btnCloseHistory.onclick = () => historyModal.classList.remove('show');
-
-    // Ctrl+F 찾기
-    const searchModal = document.getElementById('searchModal');
-    const searchInput = document.getElementById('searchInput');
-    const replaceInput = document.getElementById('replaceInput');
-    const btnSearch = document.getElementById('btnSearch');
-    const btnReplaceAll = document.getElementById('btnReplaceAll');
-    const btnCloseSearch = document.getElementById('btnCloseSearch');
-    const searchResultCount = document.getElementById('searchResultCount');
-
-    function clearHighlights() {
-      const html = editor.getHTML();
-      const cleanHTML = html.replace(/<mark[^>]*>(.*?)<\/mark>/gi, '$1');
-      if (html !== cleanHTML) editor.commands.setContent(cleanHTML, false);
-    }
-
-    btnSearch.onclick = () => {
-      searchModal.classList.add('show');
-      searchInput.focus();
-      searchInput.select();
-    };
-
-    btnCloseSearch.onclick = () => {
-      searchModal.classList.remove('show');
-      searchResultCount.innerText = '단어를 검색하세요';
-      searchInput.value = '';
-      replaceInput.value = '';
-      clearHighlights();
-      editor.commands.focus();
-    };
-
-    window.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        searchModal.classList.add('show');
-        searchInput.focus();
-      }
-      if (e.key === 'Escape') {
-        searchModal.classList.remove('show');
-        historyModal.classList.remove('show');
-        syncModal.classList.remove('show');
-      }
-    });
-
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value;
-      clearHighlights();
-      if (!query.trim()) {
-        searchResultCount.innerText = '검색어를 입력하세요';
-        return;
-      }
-      const currentHTML = editor.getHTML();
-      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(?<!<[^>]*)${escapedQuery}(?![^<]*>)`, 'gi');
-      const matches = currentHTML.match(regex);
-      const count = matches ? matches.length : 0;
-
-      if (count > 0) {
-        editor.commands.setContent(currentHTML.replace(regex, `<mark>$&</mark>`), false);
-        searchResultCount.innerText = `총 ${count}개 발견`;
-      } else {
-        searchResultCount.innerText = '일치하는 단어가 없습니다';
-      }
-    });
-
-    btnReplaceAll.onclick = () => {
-      const searchVal = searchInput.value;
-      const replaceVal = replaceInput.value;
-      if (!searchVal) return;
-
-      clearHighlights();
-      const currentHTML = editor.getHTML();
-      const regex = new RegExp(`(?<!<[^>]*)${searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![^<]*>)`, 'g');
-      editor.commands.setContent(currentHTML.replace(regex, replaceVal), false);
+  ];
+  let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
+  let counterType = 'char-no-space';
+  let firebaseRef = null;
+
+  // TipTap 에디터 초기화
+  const editor = new Editor({
+    element: document.querySelector('#editor'),
+    extensions: [
+      StarterKit.configure({ horizontalRule: false }),
+      Subscript,
+      Superscript,
+      CustomHorizontalRule,
+      TextStyle,
+      Color,
+      Image,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
+    ],
+    content: '',
+    onUpdate({ editor }) {
       updateWordCount();
-      saveCurrentFileState();
-      searchResultCount.innerText = '모두 교체되었습니다!';
-      searchInput.value = '';
-      triggerGitHubPushDebounced();
-    };
+      triggerAutoSave();
+    },
+    onSelectionUpdate({ editor }) {
+      updateToolbarState();
+    }
+  });
 
-    const counterBadge = document.getElementById('counterBadge');
-    const counterDropdown = document.getElementById('counterDropdown');
+  // 문서 세팅
+  function loadDoc(docId) {
+    const doc = findNode(treeData, docId);
+    if (!doc) return;
+    activeDocId = docId;
+    localStorage.setItem('my_active_doc_id', docId);
 
-    counterBadge.addEventListener('click', (e) => {
-      e.stopPropagation();
-      counterDropdown.classList.toggle('show');
-    });
+    document.getElementById('title-input').value = doc.title || doc.name || '';
+    document.getElementById('subtitle-input').value = doc.subtitle || '';
+    editor.commands.setContent(doc.content || '');
+    updateWordCount();
+    renderTree();
+  }
 
-    document.querySelectorAll('.counter-item').forEach(item => {
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.counter-item').forEach(el => el.classList.remove('active'));
-        item.classList.add('active');
-        selectedCountType = item.getAttribute('data-type');
-        updateWordCount();
-        counterDropdown.classList.remove('show');
-      });
-    });
-
-    document.addEventListener('click', () => counterDropdown.classList.remove('show'));
-
-    titleInput.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-        e.preventDefault();
-        subtitleInput.focus();
-        subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
+  function findNode(nodes, id) {
+    for (let node of nodes) {
+      if (node.id === id) return node;
+      if (node.children) {
+        let res = findNode(node.children, id);
+        if (res) return res;
       }
-    });
+    }
+    return null;
+  }
 
-    subtitleInput.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        titleInput.focus();
-        titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
-      } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
-        e.preventDefault();
-        editor.chain().focus('start').run();
-      }
-    });
+  // 자동 저장
+  let saveTimer = null;
+  function triggerAutoSave() {
+    const status = document.getElementById('save-status');
+    status.textContent = '저장 중...';
+    status.className = 'save-status saving';
 
-    const editorDom = document.querySelector('.ProseMirror');
-    editorDom.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') {
-        const { selection } = editor.state;
-        if (selection.$from.pos <= 1) {
-          e.preventDefault();
-          e.stopPropagation();
-          subtitleInput.focus();
-          subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const doc = findNode(treeData, activeDocId);
+      if (doc) {
+        doc.title = document.getElementById('title-input').value;
+        doc.subtitle = document.getElementById('subtitle-input').value;
+        doc.name = doc.title || '제목 없음';
+        doc.content = editor.getHTML();
+
+        localStorage.setItem('my_tree_data', JSON.stringify(treeData));
+
+        if (firebaseRef) {
+          firebaseRef.set(treeData);
         }
+
+        status.textContent = '저장됨';
+        status.className = 'save-status synced';
+        renderTree();
       }
-    }, true);
+    }, 800);
+  }
 
-    document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
-    document.getElementById('btnItalic').onclick = () => editor.chain().focus().toggleItalic().run();
-    document.getElementById('btnStrike').onclick = () => editor.chain().focus().toggleStrike().run();
-    document.getElementById('btnSub').onclick = () => editor.chain().focus().toggleSubscript().run();
-    document.getElementById('btnSup').onclick = () => editor.chain().focus().toggleSuperscript().run();
+  // 글자수 측정
+  function updateWordCount() {
+    const text = editor.getText();
+    let count = 0;
+    if (counterType === 'char-no-space') {
+      count = text.replace(/\s/g, '').length;
+    } else if (counterType === 'char-with-space') {
+      count = text.length;
+    } else if (counterType === 'word') {
+      count = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    }
+    document.getElementById('counter-badge').textContent = `${count.toLocaleString()}${counterType === 'word' ? '단어' : '자'}`;
+  }
 
-    document.getElementById('headingSelect').onchange = (e) => {
-      const val = e.target.value;
-      if (val === 'paragraph') editor.chain().focus().setParagraph().run();
-      else editor.chain().focus().toggleHeading({ level: parseInt(val) }).run();
+  // 툴바 버튼 활성화 상태
+  function updateToolbarState() {
+    document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
+    document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
+    document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
+    document.getElementById('btn-subscript').classList.toggle('is-active', editor.isActive('subscript'));
+    document.getElementById('btn-superscript').classList.toggle('is-active', editor.isActive('superscript'));
+  }
+
+  // 툴바 이벤트 연결
+  document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
+  document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
+  document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
+  document.getElementById('btn-subscript').onclick = () => editor.chain().focus().toggleSubscript().run();
+  document.getElementById('btn-superscript').onclick = () => editor.chain().focus().toggleSuperscript().run();
+
+  // 정렬 기능
+  document.getElementById('btn-align-left').onclick = () => editor.chain().focus().setTextAlign('left').run();
+  document.getElementById('btn-align-center').onclick = () => editor.chain().focus().setTextAlign('center').run();
+  document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
+  document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
+
+  // 색상 변경
+  document.getElementById('input-text-color').oninput = (e) => {
+    editor.chain().focus().setColor(e.target.value).run();
+  };
+
+  // 표 삽입 (3x3 기본)
+  document.getElementById('btn-insert-table').onclick = () => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  };
+
+  // 이미지 삽입
+  document.getElementById('btn-insert-image').onclick = () => {
+    const url = prompt('이미지 URL을 입력하세요:');
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  // 제목/본문 변환
+  document.getElementById('select-heading').onchange = (e) => {
+    const val = e.target.value;
+    if (val === 'p') editor.chain().focus().setParagraph().run();
+    else if (val === 'h1') editor.chain().focus().toggleHeading({ level: 1 }).run();
+    else if (val === 'h2') editor.chain().focus().toggleHeading({ level: 2 }).run();
+    else if (val === 'h3') editor.chain().focus().toggleHeading({ level: 3 }).run();
+  };
+
+  // 구분선 삽입
+  document.getElementById('select-hr').onchange = (e) => {
+    const style = e.target.value;
+    if (style) {
+      editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': style } }).run();
+      e.target.value = '';
+    }
+  };
+
+  // 폰트 스타일 변경
+  document.getElementById('select-font').onchange = (e) => {
+    const container = document.getElementById('editor-container');
+    container.className = `editor-container ${e.target.value}`;
+  };
+
+  // 카운터 드롭다운 토글
+  const badge = document.getElementById('counter-badge');
+  const dropdown = document.getElementById('counter-dropdown');
+  badge.onclick = (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('show');
+  };
+  document.addEventListener('click', () => dropdown.classList.remove('show'));
+
+  document.querySelectorAll('.counter-item').forEach(item => {
+    item.onclick = () => {
+      document.querySelectorAll('.counter-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      counterType = item.getAttribute('data-type');
+      updateWordCount();
     };
+  });
 
-    document.getElementById('fontSelect').onchange = (e) => {
-      document.body.className = e.target.value;
-    };
+  // 사이드바 토글
+  document.getElementById('btn-toggle-sidebar').onclick = () => {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  };
 
-    document.getElementById('dividerSelect').onchange = (e) => {
-      const style = e.target.value;
-      if (style) {
-        editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': style } }).run();
-        e.target.value = '';
+  // 제목 / 소제목 변경 시 자동 저장
+  document.getElementById('title-input').oninput = triggerAutoSave;
+  document.getElementById('subtitle-input').oninput = triggerAutoSave;
+
+  // 파일 트리 리렌더링
+  function renderTree() {
+    const container = document.getElementById('file-tree');
+    container.innerHTML = '';
+
+    treeData.forEach(folder => {
+      const folderDiv = document.createElement('div');
+      folderDiv.className = 'tree-folder';
+      
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'tree-folder-title';
+      titleDiv.innerHTML = `
+        <span class="folder-label">
+          <span class="folder-toggle-icon">${folder.isOpen ? '▼' : '▶'}</span> 📁 ${folder.name}
+        </span>
+      `;
+      titleDiv.onclick = () => {
+        folder.isOpen = !folder.isOpen;
+        renderTree();
+      };
+
+      folderDiv.appendChild(titleDiv);
+
+      if (folder.isOpen && folder.children) {
+        folder.children.forEach(doc => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = `tree-item ${doc.id === activeDocId ? 'active' : ''}`;
+          itemDiv.innerHTML = `📄 ${doc.name || '제목 없음'}`;
+          itemDiv.onclick = (e) => {
+            e.stopPropagation();
+            loadDoc(doc.id);
+          };
+          folderDiv.appendChild(itemDiv);
+        });
       }
-    };
-  </script>
+      container.appendChild(folderDiv);
+    });
+  }
+
+  // 초기화 실행
+  renderTree();
+  loadDoc(activeDocId);
+</script>
+
 </body>
 </html>
