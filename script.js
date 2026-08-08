@@ -66,20 +66,22 @@ selectFontEl.addEventListener('change', (e) => {
 });
 document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
 
-// ★ 글자 색상 바로 선택 로직 ★
+// 글자 색상 로직
 const colorInput = document.getElementById('input-font-color');
 const paletteBtn = document.getElementById('btn-color-palette');
 
-paletteBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  colorInput.click(); // 아이콘 누르면 바로 색상창 열기
-});
+if (paletteBtn && colorInput) {
+  paletteBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    colorInput.click();
+  });
 
-colorInput.addEventListener('input', (e) => {
-  const selectedColor = e.target.value;
-  editor.chain().focus().setColor(selectedColor).run();
-  updateToolbarState();
-});
+  colorInput.addEventListener('input', (e) => {
+    const selectedColor = e.target.value;
+    editor.chain().focus().setColor(selectedColor).run();
+    updateToolbarState();
+  });
+}
 
 // 툴바 서식 상태 업데이트
 function updateToolbarState() {
@@ -164,6 +166,158 @@ document.getElementById('input-image-file').onchange = (e) => {
     reader.onload = (event) => editor.chain().focus().setImage({ src: event.target.result }).run();
     reader.readAsDataURL(file);
   }
+};
+
+// ★ 3번: 찾기 및 바꾸기 로직 ★
+const btnSearch = document.getElementById('btn-search');
+const searchPopover = document.getElementById('search-popover-box');
+const inputSearch = document.getElementById('input-search');
+const inputReplace = document.getElementById('input-replace');
+const searchCountBadge = document.getElementById('search-count-badge');
+const btnSearchPrev = document.getElementById('btn-search-prev');
+const btnSearchNext = document.getElementById('btn-search-next');
+const btnToggleReplace = document.getElementById('btn-toggle-replace');
+const replaceRow = document.getElementById('replace-bottom-row');
+const btnReplaceOne = document.getElementById('btn-replace-one');
+const btnReplaceAll = document.getElementById('btn-replace-all');
+const btnSearchClose = document.getElementById('btn-search-close');
+
+let searchMatches = [];
+let currentMatchIndex = -1;
+
+btnSearch.onclick = () => {
+  const isHidden = searchPopover.style.display === 'none';
+  searchPopover.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    inputSearch.focus();
+    performSearch();
+  } else {
+    clearSearchHighlights();
+  }
+};
+
+btnSearchClose.onclick = () => {
+  searchPopover.style.display = 'none';
+  clearSearchHighlights();
+};
+
+btnToggleReplace.onclick = () => {
+  const isRowHidden = replaceRow.style.display === 'none' || replaceRow.style.display === '';
+  replaceRow.style.display = isRowHidden ? 'flex' : 'none';
+};
+
+inputSearch.addEventListener('input', () => performSearch());
+
+function clearSearchHighlights() {
+  const editorEl = document.querySelector('#editor .ProseMirror');
+  if (!editorEl) return;
+  const highlights = editorEl.querySelectorAll('.search-highlight, .search-highlight-active');
+  highlights.forEach(el => {
+    const parent = el.parentNode;
+    parent.replaceChild(document.createTextNode(el.textContent), el);
+    parent.normalize();
+  });
+  searchMatches = [];
+  currentMatchIndex = -1;
+  searchCountBadge.textContent = '0 / 0';
+}
+
+function performSearch() {
+  clearSearchHighlights();
+  const query = inputSearch.value;
+  if (!query) return;
+
+  const editorEl = document.querySelector('#editor .ProseMirror');
+  if (!editorEl) return;
+
+  const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
+  let textNode;
+  const nodesToProcess = [];
+
+  while (textNode = walker.nextNode()) {
+    if (textNode.nodeValue.includes(query)) {
+      nodesToProcess.push(textNode);
+    }
+  }
+
+  nodesToProcess.forEach(node => {
+    const parent = node.parentNode;
+    const text = node.nodeValue;
+    const parts = text.split(query);
+    const fragment = document.createDocumentFragment();
+
+    parts.forEach((part, index) => {
+      if (part) fragment.appendChild(document.createTextNode(part));
+      if (index < parts.length - 1) {
+        const span = document.createElement('span');
+        span.className = 'search-highlight';
+        span.textContent = query;
+        fragment.appendChild(span);
+        searchMatches.push(span);
+      }
+    });
+
+    parent.replaceChild(fragment, node);
+  });
+
+  if (searchMatches.length > 0) {
+    currentMatchIndex = 0;
+    updateActiveHighlight();
+  } else {
+    searchCountBadge.textContent = '0 / 0';
+  }
+}
+
+function updateActiveHighlight() {
+  searchMatches.forEach((span, idx) => {
+    if (idx === currentMatchIndex) {
+      span.className = 'search-highlight-active';
+      span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      span.className = 'search-highlight';
+    }
+  });
+
+  searchCountBadge.textContent = `${currentMatchIndex + 1} / ${searchMatches.length}`;
+}
+
+btnSearchNext.onclick = () => {
+  if (searchMatches.length === 0) return;
+  currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+  updateActiveHighlight();
+};
+
+btnSearchPrev.onclick = () => {
+  if (searchMatches.length === 0) return;
+  currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+  updateActiveHighlight();
+};
+
+btnReplaceOne.onclick = () => {
+  if (searchMatches.length === 0 || currentMatchIndex === -1) return;
+  const targetSpan = searchMatches[currentMatchIndex];
+  const replaceText = inputReplace.value;
+
+  targetSpan.textContent = replaceText;
+  targetSpan.className = ''; 
+
+  const htmlContent = document.querySelector('#editor .ProseMirror').innerHTML;
+  editor.commands.setContent(htmlContent);
+
+  performSearch();
+};
+
+btnReplaceAll.onclick = () => {
+  const query = inputSearch.value;
+  const replaceText = inputReplace.value;
+  if (!query) return;
+
+  let content = editor.getHTML();
+  const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+  content = content.replace(regex, replaceText);
+
+  editor.commands.setContent(content);
+  performSearch();
 };
 
 // 사이드바 및 저장
