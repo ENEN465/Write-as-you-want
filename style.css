@@ -3,7 +3,7 @@
 @import url('https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css');
 @import url('https://cdn.jsdelivr.net/gh/webfontworld/naver/NanumBarunGothic.css');
 
-/* 리디바탕 직접 선언 (100% 적용 보장) */
+/* 리디바탕 직접 선언 */
 @font-face {
   font-family: 'RIDIBatang';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
@@ -29,21 +29,31 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
-/* 사이드바 */
+/* 사이드바 & 반응형 오버레이 */
+.sidebar-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 99;
+}
+
 .sidebar {
-  width: 250px;
+  width: 260px;
   background-color: #f1f3f5;
   border-right: 1px solid #dee2e6;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s ease;
-  z-index: 10;
+  transition: transform 0.3s ease, margin-left 0.3s ease;
+  z-index: 100;
+  flex-shrink: 0;
 }
 
 .sidebar.collapsed {
-  margin-left: -250px;
+  margin-left: -260px;
 }
 
 .sidebar-header {
@@ -86,15 +96,34 @@ body {
   padding: 12px;
 }
 
+/* 사이드바 트리 구조 및 드래그 & 드롭 스타일 */
+.tree-folder {
+  margin-bottom: 4px;
+}
+
 .tree-folder-title, .tree-item {
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  transition: background-color 0.15s ease;
 }
 
 .tree-folder-title:hover, .tree-item:hover {
   background-color: #e9ecef;
+}
+
+.tree-folder-title.drag-over {
+  background-color: #d0ebff !important;
+  border: 1px dashed #228be6;
+}
+
+.tree-item.dragging {
+  opacity: 0.4;
 }
 
 .tree-item.active {
@@ -104,7 +133,64 @@ body {
 }
 
 .tree-item {
-  padding-left: 24px;
+  padding-left: 28px;
+}
+
+.item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.btn-more-options {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+}
+
+.btn-more-options:hover {
+  opacity: 1;
+  background-color: #ced4da;
+}
+
+/* 드롭다운 컨텍스트 메뉴 */
+.context-menu {
+  position: fixed;
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 4px 0;
+  z-index: 1000;
+  width: 160px;
+}
+
+.context-menu .menu-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #343a40;
+}
+
+.context-menu .menu-item:hover {
+  background-color: #f1f3f5;
+}
+
+.context-menu .menu-item.danger {
+  color: #e03131;
+}
+
+.context-menu .menu-item.danger:hover {
+  background-color: #fff5f5;
 }
 
 /* 메인 영역 및 툴바 */
@@ -126,6 +212,8 @@ body {
   padding: 0 16px;
   font-family: var(--system-ui-font);
   box-sizing: border-box;
+  overflow-x: auto; /* 모바일 반응형 스크롤 */
+  white-space: nowrap;
 }
 
 .toolbar-section {
@@ -143,6 +231,7 @@ body {
   height: 20px;
   background-color: #dee2e6;
   margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .toolbar button {
@@ -155,6 +244,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #495057;
+  flex-shrink: 0;
 }
 
 .toolbar button:hover {
@@ -164,6 +254,116 @@ body {
 .toolbar button.is-active {
   background-color: #e7f5ff;
   color: #1c7ed6;
+}
+
+.save-status {
+  font-size: 12px;
+  color: #868e96;
+  white-space: nowrap;
+}
+
+/* 모달 스타일 (히스토리 & GitHub) */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  width: 480px;
+  max-width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  padding: 16px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-item {
+  padding: 10px;
+  border-bottom: 1px solid #f1f3f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-time {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.history-tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: #e7f5ff;
+  color: #1c7ed6;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.github-guide {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.input-group {
+  margin-bottom: 12px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
 /* 글자수 Popover */
@@ -325,7 +525,7 @@ body {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
+  padding: 40px 20px;
   display: flex;
   justify-content: center;
 }
@@ -363,7 +563,7 @@ body {
   margin-bottom: 30px;
 }
 
-/* 에디터 본문 및 모든 내부 태그에 선택된 폰트 강제 선언 */
+/* 에디터 본문 및 내부 서체 정의 */
 #editor .ProseMirror,
 #editor .ProseMirror p,
 #editor .ProseMirror h1,
@@ -378,4 +578,41 @@ body {
   min-height: 400px;
   font-size: 16px;
   line-height: 1.7;
+}
+
+/* =========================================================
+   모바일 최적화 반응형 미디어 쿼리 (768px 이하)
+   ========================================================= */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    transform: translateX(0);
+    box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    margin-left: 0;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .main-content {
+    padding: 20px 12px;
+  }
+
+  .title-input {
+    font-size: 24px;
+  }
+
+  .subtitle-input {
+    font-size: 15px;
+  }
+
+  .toolbar {
+    padding: 0 8px;
+  }
 }
