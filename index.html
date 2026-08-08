@@ -10,13 +10,8 @@
   <meta name="theme-color" content="#1a1a1a">
   <link rel="icon" href="./icon.webp" type="image/webp">
 
-  <!-- 폰트 불러오기 -->
   <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
-
-  <!-- Firebase CDN -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <!-- Lucide 아이콘 라이브러리 -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -25,7 +20,6 @@
 
 <div class="app-layout">
   
-  <!-- 1. 좌측 사이드바 (파일 목록 영역) -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <span class="sidebar-title">내 글 목록</span>
@@ -37,22 +31,19 @@
     <div class="file-tree" id="file-tree"></div>
   </div>
 
-  <!-- 2. 우측 메인 영역 (상단바 + 편집기) -->
   <div class="main-wrapper">
     
-    <!-- 우측 영역 최상단 툴바 (3단 구성) -->
     <div class="toolbar">
       
-      <!-- [좌측] 사이드바/연동/저장 상태 -->
+      <!-- [좌측] -->
       <div class="toolbar-section toolbar-left">
         <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
         <button id="btn-sync-setting" title="연동 설정"><i data-lucide="cloud"></i></button>
         <div class="save-status" id="save-status">저장됨</div>
       </div>
 
-      <!-- [중앙] 핵심 편집 기능 (화면 가운데 정렬) -->
+      <!-- [중앙] -->
       <div class="toolbar-section toolbar-center">
-        <!-- 폰트 & 스타일 -->
         <select id="select-font">
           <option value="font-maruburi">마루부리</option>
           <option value="font-pretendard">프리텐다드</option>
@@ -71,7 +62,6 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 서식 -->
         <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
         <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
         <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
@@ -80,7 +70,7 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 글씨 색상 지정 팔레트 -->
+        <!-- 글자 색상 팔레트 -->
         <div class="color-picker-wrapper">
           <button id="btn-color-palette" title="글자 색상"><i data-lucide="palette"></i></button>
           <div class="color-palette-popover" id="color-palette-popover">
@@ -90,16 +80,15 @@
             <div class="color-swatch" style="background:#e64980" data-color="#e64980"></div>
             <div class="color-swatch" style="background:#be4bdb" data-color="#be4bdb"></div>
             <div class="color-swatch" style="background:#7950f2" data-color="#7950f2"></div>
-            <div class="color-swatch" style="background:#4c6ef5" data-color="#4c6ef5"></div>
             <div class="color-swatch" style="background:#228be6" data-color="#228be6"></div>
             <div class="color-swatch" style="background:#12b886" data-color="#12b886"></div>
             <div class="color-swatch" style="background:#40c057" data-color="#40c057"></div>
+            <div class="color-swatch" style="background:#fd7e14" data-color="#fd7e14"></div>
           </div>
         </div>
 
         <div class="toolbar-divider"></div>
 
-        <!-- 정렬 -->
         <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
         <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
         <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
@@ -107,25 +96,24 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 표 (노션 기능 대응 드롭다운) -->
+        <!-- 표 관리 메뉴 -->
         <div class="table-menu-wrapper">
           <button id="btn-table-menu" title="표 관리"><i data-lucide="table"></i></button>
           <div class="table-popover" id="table-popover">
             <button id="btn-table-insert">➕ 표 생성 (3x3)</button>
-            <button id="btn-table-add-row-after">➕ 아래 행 추가</button>
-            <button id="btn-table-add-col-after">➕ 오른쪽 열 추가</button>
+            <button id="btn-table-add-row-before">⬆️ 위에 행 추가</button>
+            <button id="btn-table-add-row-after">⬇️ 아래 행 추가</button>
+            <button id="btn-table-add-col-before">⬅️ 왼쪽에 열 추가</button>
+            <button id="btn-table-add-col-after">➡️ 오른쪽에 열 추가</button>
             <button id="btn-table-delete-row">➖ 행 삭제</button>
             <button id="btn-table-delete-col">➖ 열 삭제</button>
             <button id="btn-table-delete">❌ 표 삭제</button>
           </div>
         </div>
 
-        <!-- 이미지 업로드 -->
         <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
-        <!-- 숨김 파일 입력 태그 -->
         <input type="file" id="input-image-file" accept="image/*" style="display:none;">
 
-        <!-- 구분선 -->
         <select id="select-hr">
           <option value="" disabled selected>구분선</option>
           <option value="line">실선</option>
@@ -135,11 +123,10 @@
         </select>
       </div>
 
-      <!-- [우측] 검색 / 글자 수 카운터 -->
+      <!-- [우측] -->
       <div class="toolbar-section toolbar-right">
         <button id="btn-open-search" title="찾기"><i data-lucide="search"></i></button>
 
-        <!-- 글자 수 카운터 드롭다운 -->
         <div class="word-counter-wrapper">
           <div class="counter-badge" id="counter-badge">0자</div>
           <div class="counter-dropdown" id="counter-dropdown">
@@ -161,7 +148,6 @@
 
     </div>
 
-    <!-- 우측 영역 본문 에디터 -->
     <div class="main-content">
       <div class="editor-container font-maruburi" id="editor-container">
         <div class="post-header">
@@ -173,10 +159,20 @@
       </div>
     </div>
 
-  </div> <!-- /main-wrapper -->
+  </div>
 </div>
 
-<!-- TipTap 모듈 및 필수 라이브러리 (ESM) -->
+<!-- 찾기 모달 -->
+<div class="search-modal" id="search-modal">
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="찾을 단어 입력...">
+    <button id="btn-close-search">✕</button>
+  </div>
+  <div class="search-status">
+    <span id="search-count">검색 결과 없음</span>
+  </div>
+</div>
+
 <script type="module">
   import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
   import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
@@ -192,7 +188,6 @@
   import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.13';
   import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.13';
 
-  // 커스텀 구분선 확장
   const CustomHorizontalRule = HorizontalRule.extend({
     addAttributes() {
       return {
@@ -214,7 +209,6 @@
   let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
   let counterType = 'char-no-space';
 
-  // TipTap 에디터 초기화
   const editor = new Editor({
     element: document.querySelector('#editor'),
     extensions: [
@@ -226,17 +220,22 @@
       Color,
       Image,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Table.configure({ resizable: true }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'editor-table',
+        },
+      }),
       TableRow,
       TableHeader,
       TableCell,
     ],
     content: '',
-    onUpdate({ editor }) {
+    onUpdate() {
       updateWordCount();
       triggerAutoSave();
     },
-    onSelectionUpdate({ editor }) {
+    onSelectionUpdate() {
       updateToolbarState();
     }
   });
@@ -265,7 +264,6 @@
     return null;
   }
 
-  // 자동 저장
   let saveTimer = null;
   function triggerAutoSave() {
     const status = document.getElementById('save-status');
@@ -289,7 +287,6 @@
     }, 800);
   }
 
-  // 글자수 측정
   function updateWordCount() {
     const text = editor.getText();
     let count = 0;
@@ -311,7 +308,7 @@
     document.getElementById('btn-superscript').classList.toggle('is-active', editor.isActive('superscript'));
   }
 
-  // 툴바 기본 서식 이벤트 연결
+  /* 포맷팅 기본 버튼 */
   document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
   document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
   document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
@@ -323,22 +320,25 @@
   document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
   document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
 
-  // 색상 팔레트 토글 및 선택
+  /* 1. 색상 선택 */
   const paletteBtn = document.getElementById('btn-color-palette');
   const palettePopover = document.getElementById('color-palette-popover');
+  
   paletteBtn.onclick = (e) => {
     e.stopPropagation();
     palettePopover.classList.toggle('show');
   };
+
   document.querySelectorAll('.color-swatch').forEach(swatch => {
-    swatch.onclick = () => {
+    swatch.onclick = (e) => {
+      e.stopPropagation();
       const color = swatch.getAttribute('data-color');
       editor.chain().focus().setColor(color).run();
       palettePopover.classList.remove('show');
     };
   });
 
-  // 표 메뉴 토글 및 명령
+  /* 5. 표(Table) 기능 완벽 보완 및 수정 */
   const tableBtn = document.getElementById('btn-table-menu');
   const tablePopover = document.getElementById('table-popover');
   tableBtn.onclick = (e) => {
@@ -346,14 +346,40 @@
     tablePopover.classList.toggle('show');
   };
 
-  document.getElementById('btn-table-insert').onclick = () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-  document.getElementById('btn-table-add-row-after').onclick = () => editor.chain().focus().addRowAfter().run();
-  document.getElementById('btn-table-add-col-after').onclick = () => editor.chain().focus().addColumnAfter().run();
-  document.getElementById('btn-table-delete-row').onclick = () => editor.chain().focus().deleteRow().run();
-  document.getElementById('btn-table-delete-col').onclick = () => editor.chain().focus().deleteColumn().run();
-  document.getElementById('btn-table-delete').onclick = () => editor.chain().focus().deleteTable().run();
+  const handleTableCommand = (commandFn) => {
+    return (e) => {
+      e.stopPropagation();
+      commandFn();
+      tablePopover.classList.remove('show');
+    };
+  };
 
-  // 내 컴퓨터 파일 & URL 이미지 지원
+  document.getElementById('btn-table-insert').onclick = handleTableCommand(() => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  });
+  document.getElementById('btn-table-add-row-before').onclick = handleTableCommand(() => {
+    editor.chain().focus().addRowBefore().run();
+  });
+  document.getElementById('btn-table-add-row-after').onclick = handleTableCommand(() => {
+    editor.chain().focus().addRowAfter().run();
+  });
+  document.getElementById('btn-table-add-col-before').onclick = handleTableCommand(() => {
+    editor.chain().focus().addColumnBefore().run();
+  });
+  document.getElementById('btn-table-add-col-after').onclick = handleTableCommand(() => {
+    editor.chain().focus().addColumnAfter().run();
+  });
+  document.getElementById('btn-table-delete-row').onclick = handleTableCommand(() => {
+    editor.chain().focus().deleteRow().run();
+  });
+  document.getElementById('btn-table-delete-col').onclick = handleTableCommand(() => {
+    editor.chain().focus().deleteColumn().run();
+  });
+  document.getElementById('btn-table-delete').onclick = handleTableCommand(() => {
+    editor.chain().focus().deleteTable().run();
+  });
+
+  /* 이미지 */
   const imgBtn = document.getElementById('btn-insert-image');
   const imgInput = document.getElementById('input-image-file');
 
@@ -379,7 +405,12 @@
     imgInput.value = '';
   };
 
-  // 폰트 / 헤더 / 구분선
+  /* 폰트 및 요소 */
+  document.getElementById('select-font').onchange = (e) => {
+    const container = document.getElementById('editor-container');
+    container.className = `editor-container ${e.target.value}`;
+  };
+
   document.getElementById('select-heading').onchange = (e) => {
     const val = e.target.value;
     if (val === 'p') editor.chain().focus().setParagraph().run();
@@ -396,13 +427,36 @@
     }
   };
 
-  document.getElementById('select-font').onchange = (e) => {
-    document.getElementById('editor-container').className = `editor-container ${e.target.value}`;
+  /* 3. 찾기 모달 */
+  const searchModal = document.getElementById('search-modal');
+  const searchInput = document.getElementById('search-input');
+  const searchCount = document.getElementById('search-count');
+
+  document.getElementById('btn-open-search').onclick = (e) => {
+    e.stopPropagation();
+    searchModal.classList.toggle('show');
+    if (searchModal.classList.contains('show')) searchInput.focus();
   };
 
-  // 글자 수 드롭다운 토글 및 기능 설정
+  document.getElementById('btn-close-search').onclick = () => {
+    searchModal.classList.remove('show');
+  };
+
+  searchInput.oninput = () => {
+    const term = searchInput.value;
+    if (!term) {
+      searchCount.textContent = '검색 결과 없음';
+      return;
+    }
+    const text = editor.getText();
+    const matches = text.split(term).length - 1;
+    searchCount.textContent = matches > 0 ? `${matches}개 발견됨` : '검색 결과 없음';
+  };
+
+  /* 4. 글자 수 카운터 */
   const badge = document.getElementById('counter-badge');
   const dropdown = document.getElementById('counter-dropdown');
+  
   badge.onclick = (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('show');
@@ -419,14 +473,13 @@
     };
   });
 
-  // 전역 클릭 시 팝업들 닫기
+  /* 바깥 영역 클릭 시 팝업 닫기 */
   document.addEventListener('click', () => {
     palettePopover.classList.remove('show');
     tablePopover.classList.remove('show');
     dropdown.classList.remove('show');
   });
 
-  // 사이드바 토글
   document.getElementById('btn-toggle-sidebar').onclick = () => {
     document.getElementById('sidebar').classList.toggle('collapsed');
   };
