@@ -12,6 +12,7 @@
   font-weight: normal; font-style: normal;
 }
 
+/* 기본 글꼴 변수 지정 (기본값: 마루부리) */
 :root {
   --editor-font: 'MaruBuri', serif;
 }
@@ -50,7 +51,7 @@ body { background-color: #f8f9fa; color: #212529; height: 100vh; overflow: hidde
 .save-status.saving { color: #f59f00; }
 .save-status.synced { color: #2b8a3e; font-weight: 500; }
 
-/* 글자 수 드롭다운 UI */
+/* 글자 수 UI */
 .word-counter-wrapper { position: relative; display: inline-block; }
 .word-count-btn { background: #e9ecef !important; border: none !important; border-radius: 6px !important; padding: 4px 10px !important; font-size: 12px; font-weight: 500; color: #495057; display: flex; align-items: center; gap: 4px; }
 .word-count-popover { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: #ffffff; border: 1px solid #e9ecef; border-radius: 12px; padding: 8px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 220px; z-index: 500; }
@@ -67,7 +68,7 @@ body { background-color: #f8f9fa; color: #212529; height: 100vh; overflow: hidde
 .color-swatch { width: 20px; height: 20px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
 .color-swatch:hover { transform: scale(1.15); }
 
-/* 이미지 스타일 찾기/바꾸기 팝업 UI */
+/* 찾기/바꾸기 UI */
 .search-popover-box { position: absolute; top: 52px; right: 24px; background: #ffffff; border: 1px solid #e9ecef; border-radius: 12px; padding: 8px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 6px; z-index: 300; min-width: 280px; }
 .search-top-row, .replace-bottom-row { display: flex; align-items: center; gap: 6px; }
 .search-input-field, .replace-input-field { border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; background: #f8f9fa; flex: 1; }
@@ -81,22 +82,50 @@ body { background-color: #f8f9fa; color: #212529; height: 100vh; overflow: hidde
 .action-btn-sm.highlight-btn { background: #0ca678; color: #ffffff; border: none; }
 .action-btn-sm.highlight-btn:hover { background: #089669; }
 
-/* 검색 하이라이트 스타일 (전체 회색, 현재 항목 파란색) */
 mark.search-highlight { background-color: #ced4da; color: #212529; border-radius: 2px; }
 mark.search-highlight.current { background-color: #339af0; color: #ffffff; }
 
-/* 에디터 메인 영역 및 제목/소제목 폰트 일괄 고정 */
+/* 에디터 메인 영역 */
 .main-content { flex: 1; overflow-y: auto; display: flex; justify-content: center; padding: 30px 16px; background-color: #ffffff; }
 .editor-container { width: 100%; max-width: 720px; min-height: 80vh; }
 .post-header { margin-bottom: 20px; }
 
-/* 폰트 변경 시 제목과 소제목도 함께 변수 font 적용 */
-.title-input { width: 100%; border: none; outline: none; font-size: 2em; font-weight: 700; color: #212529; background: transparent; margin-bottom: 6px; font-family: var(--editor-font) !important; }
-.subtitle-input { width: 100%; border: none; outline: none; font-size: 1em; color: #868e96; background: transparent; margin-bottom: 16px; font-family: var(--editor-font) !important; }
+/* ★ 핵심: 제목과 소제목도 변수 --editor-font를 강제로 상속받도록 고정 ★ */
+.title-input { 
+  width: 100%; 
+  border: none; 
+  outline: none; 
+  font-size: 2em; 
+  font-weight: 700; 
+  color: #212529; 
+  background: transparent; 
+  margin-bottom: 6px; 
+  font-family: var(--editor-font) !important; 
+}
+
+.subtitle-input { 
+  width: 100%; 
+  border: none; 
+  outline: none; 
+  font-size: 1em; 
+  color: #868e96; 
+  background: transparent; 
+  margin-bottom: 16px; 
+  font-family: var(--editor-font) !important; 
+}
+
 .header-divider { border: none; border-top: 1px solid #f1f3f5; margin-bottom: 20px; }
 
-/* 에디터 전체 폰트 변수 적용 */
-.ProseMirror { outline: none; min-height: 50vh; font-size: 15px; line-height: 1.75; white-space: pre-wrap; word-wrap: break-word; font-family: var(--editor-font) !important; }
+/* 본문 영역 글꼴 적용 */
+.ProseMirror { 
+  outline: none; 
+  min-height: 50vh; 
+  font-size: 15px; 
+  line-height: 1.75; 
+  white-space: pre-wrap; 
+  word-wrap: break-word; 
+  font-family: var(--editor-font) !important; 
+}
 .ProseMirror * { font-family: inherit; }
 .ProseMirror p { margin: 0.5em 0; }
 .ProseMirror h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
