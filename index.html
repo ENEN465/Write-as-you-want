@@ -13,7 +13,10 @@
 <div class="app-layout">
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-title">내 글 목록</span>
+      <div class="sidebar-title-wrapper">
+        <img src="icon.webp" alt="App Icon" class="app-icon">
+        <span class="sidebar-title">내 글 목록</span>
+      </div>
       <div class="sidebar-actions">
         <button id="btn-add-folder" title="새 폴더">+ 폴더</button>
         <button id="btn-add-doc" title="새 문서">+ 문서</button>
@@ -30,17 +33,16 @@
       </div>
 
       <div class="toolbar-section toolbar-center">
-        <!-- 문서 전체 폰트 선택 -->
+        <!-- 폰트 일괄 선택 (기본: 마루부리) -->
         <select id="select-font">
+          <option value="MaruBuri" selected>마루부리</option>
           <option value="Pretendard">프리텐다드</option>
-          <option value="MaruBuri">마루부리</option>
           <option value="RIDIBatang">리디바탕</option>
           <option value="'Nanum Myeongjo'">나눔명조</option>
           <option value="'Noto Serif KR'">본명조</option>
           <option value="'Nanum Barun Gothic'">나눔바른고딕</option>
         </select>
         
-        <!-- 본문 / 제목 선택 -->
         <select id="select-heading">
           <option value="p">본문</option>
           <option value="h1">제목 1</option>
@@ -56,7 +58,7 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 글자 색상 -->
+        <!-- 글자 색상 팔레트 -->
         <div class="color-picker-wrapper">
           <button id="btn-color-palette" title="글자 색상"><i data-lucide="palette"></i></button>
           <div class="color-palette-popover" id="color-palette-popover">
@@ -85,7 +87,6 @@
         <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
         <input type="file" id="input-image-file" accept="image/*" style="display:none;">
 
-        <!-- 구분선 삽입 -->
         <select id="select-hr">
           <option value="" disabled selected>구분선</option>
           <option value="line">실선</option>
@@ -99,11 +100,11 @@
         <button id="btn-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
       </div>
 
-      <!-- 노벨라 스타일 글자수 세기 드롭다운 -->
+      <!-- 노벨라 스타일 글자 수 -->
       <div class="toolbar-section toolbar-right">
         <div class="word-counter-wrapper">
           <button id="btn-word-count-toggle" class="word-count-btn">
-            <span id="word-count-label">0 자</span>
+            <span id="word-count-label">0자</span>
             <i data-lucide="chevron-down"></i>
           </button>
           
@@ -129,17 +130,21 @@
       </div>
     </div>
 
-    <!-- 고급 찾기 / 바꾸기 바 -->
-    <div class="search-replace-bar" id="search-replace-bar" style="display:none;">
-      <div class="search-inputs">
-        <input type="text" id="input-search" placeholder="찾을 단어">
-        <input type="text" id="input-replace" placeholder="바꿀 단어">
+    <!-- 이미지 참고형 팝업 UI 찾기/바꾸기 -->
+    <div class="search-popover-box" id="search-popover-box" style="display:none;">
+      <div class="search-top-row">
+        <input type="text" id="input-search" placeholder="찾을 단어" class="search-input-field">
+        <span class="search-count-badge" id="search-count-badge">0 / 0</span>
+        <button id="btn-search-prev" class="icon-btn-sm" title="이전"><i data-lucide="chevron-up"></i></button>
+        <button id="btn-search-next" class="icon-btn-sm" title="다음"><i data-lucide="chevron-down"></i></button>
+        <button id="btn-toggle-replace" class="icon-btn-sm" title="바꾸기 열기/닫기"><i data-lucide="repeat"></i></button>
+        <button id="btn-search-close" class="icon-btn-sm">✕</button>
       </div>
-      <div class="search-actions">
-        <button id="btn-search-prev" title="이전"><i data-lucide="chevron-up"></i></button>
-        <button id="btn-search-next" title="다음"><i data-lucide="chevron-down"></i></button>
-        <button id="btn-replace-all">일괄 바꾸기</button>
-        <button id="btn-search-close">✕</button>
+
+      <div class="replace-bottom-row" id="replace-bottom-row">
+        <input type="text" id="input-replace" placeholder="바꿀 단어" class="replace-input-field">
+        <button id="btn-replace-one" class="action-btn-sm">바꾸기</button>
+        <button id="btn-replace-all" class="action-btn-sm highlight-btn">모두 바꾸기</button>
       </div>
     </div>
 
