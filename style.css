@@ -2,10 +2,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css');
 @import url('https://cdn.jsdelivr.net/gh/webfontworld/naver/NanumBarunGothic.css');
-@import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.css');
+
+/* 부크크명조 폰트 선언 */
+@font-face {
+  font-family: 'BookkMyungjo';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Bd.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
 
 :root {
-  --editor-content-font: 'RIDIBatang', serif;
+  --editor-content-font: 'BookkMyungjo', serif;
   --system-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -24,7 +31,7 @@ body {
   position: relative;
 }
 
-/* 사이드바 & 오버레이 */
+/* 사이드바 */
 .sidebar-overlay {
   display: none;
   position: absolute;
@@ -82,7 +89,6 @@ body {
   padding: 8px;
 }
 
-/* 사이드바 트리 아이템 및 드래그 관련 클래스 */
 .tree-folder {
   margin-bottom: 4px;
 }
@@ -144,7 +150,6 @@ body {
   background-color: #ced4da;
 }
 
-/* 점 세 개 컨텍스트 메뉴 */
 .context-menu {
   position: fixed;
   background: #ffffff;
@@ -171,7 +176,7 @@ body {
   color: #e03131;
 }
 
-/* 툴바 (상단바) 디자인 정밀 수정 */
+/* 툴바 (상단바) */
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -200,8 +205,7 @@ body {
   gap: 4px;
 }
 
-/* 아이콘 크기 고정 (더 작게 제한) */
-.toolbar button.btn-icon, .btn-more-options {
+.toolbar button.btn-icon {
   background: none;
   border: none;
   padding: 4px;
@@ -225,7 +229,6 @@ body {
   color: #1c7ed6;
 }
 
-/* Lucide SVG 아이콘 크기 고정 (16px x 16px) */
 .toolbar button.btn-icon svg,
 .btn-more-options svg,
 .icon-btn-sm svg {
@@ -234,7 +237,6 @@ body {
   stroke-width: 2px;
 }
 
-/* 저장 상태 고정 영역 (가로폭 고정하여 툴바 움직임 방지) */
 .save-status-container {
   width: 65px;
   text-align: center;
@@ -278,7 +280,114 @@ body {
   cursor: pointer;
 }
 
-/* 버전 관리 모달 */
+/* [3번 요구사항 구현] 이미지만큼 깔끔한 글자수 위젯 Popover 디자인 */
+.word-counter-wrapper {
+  position: relative;
+}
+
+.word-count-pill-btn {
+  background: #e9ecef;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: #343a40;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.word-count-pill-btn:hover {
+  background: #dee2e6;
+}
+
+.word-count-pill-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.word-count-popover {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 10px 0;
+  width: 240px;
+  z-index: 2000;
+}
+
+.word-count-option {
+  padding: 10px 18px;
+  font-size: 14px;
+  color: #333333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.1s;
+}
+
+.word-count-option:hover {
+  background-color: #f8f9fa;
+}
+
+.word-count-option .check-icon {
+  width: 16px !important;
+  height: 16px !important;
+  color: #0ca678;
+  display: none;
+}
+
+.word-count-option.active .check-icon {
+  display: block;
+}
+
+/* [2번 요구사항 구현] 구분선 CSS 스타일 세부 정의 */
+#editor .ProseMirror hr {
+  margin: 2em 0;
+  border: none;
+  background: transparent;
+  text-align: center;
+}
+
+/* 실선 */
+#editor .ProseMirror hr[data-style="line"] {
+  border-top: 1px solid #adb5bd;
+}
+
+/* 점선 */
+#editor .ProseMirror hr[data-style="dashed"] {
+  border-top: 2px dashed #868e96;
+}
+
+/* 별표 구분선 (***) */
+#editor .ProseMirror hr[data-style="asterisk"] {
+  height: auto;
+}
+#editor .ProseMirror hr[data-style="asterisk"]::before {
+  content: "★  ★  ★";
+  font-size: 14px;
+  color: #495057;
+  letter-spacing: 6px;
+}
+
+/* 다이아몬드 구분선 (◇◇◇) */
+#editor .ProseMirror hr[data-style="ornament"] {
+  height: auto;
+}
+#editor .ProseMirror hr[data-style="ornament"]::before {
+  content: "◇  ◇  ◇";
+  font-size: 15px;
+  color: #495057;
+  letter-spacing: 6px;
+}
+
+/* 히스토리 모달 */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -286,7 +395,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 3000;
 }
 
 .modal-content {
@@ -354,49 +463,7 @@ body {
   margin-left: 6px;
 }
 
-/* 찾기 & 바꾸기 및 글자수 관련 UI */
-.word-counter-wrapper {
-  position: relative;
-}
-
-.word-count-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.word-count-popover {
-  position: absolute;
-  right: 0;
-  top: 30px;
-  background: #fff;
-  border: 1px solid #dee2e6;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border-radius: 6px;
-  padding: 6px 0;
-  width: 170px;
-  z-index: 100;
-}
-
-.word-count-option {
-  padding: 6px 12px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.word-count-option:hover {
-  background-color: #f8f9fa;
-}
-
-.word-count-option.active {
-  font-weight: bold;
-  color: #1c7ed6;
-}
-
+/* 검색 팝업 */
 .search-popover-box {
   position: absolute;
   top: 50px;
@@ -406,7 +473,7 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   border-radius: 8px;
   padding: 8px 12px;
-  z-index: 500;
+  z-index: 1500;
   width: 340px;
   display: flex;
   flex-direction: column;
@@ -455,7 +522,7 @@ body {
   border-color: #228be6;
 }
 
-/* 에디터 본문 영역 */
+/* 에디터 본문 */
 .main-content {
   flex: 1;
   overflow-y: auto;
