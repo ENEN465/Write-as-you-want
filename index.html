@@ -781,15 +781,15 @@
       });
     }
 
-    // 파일 트리 영역 빈곳 클릭 시 폴더 선택 해제
-    fileTree.onclick = (e) => {
-      if (e.target === fileTree) {
-        documentStore.selectedFolderId = null;
-        saveStore();
-        renderFileTree();
-      }
-    };
-
+   // 💡 화면 전체 어디든 눌렀을 때 선택된 폴더 해제
+document.addEventListener('click', (e) => {
+  // 이미 선택된 폴더가 있을 때만 동작
+  if (documentStore.selectedFolderId !== null) {
+    documentStore.selectedFolderId = null;
+    saveStore();
+    renderFileTree();
+  }
+});
     // 새 폴더 추가
     btnAddFolder.onclick = () => {
       const folderName = prompt('새 폴더 이름을 입력하세요:', '새 폴더');
