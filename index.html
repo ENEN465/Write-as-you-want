@@ -33,7 +33,7 @@
       </div>
 
       <div class="toolbar-section toolbar-center">
-        <!-- 폰트 일괄 선택 (기본: 마루부리) -->
+        <!-- 폰트 일괄 선택 -->
         <select id="select-font">
           <option value="MaruBuri" selected>마루부리</option>
           <option value="Pretendard">프리텐다드</option>
@@ -58,21 +58,10 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 글자 색상 팔레트 (버튼과 팝업 분리) -->
-        <div class="color-picker-wrapper">
+        <!-- 확실하게 작동하는 직관적인 색상 선택기 -->
+        <div class="color-picker-wrapper" style="display: flex; align-items: center; gap: 2px;">
           <button id="btn-color-palette" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
-          <div class="color-palette-popover" id="color-palette-popover">
-            <div class="color-swatch" style="background:#212529" data-color="#212529"></div>
-            <div class="color-swatch" style="background:#868e96" data-color="#868e96"></div>
-            <div class="color-swatch" style="background:#fa5252" data-color="#fa5252"></div>
-            <div class="color-swatch" style="background:#e64980" data-color="#e64980"></div>
-            <div class="color-swatch" style="background:#be4bdb" data-color="#be4bdb"></div>
-            <div class="color-swatch" style="background:#7950f2" data-color="#7950f2"></div>
-            <div class="color-swatch" style="background:#228be6" data-color="#228be6"></div>
-            <div class="color-swatch" style="background:#12b886" data-color="#12b886"></div>
-            <div class="color-swatch" style="background:#40c057" data-color="#40c057"></div>
-            <div class="color-swatch" style="background:#fd7e14" data-color="#fd7e14"></div>
-          </div>
+          <input type="color" id="input-font-color" value="#212529" style="width: 24px; height: 24px; border: none; background: transparent; cursor: pointer; padding: 0;">
         </div>
 
         <div class="toolbar-divider"></div>
