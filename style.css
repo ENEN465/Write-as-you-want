@@ -38,28 +38,42 @@ body { background-color: #f8f9fa; color: #212529; height: 100vh; overflow: hidde
 .toolbar select { border: 1px solid #dee2e6; margin: 0 2px; }
 .toolbar button i[data-lucide], .toolbar button svg { width: 15px; height: 15px; stroke-width: 2px; }
 .toolbar button:hover, .toolbar select:hover { background: #f1f3f5; }
-.toolbar button.is-active { background: #e7f5ff; color: #1c7ed6; font-weight: bold; }
+.toolbar button.is-active { background: #e7f5ff !important; color: #1c7ed6 !important; font-weight: bold; }
 .toolbar-divider { width: 1px; height: 14px; background: #dee2e6; margin: 0 3px; flex-shrink: 0; }
 .save-status { font-size: 11px; color: #868e96; min-width: 52px; text-align: center; flex-shrink: 0; }
 .save-status.saving { color: #f59f00; }
 .save-status.synced { color: #2b8a3e; font-weight: 500; }
 
-/* 글자수 세기 */
-.word-counter { font-size: 11px; color: #868e96; padding: 0 4px; }
+/* 노벨라 스타일 글자수 드롭다운 UI */
+.word-counter-wrapper { position: relative; display: inline-block; }
+.word-count-btn { background: #e9ecef !important; border: none !important; border-radius: 6px !important; padding: 4px 10px !important; font-size: 12px; font-weight: 500; color: #495057; display: flex; align-items: center; gap: 4px; }
+.word-count-popover { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: #ffffff; border: 1px solid #e9ecef; border-radius: 12px; padding: 8px 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 210px; z-index: 500; }
+.word-count-popover.show { display: block; }
+.word-count-option { padding: 10px 16px; font-size: 13px; color: #343a40; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.15s; }
+.word-count-option:hover { background: #f8f9fa; }
+.word-count-option .check-icon { width: 16px; height: 16px; color: #20c997; visibility: hidden; }
+.word-count-option.active .check-icon { visibility: visible; }
 
-/* 찾기 바 */
-.search-bar { position: absolute; top: 48px; right: 16px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; }
-.search-bar input { border: 1px solid #ced4da; border-radius: 4px; padding: 4px 8px; font-size: 12px; outline: none; }
-.search-bar button { border: none; background: #f1f3f5; border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer; }
-
-/* 색상 팝업 UI */
+/* 색상 팔레트 UI */
 .color-picker-wrapper { position: relative; display: inline-block; }
 .color-palette-popover { display: none; position: absolute; top: 100%; left: 0; margin-top: 4px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); grid-template-columns: repeat(5, 1fr); gap: 6px; z-index: 500; }
 .color-palette-popover.show { display: grid; }
 .color-swatch { width: 20px; height: 20px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
 .color-swatch:hover { transform: scale(1.15); }
 
-/* 에디터 메인 영역 */
+/* 찾기 & 바꾸기 레이어 */
+.search-replace-bar { position: absolute; top: 48px; right: 16px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; }
+.search-inputs { display: flex; gap: 6px; }
+.search-inputs input { border: 1px solid #ced4da; border-radius: 4px; padding: 5px 8px; font-size: 12px; outline: none; width: 130px; }
+.search-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.search-actions button { border: 1px solid #dee2e6; background: #f8f9fa; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; }
+.search-actions button:hover { background: #e9ecef; }
+
+/* 검색 하이라이트 */
+mark.search-result { background-color: #ffec99; color: #000; border-radius: 2px; }
+mark.search-result.current { background-color: #ff922b; color: #fff; }
+
+/* 에디터 메인 */
 .main-content { flex: 1; overflow-y: auto; display: flex; justify-content: center; padding: 30px 16px; background-color: #ffffff; }
 .editor-container { width: 100%; max-width: 720px; min-height: 80vh; }
 .post-header { margin-bottom: 20px; }
@@ -67,15 +81,14 @@ body { background-color: #f8f9fa; color: #212529; height: 100vh; overflow: hidde
 .subtitle-input { width: 100%; border: none; outline: none; font-size: 1em; color: #868e96; background: transparent; margin-bottom: 16px; }
 .header-divider { border: none; border-top: 1px solid #f1f3f5; margin-bottom: 20px; }
 
-/* Tiptap 에디터 본문 및 폰트 적용 지정 */
-.ProseMirror { outline: none; min-height: 50vh; font-size: 15px; line-height: 1.75; white-space: pre-wrap; word-wrap: break-word; }
+/* Tiptap 에디터 및 글씨체 전체 적용 레벨 */
+.ProseMirror { outline: none; min-height: 50vh; font-size: 15px; line-height: 1.75; white-space: pre-wrap; word-wrap: break-word; font-family: 'Pretendard', sans-serif; }
 .ProseMirror p { margin: 0.5em 0; }
 .ProseMirror h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
 .ProseMirror h2 { font-size: 1.5em; margin: 0.75em 0; font-weight: bold; }
 .ProseMirror h3 { font-size: 1.17em; margin: 0.83em 0; font-weight: bold; }
 .ProseMirror img { max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; }
 
-/* 구분선 디자인 */
 .ProseMirror hr { margin: 24px 0; border: none; clear: both; }
 .ProseMirror hr[data-style="line"] { border-top: 1px solid #ced4da; }
 .ProseMirror hr[data-style="dashed"] { border-top: 1px dashed #ced4da; }
