@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Write as you want</title>
   
-  <!-- 외부 폰트 및 아이콘 -->
-  <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- 분리된 CSS 파일 연결 -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -35,7 +30,7 @@
       </div>
 
       <div class="toolbar-section toolbar-center">
-        <!-- 폰트 및 크기 선택 -->
+        <!-- 폰트 선택 -->
         <select id="select-font">
           <option value="" disabled selected>글씨체</option>
           <option value="Pretendard">프리텐다드</option>
@@ -46,17 +41,7 @@
           <option value="'Nanum Barun Gothic'">나눔바른고딕</option>
         </select>
         
-        <select id="select-font-size">
-          <option value="" disabled selected>크기</option>
-          <option value="12px">12px</option>
-          <option value="14px">14px</option>
-          <option value="16px">16px</option>
-          <option value="18px">18px</option>
-          <option value="20px">20px</option>
-          <option value="24px">24px</option>
-          <option value="30px">30px</option>
-        </select>
-
+        <!-- 본문 / 제목 선택 (픽셀 단위 제거) -->
         <select id="select-heading">
           <option value="p">본문</option>
           <option value="h1">제목 1</option>
@@ -98,21 +83,6 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 표 삽입 -->
-        <div class="table-menu-wrapper">
-          <button id="btn-table-menu" title="표 관리"><i data-lucide="table"></i></button>
-          <div class="table-popover" id="table-popover">
-            <button id="btn-table-insert">➕ 표 생성 (3x3)</button>
-            <button id="btn-table-add-row-before">⬆️ 위에 행 추가</button>
-            <button id="btn-table-add-row-after">⬇️ 아래 행 추가</button>
-            <button id="btn-table-add-col-before">⬅️ 왼쪽에 열 추가</button>
-            <button id="btn-table-add-col-after">➡️ 오른쪽에 열 추가</button>
-            <button id="btn-table-delete-row">➖ 행 삭제</button>
-            <button id="btn-table-delete-col">➖ 열 삭제</button>
-            <button id="btn-table-delete">❌ 표 삭제</button>
-          </div>
-        </div>
-
         <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
         <input type="file" id="input-image-file" accept="image/*" style="display:none;">
 
@@ -124,9 +94,26 @@
           <option value="asterisk">별표 (***)</option>
           <option value="ornament">다이아 (◇◇◇)</option>
         </select>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- 찾기 버튼 -->
+        <button id="btn-search" title="찾기"><i data-lucide="search"></i></button>
       </div>
 
-      <div class="toolbar-section toolbar-right"></div>
+      <!-- 실시간 글자수 세기 표시 -->
+      <div class="toolbar-section toolbar-right">
+        <div class="word-counter" id="word-counter">
+          공백포함 0자 | 공백제외 0자
+        </div>
+      </div>
+    </div>
+
+    <!-- 찾기 팝업 레이어 -->
+    <div class="search-bar" id="search-bar" style="display:none;">
+      <input type="text" id="input-search" placeholder="찾을 단어 입력...">
+      <button id="btn-search-next">다음</button>
+      <button id="btn-search-close">✕</button>
     </div>
 
     <div class="main-content">
@@ -142,7 +129,6 @@
   </div>
 </div>
 
-<!-- 분리된 JS 파일 연결 -->
 <script type="module" src="script.js"></script>
 
 </body>
