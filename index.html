@@ -4,15 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Write as you want</title>
-  
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1a1a1a">
-  <link rel="icon" href="./icon.webp" type="image/webp">
-
   <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
-
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -31,14 +25,11 @@
 
   <div class="main-wrapper">
     <div class="toolbar">
-      <!-- [좌측] -->
       <div class="toolbar-section toolbar-left">
         <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
-        <button id="btn-sync-setting" title="연동 설정"><i data-lucide="cloud"></i></button>
         <div class="save-status" id="save-status">저장됨</div>
       </div>
 
-      <!-- [중앙] -->
       <div class="toolbar-section toolbar-center">
         <select id="select-font">
           <option value="font-maruburi">마루부리</option>
@@ -61,12 +52,9 @@
         <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
         <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
         <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
-        <button id="btn-subscript" title="아래 첨자"><i data-lucide="subscript"></i></button>
-        <button id="btn-superscript" title="위 첨자"><i data-lucide="superscript"></i></button>
 
         <div class="toolbar-divider"></div>
 
-        <!-- 글자 색상 팔레트 -->
         <div class="color-picker-wrapper">
           <button id="btn-color-palette" title="글자 색상"><i data-lucide="palette"></i></button>
           <div class="color-palette-popover" id="color-palette-popover">
@@ -92,7 +80,6 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 표 관리 메뉴 -->
         <div class="table-menu-wrapper">
           <button id="btn-table-menu" title="표 관리"><i data-lucide="table"></i></button>
           <div class="table-popover" id="table-popover">
@@ -119,25 +106,15 @@
         </select>
       </div>
 
-      <!-- [우측] -->
       <div class="toolbar-section toolbar-right">
-        <button id="btn-open-search" title="찾기"><i data-lucide="search"></i></button>
+        <button id="btn-open-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
 
         <div class="word-counter-wrapper">
           <div class="counter-badge" id="counter-badge">0자</div>
           <div class="counter-dropdown" id="counter-dropdown">
-            <div class="counter-item active" data-type="char-no-space">
-              <span>공백 제외 글자 수</span>
-              <span class="check-mark">✓</span>
-            </div>
-            <div class="counter-item" data-type="char-with-space">
-              <span>공백 포함 글자 수</span>
-              <span class="check-mark">✓</span>
-            </div>
-            <div class="counter-item" data-type="word">
-              <span>단어 수</span>
-              <span class="check-mark">✓</span>
-            </div>
+            <div class="counter-item active" data-type="char-no-space"><span>공백 제외 글자 수</span><span class="check-mark">✓</span></div>
+            <div class="counter-item" data-type="char-with-space"><span>공백 포함 글자 수</span><span class="check-mark">✓</span></div>
+            <div class="counter-item" data-type="word"><span>단어 수</span><span class="check-mark">✓</span></div>
           </div>
         </div>
       </div>
@@ -156,31 +133,38 @@
   </div>
 </div>
 
-<!-- 찾기 모달 -->
+<!-- 단어 찾기 및 일괄 수정 모달 -->
 <div class="search-modal" id="search-modal">
   <div class="search-row">
     <input type="text" id="search-input" placeholder="찾을 단어 입력...">
     <button id="btn-close-search">✕</button>
   </div>
+  <div class="search-row">
+    <input type="text" id="replace-input" placeholder="바꿀 단어 입력...">
+    <button id="btn-replace-all">일괄 수정</button>
+  </div>
   <div class="search-status">
-    <span id="search-count">검색 결과 없음</span>
+    <span id="search-count">검색어 대기 중</span>
   </div>
 </div>
 
 <script type="module">
-  import { Editor } from 'https://cdn.skypack.dev/@tiptap/core@2.1.13';
-  import StarterKit from 'https://cdn.skypack.dev/@tiptap/starter-kit@2.1.13';
-  import Subscript from 'https://cdn.skypack.dev/@tiptap/extension-subscript@2.1.13';
-  import Superscript from 'https://cdn.skypack.dev/@tiptap/extension-superscript@2.1.13';
-  import HorizontalRule from 'https://cdn.skypack.dev/@tiptap/extension-horizontal-rule@2.1.13';
-  import TextStyle from 'https://cdn.skypack.dev/@tiptap/extension-text-style@2.1.13';
-  import Color from 'https://cdn.skypack.dev/@tiptap/extension-color@2.1.13';
-  import TextAlign from 'https://cdn.skypack.dev/@tiptap/extension-text-align@2.1.13';
-  import Image from 'https://cdn.skypack.dev/@tiptap/extension-image@2.1.13';
-  import Table from 'https://cdn.skypack.dev/@tiptap/extension-table@2.1.13';
-  import TableRow from 'https://cdn.skypack.dev/@tiptap/extension-table-row@2.1.13';
-  import TableCell from 'https://cdn.skypack.dev/@tiptap/extension-table-cell@2.1.13';
-  import TableHeader from 'https://cdn.skypack.dev/@tiptap/extension-table-header@2.1.13';
+  import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
+  import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
+  import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
+  import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.1.13';
+  import Color from 'https://esm.sh/@tiptap/extension-color@2.1.13';
+  import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
+  import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
+  import Table from 'https://esm.sh/@tiptap/extension-table@2.1.13';
+  import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.1.13';
+  import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.13';
+  import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.13';
+
+  // [핵심 문제 해결 1] 모든 툴바 요소 클릭 시 에디터 포커스 상실 방지
+  document.querySelectorAll('.toolbar button, .color-swatch, .table-popover button, select').forEach(el => {
+    el.addEventListener('mousedown', (e) => e.preventDefault());
+  });
 
   const CustomHorizontalRule = HorizontalRule.extend({
     addAttributes() {
@@ -197,8 +181,7 @@
   let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
     { id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [
         { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>글을 작성해보세요!</p>', title: '첫 번째 글', subtitle: '' }
-      ] 
-    }
+      ] }
   ];
   let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
   let counterType = 'char-no-space';
@@ -207,28 +190,15 @@
     element: document.querySelector('#editor'),
     extensions: [
       StarterKit.configure({ horizontalRule: false }),
-      Subscript,
-      Superscript,
       CustomHorizontalRule,
-      TextStyle,
-      Color,
-      Image,
+      TextStyle, Color, Image,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
+      Table.configure({ resizable: true }),
+      TableRow, TableHeader, TableCell,
     ],
     content: '',
-    onUpdate() {
-      updateWordCount();
-      triggerAutoSave();
-    },
-    onSelectionUpdate() {
-      updateToolbarState();
-    }
+    onUpdate() { updateWordCount(); triggerAutoSave(); },
+    onSelectionUpdate() { updateToolbarState(); }
   });
 
   function loadDoc(docId) {
@@ -240,6 +210,7 @@
     document.getElementById('title-input').value = doc.title || doc.name || '';
     document.getElementById('subtitle-input').value = doc.subtitle || '';
     editor.commands.setContent(doc.content || '');
+    if(originalHtmlForSearch) originalHtmlForSearch = null; // 문서 이동 시 검색 리셋
     updateWordCount();
     renderTree();
   }
@@ -258,9 +229,7 @@
   let saveTimer = null;
   function triggerAutoSave() {
     const status = document.getElementById('save-status');
-    status.textContent = '저장 중...';
-    status.className = 'save-status saving';
-
+    status.textContent = '저장 중...'; status.className = 'save-status saving';
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       const doc = findNode(treeData, activeDocId);
@@ -268,11 +237,11 @@
         doc.title = document.getElementById('title-input').value;
         doc.subtitle = document.getElementById('subtitle-input').value;
         doc.name = doc.title || '제목 없음';
-        doc.content = editor.getHTML();
+        
+        // 검색 모드일 때는 원본 HTML 저장, 아닐 때는 현재 에디터 내용 저장
+        doc.content = originalHtmlForSearch !== null ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
         localStorage.setItem('my_tree_data', JSON.stringify(treeData));
-
-        status.textContent = '저장됨';
-        status.className = 'save-status synced';
+        status.textContent = '저장됨'; status.className = 'save-status synced';
         renderTree();
       }
     }, 800);
@@ -281,13 +250,9 @@
   function updateWordCount() {
     const text = editor.getText();
     let count = 0;
-    if (counterType === 'char-no-space') {
-      count = text.replace(/\s/g, '').length;
-    } else if (counterType === 'char-with-space') {
-      count = text.length;
-    } else if (counterType === 'word') {
-      count = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-    }
+    if (counterType === 'char-no-space') count = text.replace(/\s/g, '').length;
+    else if (counterType === 'char-with-space') count = text.length;
+    else if (counterType === 'word') count = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
     document.getElementById('counter-badge').textContent = `${count.toLocaleString()}${counterType === 'word' ? '단어' : '자'}`;
   }
 
@@ -295,177 +260,172 @@
     document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
     document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
     document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
-    document.getElementById('btn-subscript').classList.toggle('is-active', editor.isActive('subscript'));
-    document.getElementById('btn-superscript').classList.toggle('is-active', editor.isActive('superscript'));
   }
 
-  /* 서식 버튼 */
+  /* 서식 적용 (mousedown 이벤트에서 e.preventDefault() 처리되므로 정상 작동) */
   document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
   document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
   document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
-  document.getElementById('btn-subscript').onclick = () => editor.chain().focus().toggleSubscript().run();
-  document.getElementById('btn-superscript').onclick = () => editor.chain().focus().toggleSuperscript().run();
 
   document.getElementById('btn-align-left').onclick = () => editor.chain().focus().setTextAlign('left').run();
   document.getElementById('btn-align-center').onclick = () => editor.chain().focus().setTextAlign('center').run();
   document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
   document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
 
-  /* 1. 색상 선택 완벽 수정 */
+  /* 컬러 피커 */
   const paletteBtn = document.getElementById('btn-color-palette');
   const palettePopover = document.getElementById('color-palette-popover');
-  
-  paletteBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    tablePopover.classList.remove('show');
-    dropdown.classList.remove('show');
-    palettePopover.classList.toggle('show');
-  });
-
+  paletteBtn.onclick = (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); };
   document.querySelectorAll('.color-swatch').forEach(swatch => {
-    swatch.addEventListener('click', (e) => {
+    swatch.onclick = (e) => {
       e.stopPropagation();
       const color = swatch.getAttribute('data-color');
       editor.chain().focus().setColor(color).run();
       palettePopover.classList.remove('show');
-    });
+    };
   });
 
-  /* 2. 표(Table) 완벽 수정 및 조작 보완 */
+  /* 표 기능 */
   const tableBtn = document.getElementById('btn-table-menu');
   const tablePopover = document.getElementById('table-popover');
+  tableBtn.onclick = (e) => { e.stopPropagation(); tablePopover.classList.toggle('show'); };
   
-  tableBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    palettePopover.classList.remove('show');
-    dropdown.classList.remove('show');
-    tablePopover.classList.toggle('show');
-  });
+  const execTable = (fn) => () => { fn(); tablePopover.classList.remove('show'); };
+  document.getElementById('btn-table-insert').onclick = execTable(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run());
+  document.getElementById('btn-table-add-row-before').onclick = execTable(() => editor.chain().focus().addRowBefore().run());
+  document.getElementById('btn-table-add-row-after').onclick = execTable(() => editor.chain().focus().addRowAfter().run());
+  document.getElementById('btn-table-add-col-before').onclick = execTable(() => editor.chain().focus().addColumnBefore().run());
+  document.getElementById('btn-table-add-col-after').onclick = execTable(() => editor.chain().focus().addColumnAfter().run());
+  document.getElementById('btn-table-delete-row').onclick = execTable(() => editor.chain().focus().deleteRow().run());
+  document.getElementById('btn-table-delete-col').onclick = execTable(() => editor.chain().focus().deleteColumn().run());
+  document.getElementById('btn-table-delete').onclick = execTable(() => editor.chain().focus().deleteTable().run());
 
-  const execTableCmd = (fn) => {
-    return (e) => {
-      e.stopPropagation();
-      fn();
-      tablePopover.classList.remove('show');
-    };
-  };
-
-  document.getElementById('btn-table-insert').onclick = execTableCmd(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run());
-  document.getElementById('btn-table-add-row-before').onclick = execTableCmd(() => editor.chain().focus().addRowBefore().run());
-  document.getElementById('btn-table-add-row-after').onclick = execTableCmd(() => editor.chain().focus().addRowAfter().run());
-  document.getElementById('btn-table-add-col-before').onclick = execTableCmd(() => editor.chain().focus().addColumnBefore().run());
-  document.getElementById('btn-table-add-col-after').onclick = execTableCmd(() => editor.chain().focus().addColumnAfter().run());
-  document.getElementById('btn-table-delete-row').onclick = execTableCmd(() => editor.chain().focus().deleteRow().run());
-  document.getElementById('btn-table-delete-col').onclick = execTableCmd(() => editor.chain().focus().deleteColumn().run());
-  document.getElementById('btn-table-delete').onclick = execTableCmd(() => editor.chain().focus().deleteTable().run());
-
-  /* 이미지 */
-  const imgBtn = document.getElementById('btn-insert-image');
-  const imgInput = document.getElementById('input-image-file');
-
-  imgBtn.onclick = () => {
-    const choice = confirm("내 컴퓨터에서 파일으로 선택하시겠습니까?\n('취소' 누를 시 URL 직접 입력)");
-    if (choice) {
-      imgInput.click();
-    } else {
-      const url = prompt('이미지 URL을 입력하세요:');
-      if (url) editor.chain().focus().setImage({ src: url }).run();
-    }
-  };
-
-  imgInput.onchange = (e) => {
+  /* 이미지 삽입 */
+  document.getElementById('btn-insert-image').onclick = () => document.getElementById('input-image-file').click();
+  document.getElementById('input-image-file').onchange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        editor.chain().focus().setImage({ src: event.target.result }).run();
-      };
+      reader.onload = (event) => editor.chain().focus().setImage({ src: event.target.result }).run();
       reader.readAsDataURL(file);
     }
-    imgInput.value = '';
   };
 
   /* 폰트 및 구분선 */
-  document.getElementById('select-font').onchange = (e) => {
-    const container = document.getElementById('editor-container');
-    container.className = `editor-container ${e.target.value}`;
-  };
-
+  document.getElementById('select-font').onchange = (e) => document.getElementById('editor-container').className = `editor-container ${e.target.value}`;
   document.getElementById('select-heading').onchange = (e) => {
-    const val = e.target.value;
-    if (val === 'p') editor.chain().focus().setParagraph().run();
-    else if (val === 'h1') editor.chain().focus().toggleHeading({ level: 1 }).run();
-    else if (val === 'h2') editor.chain().focus().toggleHeading({ level: 2 }).run();
-    else if (val === 'h3') editor.chain().focus().toggleHeading({ level: 3 }).run();
+    const v = e.target.value;
+    if (v === 'p') editor.chain().focus().setParagraph().run();
+    else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
   };
-
   document.getElementById('select-hr').onchange = (e) => {
-    const style = e.target.value;
-    if (style) {
-      editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': style } }).run();
+    if (e.target.value) {
+      editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
       e.target.value = '';
     }
   };
 
-  /* 찾기 모달 */
+  /* 찾기 및 일괄 수정 (강조 포함) */
   const searchModal = document.getElementById('search-modal');
   const searchInput = document.getElementById('search-input');
   const searchCount = document.getElementById('search-count');
+  let originalHtmlForSearch = null;
 
   document.getElementById('btn-open-search').onclick = (e) => {
     e.stopPropagation();
     searchModal.classList.toggle('show');
-    if (searchModal.classList.contains('show')) searchInput.focus();
+    if (searchModal.classList.contains('show')) {
+      originalHtmlForSearch = editor.getHTML();
+      searchInput.focus();
+    } else {
+      clearSearch();
+    }
   };
 
-  document.getElementById('btn-close-search').onclick = () => {
+  document.getElementById('btn-close-search').onclick = () => clearSearch();
+
+  function clearSearch() {
     searchModal.classList.remove('show');
-  };
+    if(originalHtmlForSearch !== null) {
+      const cleanContent = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
+      editor.commands.setContent(cleanContent);
+      originalHtmlForSearch = null;
+    }
+    searchCount.textContent = '검색어 대기 중';
+    searchInput.value = '';
+  }
 
   searchInput.oninput = () => {
     const term = searchInput.value;
     if (!term) {
-      searchCount.textContent = '검색 결과 없음';
+      if(originalHtmlForSearch) editor.commands.setContent(originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, ''));
+      searchCount.textContent = '0건 발견';
       return;
     }
-    const text = editor.getText();
-    const matches = text.split(term).length - 1;
-    searchCount.textContent = matches > 0 ? `${matches}개 발견됨` : '검색 결과 없음';
+    if (originalHtmlForSearch === null) originalHtmlForSearch = editor.getHTML();
+    
+    // HTML 태그 내부를 건드리지 않고 텍스트만 치환하여 하이라이트 (정규식 마법)
+    const cleanHtml = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
+    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
+    let matchCount = 0;
+    const highlightedHtml = cleanHtml.replace(regex, (match) => {
+      matchCount++;
+      return `<mark class="search-highlight">${match}</mark>`;
+    });
+
+    editor.commands.setContent(highlightedHtml);
+    searchCount.textContent = `${matchCount}건 발견`;
   };
 
-  /* 글자 수 드롭다운 */
-  const badge = document.getElementById('counter-badge');
-  const dropdown = document.getElementById('counter-dropdown');
-  
-  badge.onclick = (e) => {
-    e.stopPropagation();
-    palettePopover.classList.remove('show');
-    tablePopover.classList.remove('show');
-    dropdown.classList.toggle('show');
+  document.getElementById('btn-replace-all').onclick = () => {
+    const term = searchInput.value;
+    const replaceWith = document.getElementById('replace-input').value;
+    if(!term) return;
+    
+    const cleanHtml = originalHtmlForSearch ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
+    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
+    
+    const newHtml = cleanHtml.replace(regex, replaceWith);
+    editor.commands.setContent(newHtml);
+    originalHtmlForSearch = newHtml; // 교체된 결과를 새 원본으로 지정
+    searchInput.value = '';
+    searchCount.textContent = '일괄 수정 완료!';
+    triggerAutoSave();
   };
 
+  /* 사이드바 액션 (폴더, 파일 추가) */
+  document.getElementById('btn-add-folder').onclick = () => {
+    const name = prompt("새 폴더 이름을 입력하세요:");
+    if(name) {
+      treeData.push({ id: 'f-' + Date.now(), name, type: 'folder', isOpen: true, children: [] });
+      renderTree(); triggerAutoSave();
+    }
+  };
+  document.getElementById('btn-add-doc').onclick = () => {
+    const name = prompt("새 문서 이름을 입력하세요:");
+    if(name) {
+      if(treeData.length === 0) treeData.push({ id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [] });
+      const newDoc = { id: 'd-' + Date.now(), name, type: 'doc', content: '<p>새로운 문서입니다.</p>', title: name, subtitle: '' };
+      treeData[0].children.push(newDoc);
+      renderTree(); loadDoc(newDoc.id); triggerAutoSave();
+    }
+  };
+
+  /* 팝업 닫기 및 렌더링 */
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.color-picker-wrapper')) palettePopover.classList.remove('show');
+    if (!e.target.closest('.table-menu-wrapper')) tablePopover.classList.remove('show');
+    if (!e.target.closest('.word-counter-wrapper')) document.getElementById('counter-dropdown').classList.remove('show');
+  });
+  document.getElementById('counter-badge').onclick = (e) => { e.stopPropagation(); document.getElementById('counter-dropdown').classList.toggle('show'); }
   document.querySelectorAll('.counter-item').forEach(item => {
     item.onclick = (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.counter-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      counterType = item.getAttribute('data-type');
-      updateWordCount();
-      dropdown.classList.remove('show');
+      e.stopPropagation(); document.querySelectorAll('.counter-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active'); counterType = item.getAttribute('data-type'); updateWordCount();
+      document.getElementById('counter-dropdown').classList.remove('show');
     };
   });
-
-  /* 바깥 배경 클릭 시 팝업 닫기 */
-  document.addEventListener('click', () => {
-    palettePopover.classList.remove('show');
-    tablePopover.classList.remove('show');
-    dropdown.classList.remove('show');
-  });
-
-  document.getElementById('btn-toggle-sidebar').onclick = () => {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-  };
-
+  document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
   document.getElementById('title-input').oninput = triggerAutoSave;
   document.getElementById('subtitle-input').oninput = triggerAutoSave;
 
@@ -473,18 +433,14 @@
     const container = document.getElementById('file-tree');
     container.innerHTML = '';
     treeData.forEach(folder => {
-      const folderDiv = document.createElement('div');
-      folderDiv.className = 'tree-folder';
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'tree-folder-title';
+      const folderDiv = document.createElement('div'); folderDiv.className = 'tree-folder';
+      const titleDiv = document.createElement('div'); titleDiv.className = 'tree-folder-title';
       titleDiv.innerHTML = `<span class="folder-label">${folder.isOpen ? '▼' : '▶'} 📁 ${folder.name}</span>`;
       titleDiv.onclick = () => { folder.isOpen = !folder.isOpen; renderTree(); };
       folderDiv.appendChild(titleDiv);
-
       if (folder.isOpen && folder.children) {
         folder.children.forEach(doc => {
-          const itemDiv = document.createElement('div');
-          itemDiv.className = `tree-item ${doc.id === activeDocId ? 'active' : ''}`;
+          const itemDiv = document.createElement('div'); itemDiv.className = `tree-item ${doc.id === activeDocId ? 'active' : ''}`;
           itemDiv.innerHTML = `📄 ${doc.name || '제목 없음'}`;
           itemDiv.onclick = (e) => { e.stopPropagation(); loadDoc(doc.id); };
           folderDiv.appendChild(itemDiv);
@@ -494,9 +450,7 @@
     });
   }
 
-  renderTree();
-  loadDoc(activeDocId);
-  lucide.createIcons();
+  renderTree(); loadDoc(activeDocId); lucide.createIcons();
 </script>
 
 </body>
