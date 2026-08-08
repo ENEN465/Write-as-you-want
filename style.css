@@ -1,6 +1,11 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css');
+@import url('https://cdn.jsdelivr.net/gh/webfontworld/ridi/RIDIBatang.css');
+@import url('https://cdn.jsdelivr.net/gh/webfontworld/naver/NanumBarunGothic.css');
+
 :root {
-  /* 에디터 내부 본문에만 사용할 폰트 변수 */
-  --editor-content-font: 'MaruBuri', sans-serif;
+  --editor-content-font: 'MaruBuri', serif;
   --system-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -47,8 +52,9 @@ body {
 }
 
 .app-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .sidebar-title {
@@ -213,10 +219,13 @@ body {
   border: 1px solid #ced4da;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
   z-index: 200;
   width: 320px;
   font-family: var(--system-ui-font);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .search-top-row, .replace-bottom-row {
@@ -225,16 +234,17 @@ body {
   gap: 6px;
 }
 
-.replace-bottom-row {
-  margin-top: 8px;
-}
-
 .search-input-field, .replace-input-field {
   flex: 1;
   padding: 6px 10px;
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 13px;
+  outline: none;
+}
+
+.search-input-field:focus, .replace-input-field:focus {
+  border-color: #228be6;
 }
 
 .search-count-badge {
@@ -242,33 +252,59 @@ body {
   color: #868e96;
   min-width: 45px;
   text-align: center;
+  user-select: none;
 }
 
-.icon-btn-sm, .action-btn-sm {
-  padding: 6px;
+.icon-btn-sm {
+  padding: 5px;
+  border: 1px solid #ced4da;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #495057;
+}
+
+.icon-btn-sm:hover {
+  background-color: #f1f3f5;
+}
+
+.action-btn-sm {
+  padding: 6px 10px;
   border: 1px solid #ced4da;
   background: #fff;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
+  white-space: nowrap;
+}
+
+.action-btn-sm:hover {
+  background-color: #f1f3f5;
 }
 
 .action-btn-sm.highlight-btn {
   background-color: #228be6;
   color: #fff;
-  border: none;
+  border: 1px solid #228be6;
 }
 
-/* 찾기 하이라이트 */
+.action-btn-sm.highlight-btn:hover {
+  background-color: #1c7ed6;
+}
+
+/* 찾기 하이라이트 스타일 */
 .search-highlight {
-  background-color: #ffec99;
+  background-color: #ffe066;
   color: #212529;
   border-radius: 2px;
 }
 
 .search-highlight-active {
-  background-color: #fcc419;
-  color: #212529;
+  background-color: #ff922b;
+  color: #ffffff;
   font-weight: bold;
   border-radius: 2px;
 }
@@ -287,7 +323,6 @@ body {
   max-width: 720px;
 }
 
-/* 대제목 및 소제목은 본문과 동일하게 선택한 에디터 폰트를 따름 (사이드바/툴바 등 시스템 UI와는 분리) */
 .title-input {
   width: 100%;
   border: none;
@@ -296,6 +331,7 @@ body {
   font-weight: bold;
   margin-bottom: 12px;
   font-family: var(--editor-content-font);
+  background: transparent;
 }
 
 .subtitle-input {
@@ -306,6 +342,7 @@ body {
   color: #868e96;
   margin-bottom: 20px;
   font-family: var(--editor-content-font);
+  background: transparent;
 }
 
 .header-divider {
@@ -314,7 +351,7 @@ body {
   margin-bottom: 30px;
 }
 
-/* 오직 에디터 본문 영역에만 선택한 폰트 변수를 반영 */
+/* 에디터 본문 폰트 적용 */
 #editor .ProseMirror {
   outline: none;
   min-height: 400px;
