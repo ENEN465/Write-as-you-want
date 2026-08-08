@@ -3,6 +3,10 @@
     {
       "id": "folder-1",
       "name": "은쟁반"
+    },
+    {
+      "id": "folder-1786172592779",
+      "name": "새 폴더"
     }
   ],
   "files": [
@@ -24,5 +28,7 @@
   ],
   "selectedFolderId": null,
   "activeFileId": "file-1",
-  "collapsedFolders": []
+  "collapsedFolders": [
+    "folder-1786172592779"
+  ]
 }
