@@ -6,19 +6,21 @@
   <title>Write as you want</title>
   <link rel="icon" type="image/webp" href="icon.webp">
 
-  <!-- 웹 폰트 CDN 사전 로드 -->
+  <!-- 웹 폰트 CDN 사전 로드 (리디바탕, 마루부리, 프리텐다드 등) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/naver/NanumBarunGothic.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.css">
 
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app-layout">
-  <!-- 모바일용 사이드바 배경 오버레이 -->
+  <!-- 모바일용 사이드바 오버레이 -->
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
   <!-- 사이드바 -->
@@ -38,18 +40,24 @@
 
   <!-- 메인 영역 -->
   <div class="main-wrapper">
+    <!-- 툴바 (상단바) -->
     <div class="toolbar">
       <div class="toolbar-section toolbar-left">
-        <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
-        <div class="save-status" id="save-status">저장됨</div>
+        <button id="btn-toggle-sidebar" class="btn-icon" title="사이드바 열기/닫기">
+          <i data-lucide="panel-left"></i>
+        </button>
+        <!-- 고정 폭 레이아웃 적용으로 툴바가 덜컹거리지 않는 저장 상태 영역 -->
+        <div class="save-status-container">
+          <span class="save-status" id="save-status">저장됨</span>
+        </div>
       </div>
 
       <div class="toolbar-section toolbar-center">
         <!-- 폰트 선택 -->
         <select id="select-font">
-          <option value="MaruBuri" selected>마루부리</option>
+          <option value="RIDIBatang" selected>리디바탕</option>
+          <option value="MaruBuri">마루부리</option>
           <option value="Pretendard">프리텐다드</option>
-          <option value="RIDIBatang">리디바탕</option>
           <option value="Nanum Myeongjo">나눔명조</option>
           <option value="Noto Serif KR">본명조</option>
           <option value="Nanum Barun Gothic">나눔바른고딕</option>
@@ -66,31 +74,30 @@
         <div class="toolbar-divider"></div>
 
         <!-- 서식 버튼 -->
-        <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
-        <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
-        <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
+        <button id="btn-bold" class="btn-icon" title="굵게"><i data-lucide="bold"></i></button>
+        <button id="btn-italic" class="btn-icon" title="기울임"><i data-lucide="italic"></i></button>
+        <button id="btn-strike" class="btn-icon" title="취소선"><i data-lucide="strikethrough"></i></button>
 
         <div class="toolbar-divider"></div>
 
         <!-- 글자 색상 선택기 -->
-        <div class="color-picker-wrapper" style="position: relative; display: inline-flex; align-items: center;">
-          <button id="btn-color-palette" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
-          <input type="color" id="input-font-color" value="#212529" 
-                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+        <div class="color-picker-wrapper">
+          <button id="btn-color-palette" class="btn-icon" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
+          <input type="color" id="input-font-color" value="#212529">
         </div>
 
         <div class="toolbar-divider"></div>
 
         <!-- 정렬 버튼 -->
-        <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
-        <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
-        <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
-        <button id="btn-align-justify" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
+        <button id="btn-align-left" class="btn-icon" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
+        <button id="btn-align-center" class="btn-icon" title="가운데 정렬"><i data-lucide="align-center"></i></button>
+        <button id="btn-align-right" class="btn-icon" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
+        <button id="btn-align-justify" class="btn-icon" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
 
         <div class="toolbar-divider"></div>
 
         <!-- 이미지 및 구분선 -->
-        <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
+        <button id="btn-insert-image" class="btn-icon" title="이미지 삽입"><i data-lucide="image"></i></button>
         <input type="file" id="input-image-file" accept="image/*" style="display:none;">
 
         <select id="select-hr">
@@ -104,13 +111,10 @@
         <div class="toolbar-divider"></div>
 
         <!-- 찾기 버튼 -->
-        <button id="btn-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
+        <button id="btn-search" class="btn-icon" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
         
-        <!-- 히스토리(버전 관리) 버튼 -->
-        <button id="btn-history" title="버전 기록 및 복원"><i data-lucide="history"></i></button>
-        
-        <!-- 깃허브 동기화 설정 버튼 -->
-        <button id="btn-github-sync" title="GitHub 연동 설정"><i data-lucide="github"></i></button>
+        <!-- 버전 기록 버튼 -->
+        <button id="btn-history" class="btn-icon" title="버전 기록 및 복원"><i data-lucide="history"></i></button>
       </div>
 
       <div class="toolbar-section toolbar-right">
@@ -124,19 +128,15 @@
           <div class="word-count-popover" id="word-count-popover" style="display: none;">
             <div class="word-count-option active" data-mode="withSpace">
               <span>공백 포함: <strong id="cnt-with-space">0자</strong></span>
-              <i data-lucide="check" class="check-icon"></i>
             </div>
             <div class="word-count-option" data-mode="noSpace">
               <span>공백 제외: <strong id="cnt-no-space">0자</strong></span>
-              <i data-lucide="check" class="check-icon"></i>
             </div>
             <div class="word-count-option" data-mode="noSpaceSpecial">
               <span>공백, 특문 제외: <strong id="cnt-no-spec">0자</strong></span>
-              <i data-lucide="check" class="check-icon"></i>
             </div>
             <div class="word-count-option" data-mode="words">
               <span>단어 수: <strong id="cnt-words">0 단어</strong></span>
-              <i data-lucide="check" class="check-icon"></i>
             </div>
           </div>
         </div>
@@ -165,40 +165,12 @@
     <div class="modal-overlay" id="history-modal" style="display: none;">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>버전 히스토리 (자동 기록)</h3>
+          <h3>버전 히스토리</h3>
           <button id="btn-close-history" class="icon-btn-sm">✕</button>
         </div>
         <div class="modal-body">
-          <p class="modal-desc">5분마다 자동으로 버전이 기록되며, 복원 버튼 클릭 시 복원 직전 상태가 안전하게 자동 저장됩니다.</p>
+          <p class="modal-desc">주기적으로 버전이 자동 저장됩니다. 원하는 버전으로 언제든 복원 가능하며, 복원 직전 내용도 자동으로 백업됩니다.</p>
           <ul id="history-list" class="history-list"></ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- GitHub 동기화 설정 모달 -->
-    <div class="modal-overlay" id="github-modal" style="display: none;">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>GitHub 동기화 설정</h3>
-          <button id="btn-close-github" class="icon-btn-sm">✕</button>
-        </div>
-        <div class="modal-body">
-          <div class="github-guide">
-            <strong>토큰 발급 가이드:</strong><br>
-            GitHub > Settings > Developer Settings > Personal Access Tokens (Classic)에서 <code>gist</code> 권한을 체크한 토큰을 생성하여 입력해 주세요.
-          </div>
-          <div class="input-group">
-            <label>GitHub Personal Access Token:</label>
-            <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxx">
-          </div>
-          <div class="input-group">
-            <label>Gist ID (선택 - 기존 데이터 불러올 때):</label>
-            <input type="text" id="gh-gist-id-input" placeholder="없을 경우 동기화 시 자동 생성">
-          </div>
-          <div class="modal-actions">
-            <button id="btn-save-gh-config" class="action-btn-sm highlight-btn">설정 저장</button>
-            <button id="btn-sync-github" class="action-btn-sm">지금 클라우드 동기화</button>
-          </div>
         </div>
       </div>
     </div>
@@ -219,10 +191,10 @@
 
 <!-- 사이드바 드롭다운 메뉴 (점 세 개) -->
 <div class="context-menu" id="context-menu" style="display: none;">
-  <div class="menu-item" id="menu-rename"><i data-lucide="edit-2"></i> 이름 수정</div>
-  <div class="menu-item" id="menu-copy"><i data-lucide="copy"></i> 복사</div>
-  <div class="menu-item" id="menu-move"><i data-lucide="folder-output"></i> 다른 폴더로 이동</div>
-  <div class="menu-item danger" id="menu-delete"><i data-lucide="trash-2"></i> 삭제</div>
+  <div class="menu-item" id="menu-rename">이름 수정</div>
+  <div class="menu-item" id="menu-copy">복사</div>
+  <div class="menu-item" id="menu-move">다른 폴더로 이동</div>
+  <div class="menu-item danger" id="menu-delete">삭제</div>
 </div>
 
 <script type="module" src="script.js"></script>
