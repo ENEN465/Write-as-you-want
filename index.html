@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Write as you want</title>
   
-  <!-- 외부 CSS 분리 파일 연결 -->
   <link rel="stylesheet" href="style.css">
-
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a1a1a">
   <link rel="icon" href="./icon.webp" type="image/webp">
@@ -20,7 +18,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-  <!-- Lucide 아이콘 라이브러리 추가 -->
+  <!-- Lucide 아이콘 라이브러리 -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -42,88 +40,125 @@
   <!-- 2. 우측 메인 영역 (상단바 + 편집기) -->
   <div class="main-wrapper">
     
-    <!-- 우측 영역 최상단 툴바 -->
+    <!-- 우측 영역 최상단 툴바 (3단 구성) -->
     <div class="toolbar">
-      <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
-      <button id="btn-sync-setting" title="연동 설정"><i data-lucide="cloud"></i></button>
-      <div class="save-status" id="save-status"></div>
+      
+      <!-- [좌측] 사이드바/연동/저장 상태 -->
+      <div class="toolbar-section toolbar-left">
+        <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
+        <button id="btn-sync-setting" title="연동 설정"><i data-lucide="cloud"></i></button>
+        <div class="save-status" id="save-status">저장됨</div>
+      </div>
 
-      <div class="toolbar-divider"></div>
+      <!-- [중앙] 핵심 편집 기능 (화면 가운데 정렬) -->
+      <div class="toolbar-section toolbar-center">
+        <!-- 폰트 & 스타일 -->
+        <select id="select-font">
+          <option value="font-maruburi">마루부리</option>
+          <option value="font-pretendard">프리텐다드</option>
+          <option value="font-bookk-myungjo">부크크명조</option>
+          <option value="font-nanum-myeongjo">나눔명조</option>
+          <option value="font-noto-serif">본명조</option>
+          <option value="font-nanum-barun">나눔바른고딕</option>
+        </select>
 
-      <!-- 폰트 & 스타일 -->
-      <select id="select-font">
-        <option value="font-maruburi">마루부리</option>
-        <option value="font-pretendard">프리텐다드</option>
-        <option value="font-bookk-myungjo">부크크명조</option>
-        <option value="font-nanum-myeongjo">나눔명조</option>
-        <option value="font-noto-serif">본명조</option>
-        <option value="font-nanum-barun">나눔바른고딕</option>
-      </select>
+        <select id="select-heading">
+          <option value="p">본문</option>
+          <option value="h1">제목 1</option>
+          <option value="h2">제목 2</option>
+          <option value="h3">제목 3</option>
+        </select>
 
-      <select id="select-heading">
-        <option value="p">본문</option>
-        <option value="h1">제목 1</option>
-        <option value="h2">제목 2</option>
-        <option value="h3">제목 3</option>
-      </select>
+        <div class="toolbar-divider"></div>
 
-      <div class="toolbar-divider"></div>
+        <!-- 서식 -->
+        <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
+        <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
+        <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
+        <button id="btn-subscript" title="아래 첨자"><i data-lucide="subscript"></i></button>
+        <button id="btn-superscript" title="위 첨자"><i data-lucide="superscript"></i></button>
 
-      <!-- 서식 (볼드, 이탈릭, 취소선, 첨자) -->
-      <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
-      <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
-      <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
-      <button id="btn-subscript" title="아래 첨자"><i data-lucide="subscript"></i></button>
-      <button id="btn-superscript" title="위 첨자"><i data-lucide="superscript"></i></button>
+        <div class="toolbar-divider"></div>
 
-      <div class="toolbar-divider"></div>
-
-      <!-- 글씨 색상 -->
-      <input type="color" id="input-text-color" title="글자 색상 변경" value="#212529">
-
-      <!-- 정렬 -->
-      <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
-      <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
-      <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
-      <button id="btn-align-justify" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
-
-      <div class="toolbar-divider"></div>
-
-      <!-- 표 & 이미지 -->
-      <button id="btn-insert-table" title="표 삽입"><i data-lucide="table"></i></button>
-      <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
-
-      <!-- 구분선 -->
-      <select id="select-hr">
-        <option value="" disabled selected>구분선</option>
-        <option value="line">실선</option>
-        <option value="dashed">점선</option>
-        <option value="asterisk">별표 (***)</option>
-        <option value="ornament">다이아 (◇◇◇)</option>
-      </select>
-
-      <div class="toolbar-divider"></div>
-
-      <button id="btn-open-search" title="찾기"><i data-lucide="search"></i></button>
-
-      <!-- 글자 수 카운터 -->
-      <div class="word-counter-wrapper">
-        <div class="counter-badge" id="counter-badge">0자</div>
-        <div class="counter-dropdown" id="counter-dropdown">
-          <div class="counter-item active" data-type="char-no-space">
-            <span>공백 제외 글자 수</span>
-            <span class="check-mark">✓</span>
+        <!-- 글씨 색상 지정 팔레트 -->
+        <div class="color-picker-wrapper">
+          <button id="btn-color-palette" title="글자 색상"><i data-lucide="palette"></i></button>
+          <div class="color-palette-popover" id="color-palette-popover">
+            <div class="color-swatch" style="background:#212529" data-color="#212529"></div>
+            <div class="color-swatch" style="background:#868e96" data-color="#868e96"></div>
+            <div class="color-swatch" style="background:#fa5252" data-color="#fa5252"></div>
+            <div class="color-swatch" style="background:#e64980" data-color="#e64980"></div>
+            <div class="color-swatch" style="background:#be4bdb" data-color="#be4bdb"></div>
+            <div class="color-swatch" style="background:#7950f2" data-color="#7950f2"></div>
+            <div class="color-swatch" style="background:#4c6ef5" data-color="#4c6ef5"></div>
+            <div class="color-swatch" style="background:#228be6" data-color="#228be6"></div>
+            <div class="color-swatch" style="background:#12b886" data-color="#12b886"></div>
+            <div class="color-swatch" style="background:#40c057" data-color="#40c057"></div>
           </div>
-          <div class="counter-item" data-type="char-with-space">
-            <span>공백 포함 글자 수</span>
-            <span class="check-mark">✓</span>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- 정렬 -->
+        <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
+        <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
+        <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
+        <button id="btn-align-justify" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- 표 (노션 기능 대응 드롭다운) -->
+        <div class="table-menu-wrapper">
+          <button id="btn-table-menu" title="표 관리"><i data-lucide="table"></i></button>
+          <div class="table-popover" id="table-popover">
+            <button id="btn-table-insert">➕ 표 생성 (3x3)</button>
+            <button id="btn-table-add-row-after">➕ 아래 행 추가</button>
+            <button id="btn-table-add-col-after">➕ 오른쪽 열 추가</button>
+            <button id="btn-table-delete-row">➖ 행 삭제</button>
+            <button id="btn-table-delete-col">➖ 열 삭제</button>
+            <button id="btn-table-delete">❌ 표 삭제</button>
           </div>
-          <div class="counter-item" data-type="word">
-            <span>단어 수</span>
-            <span class="check-mark">✓</span>
+        </div>
+
+        <!-- 이미지 업로드 -->
+        <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
+        <!-- 숨김 파일 입력 태그 -->
+        <input type="file" id="input-image-file" accept="image/*" style="display:none;">
+
+        <!-- 구분선 -->
+        <select id="select-hr">
+          <option value="" disabled selected>구분선</option>
+          <option value="line">실선</option>
+          <option value="dashed">점선</option>
+          <option value="asterisk">별표 (***)</option>
+          <option value="ornament">다이아 (◇◇◇)</option>
+        </select>
+      </div>
+
+      <!-- [우측] 검색 / 글자 수 카운터 -->
+      <div class="toolbar-section toolbar-right">
+        <button id="btn-open-search" title="찾기"><i data-lucide="search"></i></button>
+
+        <!-- 글자 수 카운터 드롭다운 -->
+        <div class="word-counter-wrapper">
+          <div class="counter-badge" id="counter-badge">0자</div>
+          <div class="counter-dropdown" id="counter-dropdown">
+            <div class="counter-item active" data-type="char-no-space">
+              <span>공백 제외 글자 수</span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="char-with-space">
+              <span>공백 포함 글자 수</span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="word">
+              <span>단어 수</span>
+              <span class="check-mark">✓</span>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- 우측 영역 본문 에디터 -->
@@ -139,36 +174,6 @@
     </div>
 
   </div> <!-- /main-wrapper -->
-</div>
-
-<!-- 검색 모달 -->
-<div class="search-modal" id="search-modal">
-  <div class="search-row">
-    <input type="text" id="search-input" placeholder="찾을 단어...">
-    <button id="btn-search-prev">◀</button>
-    <button id="btn-search-next">▶</button>
-    <button id="btn-close-search">X</button>
-  </div>
-  <div class="search-status">
-    <span id="search-count">0/0</span>
-  </div>
-</div>
-
-<!-- Firebase 연동 설정 모달 -->
-<div class="sync-modal" id="sync-modal">
-  <h4 style="margin-bottom:12px; font-size:14px;">🔥 Firebase 실시간 연동 설정</h4>
-  <div class="modal-field">
-    <label>Database URL</label>
-    <input type="text" id="cfg-db-url" placeholder="https://your-app.firebaseio.com">
-  </div>
-  <div class="modal-field">
-    <label>API Key</label>
-    <input type="text" id="cfg-api-key" placeholder="AIzaSy...">
-  </div>
-  <div style="display:flex; justify-content:space-between; margin-top:14px;">
-    <button id="btn-save-sync" style="background:#339af0; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">저장 및 연결</button>
-    <button id="btn-close-sync" style="background:#f1f3f5; border:1px solid #dee2e6; padding:6px 12px; border-radius:4px; cursor:pointer;">닫기</button>
-  </div>
 </div>
 
 <!-- TipTap 모듈 및 필수 라이브러리 (ESM) -->
@@ -194,15 +199,12 @@
         'data-style': {
           default: 'line',
           parseHTML: element => element.getAttribute('data-style'),
-          renderHTML: attributes => {
-            return { 'data-style': attributes['data-style'] };
-          },
+          renderHTML: attributes => { return { 'data-style': attributes['data-style'] }; },
         },
       };
     },
   });
 
-  // 데이터 구조
   let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
     { id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [
         { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>글을 작성해보세요!</p>', title: '첫 번째 글', subtitle: '' }
@@ -211,7 +213,6 @@
   ];
   let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
   let counterType = 'char-no-space';
-  let firebaseRef = null;
 
   // TipTap 에디터 초기화
   const editor = new Editor({
@@ -240,7 +241,6 @@
     }
   });
 
-  // 문서 세팅
   function loadDoc(docId) {
     const doc = findNode(treeData, docId);
     if (!doc) return;
@@ -280,12 +280,7 @@
         doc.subtitle = document.getElementById('subtitle-input').value;
         doc.name = doc.title || '제목 없음';
         doc.content = editor.getHTML();
-
         localStorage.setItem('my_tree_data', JSON.stringify(treeData));
-
-        if (firebaseRef) {
-          firebaseRef.set(treeData);
-        }
 
         status.textContent = '저장됨';
         status.className = 'save-status synced';
@@ -308,7 +303,6 @@
     document.getElementById('counter-badge').textContent = `${count.toLocaleString()}${counterType === 'word' ? '단어' : '자'}`;
   }
 
-  // 툴바 버튼 활성화 상태
   function updateToolbarState() {
     document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
     document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
@@ -317,38 +311,75 @@
     document.getElementById('btn-superscript').classList.toggle('is-active', editor.isActive('superscript'));
   }
 
-  // 툴바 이벤트 연결
+  // 툴바 기본 서식 이벤트 연결
   document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
   document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
   document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
   document.getElementById('btn-subscript').onclick = () => editor.chain().focus().toggleSubscript().run();
   document.getElementById('btn-superscript').onclick = () => editor.chain().focus().toggleSuperscript().run();
 
-  // 정렬 기능
   document.getElementById('btn-align-left').onclick = () => editor.chain().focus().setTextAlign('left').run();
   document.getElementById('btn-align-center').onclick = () => editor.chain().focus().setTextAlign('center').run();
   document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
   document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
 
-  // 색상 변경
-  document.getElementById('input-text-color').oninput = (e) => {
-    editor.chain().focus().setColor(e.target.value).run();
+  // 색상 팔레트 토글 및 선택
+  const paletteBtn = document.getElementById('btn-color-palette');
+  const palettePopover = document.getElementById('color-palette-popover');
+  paletteBtn.onclick = (e) => {
+    e.stopPropagation();
+    palettePopover.classList.toggle('show');
+  };
+  document.querySelectorAll('.color-swatch').forEach(swatch => {
+    swatch.onclick = () => {
+      const color = swatch.getAttribute('data-color');
+      editor.chain().focus().setColor(color).run();
+      palettePopover.classList.remove('show');
+    };
+  });
+
+  // 표 메뉴 토글 및 명령
+  const tableBtn = document.getElementById('btn-table-menu');
+  const tablePopover = document.getElementById('table-popover');
+  tableBtn.onclick = (e) => {
+    e.stopPropagation();
+    tablePopover.classList.toggle('show');
   };
 
-  // 표 삽입 (3x3 기본)
-  document.getElementById('btn-insert-table').onclick = () => {
-    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-  };
+  document.getElementById('btn-table-insert').onclick = () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  document.getElementById('btn-table-add-row-after').onclick = () => editor.chain().focus().addRowAfter().run();
+  document.getElementById('btn-table-add-col-after').onclick = () => editor.chain().focus().addColumnAfter().run();
+  document.getElementById('btn-table-delete-row').onclick = () => editor.chain().focus().deleteRow().run();
+  document.getElementById('btn-table-delete-col').onclick = () => editor.chain().focus().deleteColumn().run();
+  document.getElementById('btn-table-delete').onclick = () => editor.chain().focus().deleteTable().run();
 
-  // 이미지 삽입
-  document.getElementById('btn-insert-image').onclick = () => {
-    const url = prompt('이미지 URL을 입력하세요:');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+  // 내 컴퓨터 파일 & URL 이미지 지원
+  const imgBtn = document.getElementById('btn-insert-image');
+  const imgInput = document.getElementById('input-image-file');
+
+  imgBtn.onclick = () => {
+    const choice = confirm("내 컴퓨터에서 파일으로 선택하시겠습니까?\n('취소' 누를 시 URL 직접 입력)");
+    if (choice) {
+      imgInput.click();
+    } else {
+      const url = prompt('이미지 URL을 입력하세요:');
+      if (url) editor.chain().focus().setImage({ src: url }).run();
     }
   };
 
-  // 제목/본문 변환
+  imgInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        editor.chain().focus().setImage({ src: event.target.result }).run();
+      };
+      reader.readAsDataURL(file);
+    }
+    imgInput.value = '';
+  };
+
+  // 폰트 / 헤더 / 구분선
   document.getElementById('select-heading').onchange = (e) => {
     const val = e.target.value;
     if (val === 'p') editor.chain().focus().setParagraph().run();
@@ -357,7 +388,6 @@
     else if (val === 'h3') editor.chain().focus().toggleHeading({ level: 3 }).run();
   };
 
-  // 구분선 삽입
   document.getElementById('select-hr').onchange = (e) => {
     const style = e.target.value;
     if (style) {
@@ -366,28 +396,34 @@
     }
   };
 
-  // 폰트 스타일 변경
   document.getElementById('select-font').onchange = (e) => {
-    const container = document.getElementById('editor-container');
-    container.className = `editor-container ${e.target.value}`;
+    document.getElementById('editor-container').className = `editor-container ${e.target.value}`;
   };
 
-  // 카운터 드롭다운 토글
+  // 글자 수 드롭다운 토글 및 기능 설정
   const badge = document.getElementById('counter-badge');
   const dropdown = document.getElementById('counter-dropdown');
   badge.onclick = (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('show');
   };
-  document.addEventListener('click', () => dropdown.classList.remove('show'));
 
   document.querySelectorAll('.counter-item').forEach(item => {
-    item.onclick = () => {
+    item.onclick = (e) => {
+      e.stopPropagation();
       document.querySelectorAll('.counter-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       counterType = item.getAttribute('data-type');
       updateWordCount();
+      dropdown.classList.remove('show');
     };
+  });
+
+  // 전역 클릭 시 팝업들 닫기
+  document.addEventListener('click', () => {
+    palettePopover.classList.remove('show');
+    tablePopover.classList.remove('show');
+    dropdown.classList.remove('show');
   });
 
   // 사이드바 토글
@@ -395,31 +431,19 @@
     document.getElementById('sidebar').classList.toggle('collapsed');
   };
 
-  // 제목 / 소제목 변경 시 자동 저장
   document.getElementById('title-input').oninput = triggerAutoSave;
   document.getElementById('subtitle-input').oninput = triggerAutoSave;
 
-  // 파일 트리 리렌더링
   function renderTree() {
     const container = document.getElementById('file-tree');
     container.innerHTML = '';
-
     treeData.forEach(folder => {
       const folderDiv = document.createElement('div');
       folderDiv.className = 'tree-folder';
-      
       const titleDiv = document.createElement('div');
       titleDiv.className = 'tree-folder-title';
-      titleDiv.innerHTML = `
-        <span class="folder-label">
-          <span class="folder-toggle-icon">${folder.isOpen ? '▼' : '▶'}</span> 📁 ${folder.name}
-        </span>
-      `;
-      titleDiv.onclick = () => {
-        folder.isOpen = !folder.isOpen;
-        renderTree();
-      };
-
+      titleDiv.innerHTML = `<span class="folder-label">${folder.isOpen ? '▼' : '▶'} 📁 ${folder.name}</span>`;
+      titleDiv.onclick = () => { folder.isOpen = !folder.isOpen; renderTree(); };
       folderDiv.appendChild(titleDiv);
 
       if (folder.isOpen && folder.children) {
@@ -427,10 +451,7 @@
           const itemDiv = document.createElement('div');
           itemDiv.className = `tree-item ${doc.id === activeDocId ? 'active' : ''}`;
           itemDiv.innerHTML = `📄 ${doc.name || '제목 없음'}`;
-          itemDiv.onclick = (e) => {
-            e.stopPropagation();
-            loadDoc(doc.id);
-          };
+          itemDiv.onclick = (e) => { e.stopPropagation(); loadDoc(doc.id); };
           folderDiv.appendChild(itemDiv);
         });
       }
@@ -438,11 +459,8 @@
     });
   }
 
-  // 초기화 실행
   renderTree();
   loadDoc(activeDocId);
-
-  // Lucide 아이콘 최종 변환 실행
   lucide.createIcons();
 </script>
 
