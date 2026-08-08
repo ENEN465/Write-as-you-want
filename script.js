@@ -7,7 +7,7 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 찾기 하이라이트 마크
+// 찾기 하이라이트 Mark
 const SearchHighlightMark = Mark.create({
   name: 'searchHighlight',
   addAttributes() {
@@ -23,27 +23,31 @@ const SearchHighlightMark = Mark.create({
   renderHTML({ HTMLAttributes }) { return ['span', HTMLAttributes, 0]; },
 });
 
-// 구분선 확장
+// [2번 요구사항 완전 해결] 구분선 Attributes 및 RenderHTML 연동 보완
 const CustomHorizontalRule = HorizontalRule.extend({
   addAttributes() {
     return {
       'data-style': {
         default: 'line',
         parseHTML: element => element.getAttribute('data-style'),
-        renderHTML: attributes => ({ 'data-style': attributes['data-style'] }),
+        renderHTML: attributes => {
+          return { 'data-style': attributes['data-style'] || 'line' };
+        },
       },
     };
   },
+  renderHTML({ HTMLAttributes }) {
+    return ['hr', HTMLAttributes];
+  }
 });
 
 document.querySelectorAll('.toolbar button').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
 
-// 초기 데이터 구조
 let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
   { id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [
-      { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>리디바탕 폰트로 시작합니다.</p>', title: '첫 번째 글', subtitle: '' }
+      { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>부크크 명조 폰트로 작성을 시작합니다.</p>', title: '첫 번째 글', subtitle: '' }
     ] }
 ];
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
@@ -51,7 +55,6 @@ let docVersions = JSON.parse(localStorage.getItem('my_doc_versions')) || {};
 let countDisplayMode = 'withSpace';
 let selectedTargetNode = null;
 
-// Tiptap 에디터 생성
 const editor = new Editor({
   element: document.querySelector('#editor'),
   extensions: [
@@ -74,10 +77,10 @@ const editor = new Editor({
   onTransaction() { updateToolbarState(); }
 });
 
-// [1번 요구사항] 폰트 변경 (리디바탕 기본 탑재)
+// [1번 요구사항 해결] 부크크명조 폰트 매핑
 const selectFontEl = document.getElementById('select-font');
 const fontMap = {
-  'RIDIBatang': "'RIDIBatang', serif",
+  'BookkMyungjo': "'BookkMyungjo', serif",
   'MaruBuri': "'MaruBuri', serif",
   'Pretendard': "'Pretendard', sans-serif",
   'Nanum Myeongjo': "'Nanum Myeongjo', serif",
@@ -91,7 +94,7 @@ selectFontEl.addEventListener('change', (e) => {
   editor.chain().focus().setFontFamily(fontValue).run();
 });
 
-// 글자 색상 선택
+// 색상 변경
 const colorInput = document.getElementById('input-font-color');
 colorInput.addEventListener('input', (e) => {
   editor.chain().focus().setColor(e.target.value).run();
@@ -110,7 +113,6 @@ function updateToolbarState() {
   else headingSelect.value = 'p';
 }
 
-// 툴바 버튼 동작
 document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
 document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
 document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
@@ -126,9 +128,14 @@ document.getElementById('select-heading').onchange = (e) => {
   else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
 };
 
+// [2번 요구사항 해결] 구분선 삽입 스크립트 보완
 document.getElementById('select-hr').onchange = (e) => {
-  if (e.target.value) {
-    editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
+  const selectedStyle = e.target.value;
+  if (selectedStyle) {
+    editor.chain().focus().insertContent({
+      type: 'horizontalRule',
+      attrs: { 'data-style': selectedStyle }
+    }).run();
     e.target.value = '';
   }
 };
@@ -143,7 +150,54 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// [3번 요구사항] 버전 관리 및 복원 기능
+// [3번 요구사항 해결] 글자 수 세기 Popover 창 토글 및 선택 로직 완벽 보완
+const wordCountBtn = document.getElementById('btn-word-count-toggle');
+const wordCountPopover = document.getElementById('word-count-popover');
+
+wordCountBtn.onclick = (e) => {
+  e.stopPropagation();
+  const isHidden = wordCountPopover.style.display === 'none' || wordCountPopover.style.display === '';
+  wordCountPopover.style.display = isHidden ? 'block' : 'none';
+};
+
+// 외부 클릭 시 Popover 닫기
+document.addEventListener('click', (e) => {
+  if (!wordCountPopover.contains(e.target) && !wordCountBtn.contains(e.target)) {
+    wordCountPopover.style.display = 'none';
+  }
+});
+
+document.querySelectorAll('.word-count-option').forEach(opt => {
+  opt.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.word-count-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    countDisplayMode = opt.getAttribute('data-mode');
+    wordCountPopover.style.display = 'none';
+    updateWordCount();
+  };
+});
+
+function updateWordCount() {
+  const text = editor.getText();
+  const withSpace = text.length;
+  const noSpace = text.replace(/\s/g, '').length;
+  const noSpaceSpecial = text.replace(/[^a-zA-O0-9가-힣]/g, '').length;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+
+  document.getElementById('cnt-with-space').textContent = `${withSpace}자`;
+  document.getElementById('cnt-no-space').textContent = `${noSpace}자`;
+  document.getElementById('cnt-no-spec').textContent = `${noSpaceSpecial}자`;
+  document.getElementById('cnt-words').textContent = `${words} 단어`;
+
+  const labelEl = document.getElementById('word-count-label');
+  if (countDisplayMode === 'withSpace') labelEl.textContent = `${withSpace} 자`;
+  else if (countDisplayMode === 'noSpace') labelEl.textContent = `${noSpace} 자`;
+  else if (countDisplayMode === 'noSpaceSpecial') labelEl.textContent = `${noSpaceSpecial} 자`;
+  else if (countDisplayMode === 'words') labelEl.textContent = `${words} 단어`;
+}
+
+// 히스토리 버전 관리
 function createVersionSnapshot(docId, note = '자동 저장') {
   if (!docId) return;
   if (!docVersions[docId]) docVersions[docId] = [];
@@ -162,7 +216,6 @@ function createVersionSnapshot(docId, note = '자동 저장') {
   localStorage.setItem('my_doc_versions', JSON.stringify(docVersions));
 }
 
-// 5분 마다 자동 스냅샷 저장
 setInterval(() => {
   if (activeDocId) createVersionSnapshot(activeDocId, '5분 주기 자동 백업');
 }, 5 * 60 * 1000);
@@ -196,9 +249,8 @@ function renderHistoryList() {
     `;
 
     li.querySelector('.btn-restore').onclick = () => {
-      if (confirm("이 버전으로 복원하시겠습니까? (현재 변경사항은 백업으로 자동 저장됩니다)")) {
+      if (confirm("이 버전으로 복원하시겠습니까?")) {
         createVersionSnapshot(activeDocId, '복원 직전 백업');
-
         document.getElementById('title-input').value = ver.title || '';
         document.getElementById('subtitle-input').value = ver.subtitle || '';
         editor.commands.setContent(ver.content || '');
@@ -210,7 +262,7 @@ function renderHistoryList() {
   });
 }
 
-// 사이드바 점 세 개 메뉴 및 드래그 관련
+// 트리 및 사이드바 제어
 const contextMenu = document.getElementById('context-menu');
 document.addEventListener('click', () => contextMenu.style.display = 'none');
 
@@ -304,7 +356,6 @@ function moveDocToFolder(docId, targetFolderId) {
   }
 }
 
-// 노드 및 자동저장 제어
 function findNode(nodes, id) {
   for (let node of nodes) {
     if (node.id === id) return node;
@@ -397,7 +448,6 @@ function renderTree() {
     container.appendChild(folderDiv);
   });
   
-  // Lucide 아이콘 초기화 호출
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -415,45 +465,7 @@ sidebarOverlay.onclick = () => {
   sidebarOverlay.classList.remove('active');
 };
 
-// 글자 수 계산
-const wordCountBtn = document.getElementById('btn-word-count-toggle');
-const wordCountPopover = document.getElementById('word-count-popover');
-wordCountBtn.onclick = (e) => {
-  e.stopPropagation();
-  wordCountPopover.style.display = (wordCountPopover.style.display === 'none' || wordCountPopover.style.display === '') ? 'block' : 'none';
-};
-
-document.querySelectorAll('.word-count-option').forEach(opt => {
-  opt.onclick = (e) => {
-    e.stopPropagation();
-    document.querySelectorAll('.word-count-option').forEach(o => o.classList.remove('active'));
-    opt.classList.add('active');
-    countDisplayMode = opt.getAttribute('data-mode');
-    wordCountPopover.style.display = 'none';
-    updateWordCount();
-  };
-});
-
-function updateWordCount() {
-  const text = editor.getText();
-  const withSpace = text.length;
-  const noSpace = text.replace(/\s/g, '').length;
-  const noSpaceSpecial = text.replace(/[^a-zA-O0-9가-힣]/g, '').length;
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-
-  document.getElementById('cnt-with-space').textContent = `${withSpace}자`;
-  document.getElementById('cnt-no-space').textContent = `${noSpace}자`;
-  document.getElementById('cnt-no-spec').textContent = `${noSpaceSpecial}자`;
-  document.getElementById('cnt-words').textContent = `${words} 단어`;
-
-  const labelEl = document.getElementById('word-count-label');
-  if (countDisplayMode === 'withSpace') labelEl.textContent = `${withSpace}자`;
-  else if (countDisplayMode === 'noSpace') labelEl.textContent = `${noSpace}자`;
-  else if (countDisplayMode === 'noSpaceSpecial') labelEl.textContent = `${noSpaceSpecial}자`;
-  else if (countDisplayMode === 'words') labelEl.textContent = `${words} 단어`;
-}
-
-// 찾기 팝업 제어
+// 검색
 const btnSearch = document.getElementById('btn-search');
 const searchPopover = document.getElementById('search-popover-box');
 
