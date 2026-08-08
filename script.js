@@ -86,7 +86,7 @@ const editor = new Editor({
   }
 });
 
-// 폰트 변경 처리
+// 폰트 매핑 및 구체적 실시간 변경 적용
 const selectFontEl = document.getElementById('select-font');
 const fontMap = {
   'MaruBuri': "'MaruBuri', serif",
@@ -99,7 +99,11 @@ const fontMap = {
 
 selectFontEl.addEventListener('change', (e) => {
   const fontValue = fontMap[e.target.value] || e.target.value;
+  // CSS 변수 변경
   document.documentElement.style.setProperty('--editor-content-font', fontValue);
+  
+  // Tiptap 에디터 커서/문서 폰트 변경 명령 실행
+  editor.chain().focus().setFontFamily(fontValue).run();
 });
 
 // 글자 색상
@@ -316,20 +320,18 @@ btnSearchPrev.onclick = () => {
   setActiveIndex((currentSearchActiveIndex - 1 + currentSearchMatches.length) % currentSearchMatches.length);
 };
 
-// 선택 단어 변경
+// 단일 치환
 btnReplaceOne.onclick = () => {
   if (currentSearchMatches.length === 0 || currentSearchActiveIndex === -1) return;
   const match = currentSearchMatches[currentSearchActiveIndex];
   
-  // 하이라이트 제거 후 텍스트 입력
   clearSearchHighlights();
-  const tr = editor.state.tr.insertText(inputReplace.value, match.from, match.to);
-  editor.view.dispatch(tr);
+  editor.chain().focus().setTextSelection({ from: match.from, to: match.to }).insertContent(inputReplace.value).run();
 
   setSearchTerm(inputSearch.value);
 };
 
-// 전체 일괄 바꾸기 (뒤쪽 인덱스부터 치환하여 Offset 유지)
+// 전체 일괄 치환 (뒤쪽에서부터 순차 치환)
 btnReplaceAll.onclick = () => {
   if (currentSearchMatches.length === 0) return;
   
