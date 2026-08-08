@@ -23,15 +23,23 @@
 <body>
 
 <div class="app-layout">
+  <!-- 1. 좌측 사이드바 (파일 목록 영역) -->
+  <div class="sidebar" id="sidebar">
+    ... (기존 사이드바 내용) ...
+  </div>
+
+  <!-- 2. 우측 메인 영역 (여기 감싸는 태그가 들어갑니다) -->
+  <div class="main-wrapper">
+    
+    <!-- 우측 영역 최상단 툴바 -->
+    <div class="toolbar">
+      ... (기존 툴바 버튼들) ...
+    </div>
+
+    <!-- 우측 영역 본문 에디터 -->
+    <div class="main-content">
+      <div class="editor-container font-maruburi" id="editor-container">
   
-  <!-- ★ 상단 밀착 & 한 줄 고정 툴바 ★ -->
-  <div class="toolbar">
-    <button id="btn-toggle-sidebar" title="사이드바 열기/닫기">📁 목록</button>
-    <button id="btn-sync-setting" title="연동 설정">☁️ 연동</button>
-    <div class="save-status" id="save-status"></div>
-
-    <div class="toolbar-divider"></div>
-
     <!-- 폰트 & 스타일 -->
     <select id="select-font">
       <option value="font-maruburi">마루부리</option>
