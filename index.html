@@ -11,6 +11,7 @@
 <body>
 
 <div class="app-layout">
+  <!-- 사이드바 -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title-wrapper">
@@ -25,6 +26,7 @@
     <div class="file-tree" id="file-tree"></div>
   </div>
 
+  <!-- 메인 영역 -->
   <div class="main-wrapper">
     <div class="toolbar">
       <div class="toolbar-section toolbar-left">
@@ -33,7 +35,7 @@
       </div>
 
       <div class="toolbar-section toolbar-center">
-        <!-- 폰트 일괄 선택 -->
+        <!-- 폰트 선택 -->
         <select id="select-font">
           <option value="MaruBuri" selected>마루부리</option>
           <option value="Pretendard">프리텐다드</option>
@@ -43,6 +45,7 @@
           <option value="'Nanum Barun Gothic'">나눔바른고딕</option>
         </select>
         
+        <!-- 제목/본문 선택 -->
         <select id="select-heading">
           <option value="p">본문</option>
           <option value="h1">제목 1</option>
@@ -52,21 +55,23 @@
 
         <div class="toolbar-divider"></div>
 
+        <!-- 서식 버튼 -->
         <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
         <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
         <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
 
         <div class="toolbar-divider"></div>
 
-        <!-- 확실하게 작동하는 직관적인 색상 선택기 -->
+        <!-- 글자 색상 선택기 (투명 레이어 방식) -->
         <div class="color-picker-wrapper" style="position: relative; display: inline-flex; align-items: center;">
-  <button id="btn-color-palette" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
-  <input type="color" id="input-font-color" value="#212529" 
-         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
-</div>
+          <button id="btn-color-palette" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
+          <input type="color" id="input-font-color" value="#212529" 
+                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+        </div>
 
         <div class="toolbar-divider"></div>
 
+        <!-- 정렬 버튼 -->
         <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
         <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
         <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
@@ -74,6 +79,7 @@
 
         <div class="toolbar-divider"></div>
 
+        <!-- 이미지 및 구분선 -->
         <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
         <input type="file" id="input-image-file" accept="image/*" style="display:none;">
 
@@ -87,10 +93,12 @@
 
         <div class="toolbar-divider"></div>
 
+        <!-- 찾기 버튼 -->
         <button id="btn-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
       </div>
 
       <div class="toolbar-section toolbar-right">
+        <!-- 글자 수 계산 -->
         <div class="word-counter-wrapper">
           <button id="btn-word-count-toggle" class="word-count-btn">
             <span id="word-count-label">0자</span>
@@ -120,7 +128,7 @@
     </div>
 
     <!-- 찾기/바꾸기 팝업 -->
-    <div class="search-popover-box" id="search-popover-box" style="display:none;">
+    <div class="search-popover-box" id="search-popover-box">
       <div class="search-top-row">
         <input type="text" id="input-search" placeholder="찾을 단어" class="search-input-field">
         <span class="search-count-badge" id="search-count-badge">0 / 0</span>
@@ -130,13 +138,14 @@
         <button id="btn-search-close" class="icon-btn-sm">✕</button>
       </div>
 
-      <div class="replace-bottom-row" id="replace-bottom-row">
+      <div class="replace-bottom-row" id="replace-bottom-row" style="display: none;">
         <input type="text" id="input-replace" placeholder="바꿀 단어" class="replace-input-field">
         <button id="btn-replace-one" class="action-btn-sm">바꾸기</button>
         <button id="btn-replace-all" class="action-btn-sm highlight-btn">모두 바꾸기</button>
       </div>
     </div>
 
+    <!-- 에디터 영역 -->
     <div class="main-content">
       <div class="editor-container" id="editor-container">
         <div class="post-header">
