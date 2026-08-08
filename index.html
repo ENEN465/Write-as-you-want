@@ -585,7 +585,7 @@
     });
 
     // ----------------------------------------------------
-    // 💡 4. 폴더 및 파일 선택 & Drag and Drop 데이터 관리
+    // 💡 4. 폴더 및 파일 (사이드바) 안전한 데이터 관리
     // ----------------------------------------------------
 
     let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
@@ -595,7 +595,7 @@
       files: [
         { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>' }
       ],
-      selectedFolderId: 'folder-1', // 현재 선택/주목된 폴더
+      selectedFolderId: null,
       activeFileId: 'file-1'
     };
 
@@ -610,7 +610,47 @@
       sidebar.classList.toggle('collapsed');
     };
 
- // 사이드바 UI 렌더링
+    // 로컬 스토리지 저장
+    function saveStore() {
+      localStorage.setItem('my_documents', JSON.stringify(documentStore));
+    }
+
+    // 현재 작성 중인 파일 상태 동기화
+    function saveCurrentFileState() {
+      if (!documentStore.activeFileId) return;
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (activeFile) {
+        activeFile.title = titleInput.value;
+        activeFile.subtitle = subtitleInput.value;
+        activeFile.content = editor.getHTML();
+        saveStore();
+
+        const activeTreeItem = fileTree.querySelector('.tree-item.active span');
+        if (activeTreeItem) {
+          activeTreeItem.innerText = titleInput.value || '제목 없음';
+        }
+      }
+    }
+
+    // 선택된 파일 읽어와서 에디터에 로드
+    function loadActiveFile() {
+      if (!documentStore.activeFileId) {
+        titleInput.value = '';
+        subtitleInput.value = '';
+        editor.commands.setContent('', false);
+        return;
+      }
+
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (activeFile) {
+        titleInput.value = activeFile.title || '';
+        subtitleInput.value = activeFile.subtitle || '';
+        editor.commands.setContent(activeFile.content || '<p></p>', false);
+        updateWordCount();
+      }
+    }
+
+    // 사이드바 UI 렌더링
     function renderFileTree() {
       fileTree.innerHTML = '';
 
@@ -619,7 +659,7 @@
         folderDiv.className = 'tree-folder';
         folderDiv.dataset.folderId = folder.id;
 
-        // 폴더 드래그 앤 드롭 영역 이벤트
+        // 드래그 앤 드롭
         folderDiv.ondragover = (e) => {
           e.preventDefault();
           folderDiv.classList.add('drag-over');
@@ -650,23 +690,23 @@
         const isFolderSelected = folder.id === documentStore.selectedFolderId;
         folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
         folderTitle.innerHTML = `
-          <span>📁 ${folder.name}</span>
+          <span>${folder.name}</span>
           <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
         `;
 
-        // 💡 폴더 클릭 시 토글(다시 누르면 선택 해제)
+        // 폴더 클릭 토글 (이미 클릭되어 있으면 선택 해제)
         folderTitle.onclick = (e) => {
-          e.stopPropagation(); // 빈 공간 클릭 이벤트로 전파 방지
+          e.stopPropagation();
           if (documentStore.selectedFolderId === folder.id) {
-            documentStore.selectedFolderId = null; // 이미 선택된 폴더면 해제
+            documentStore.selectedFolderId = null;
           } else {
-            documentStore.selectedFolderId = folder.id; // 선택
+            documentStore.selectedFolderId = folder.id;
           }
           saveStore();
           renderFileTree();
         };
 
-        // 폴더 삭제 처리
+        // 폴더 삭제
         folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
           e.stopPropagation();
           if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
@@ -674,7 +714,7 @@
             documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
             
             if (documentStore.selectedFolderId === folder.id) {
-              documentStore.selectedFolderId = documentStore.folders.length > 0 ? documentStore.folders[0].id : null;
+              documentStore.selectedFolderId = null;
             }
             if (documentStore.files.length > 0) {
               documentStore.activeFileId = documentStore.files[0].id;
@@ -696,7 +736,7 @@
           fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
           fileItem.draggable = true;
           fileItem.innerHTML = `
-            <span>📄 ${file.title || '제목 없음'}</span>
+            <span>${file.title || '제목 없음'}</span>
             <button class="btn-del-file" data-id="${file.id}">삭제</button>
           `;
 
@@ -741,98 +781,14 @@
       });
     }
 
-    // 💡 사이드바 빈 공간이나 외부를 클릭했을 때 폴더 선택 해제
-    fileTree.onclick = () => {
-      if (documentStore.selectedFolderId !== null) {
+    // 파일 트리 영역 빈곳 클릭 시 폴더 선택 해제
+    fileTree.onclick = (e) => {
+      if (e.target === fileTree) {
         documentStore.selectedFolderId = null;
         saveStore();
         renderFileTree();
       }
     };
-
-          // 파일 드래그 시작 이벤트
-          fileItem.ondragstart = (e) => {
-            e.dataTransfer.setData('text/plain', file.id);
-            fileItem.classList.add('dragging');
-          };
-
-          fileItem.ondragend = () => {
-            fileItem.classList.remove('dragging');
-          };
-
-          // 파일 선택시 읽기 및 선택 폴더 자동 전환
-          fileItem.onclick = () => {
-            if (documentStore.activeFileId !== file.id) {
-              saveCurrentFileState();
-              documentStore.activeFileId = file.id;
-              documentStore.selectedFolderId = folder.id;
-              saveStore();
-              renderFileTree();
-              loadActiveFile();
-            }
-          };
-
-          // 파일 삭제
-          fileItem.querySelector('.btn-del-file').onclick = (e) => {
-            e.stopPropagation();
-            if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
-              documentStore.files = documentStore.files.filter(f => f.id !== file.id);
-              if (documentStore.activeFileId === file.id) {
-                documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
-              }
-              saveStore();
-              renderFileTree();
-              loadActiveFile();
-            }
-          };
-
-          folderDiv.appendChild(fileItem);
-        });
-
-        fileTree.appendChild(folderDiv);
-      });
-    }
-
-    // 로컬 스토리지 저장
-    function saveStore() {
-      localStorage.setItem('my_documents', JSON.stringify(documentStore));
-    }
-
-    // 현재 작성 중인 파일 상태 동기화
-    function saveCurrentFileState() {
-      if (!documentStore.activeFileId) return;
-      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
-      if (activeFile) {
-        activeFile.title = titleInput.value;
-        activeFile.subtitle = subtitleInput.value;
-        activeFile.content = editor.getHTML();
-        saveStore();
-
-        // 사이드바 파일 제목 업데이트
-        const activeTreeItem = fileTree.querySelector('.tree-item.active span');
-        if (activeTreeItem) {
-          activeTreeItem.innerText = `📄 ${titleInput.value || '제목 없음'}`;
-        }
-      }
-    }
-
-    // 선택된 파일 읽어와서 에디터에 로드
-    function loadActiveFile() {
-      if (!documentStore.activeFileId) {
-        titleInput.value = '';
-        subtitleInput.value = '';
-        editor.commands.setContent('', false);
-        return;
-      }
-
-      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
-      if (activeFile) {
-        titleInput.value = activeFile.title || '';
-        subtitleInput.value = activeFile.subtitle || '';
-        editor.commands.setContent(activeFile.content || '<p></p>', false);
-        updateWordCount();
-      }
-    }
 
     // 새 폴더 추가
     btnAddFolder.onclick = () => {
@@ -843,7 +799,7 @@
           name: folderName
         };
         documentStore.folders.push(newFolder);
-        documentStore.selectedFolderId = newFolder.id; // 새 폴더로 자동으로 선택 이동
+        documentStore.selectedFolderId = newFolder.id;
         saveStore();
         renderFileTree();
       }
@@ -856,16 +812,16 @@
         return;
       }
 
-      // 현재 선택된 폴더가 없으면 첫 번째 폴더로 지정
       let targetFolderId = documentStore.selectedFolderId;
-      const targetFolder = documentStore.folders.find(f => f.id === targetFolderId);
+      let targetFolder = documentStore.folders.find(f => f.id === targetFolderId);
       
+      // 선택된 폴더가 없으면 첫 번째 폴더에 생성
       if (!targetFolder) {
-        targetFolderId = documentStore.folders[0].id;
-        documentStore.selectedFolderId = targetFolderId;
+        targetFolder = documentStore.folders[0];
+        targetFolderId = targetFolder.id;
       }
 
-      const fileTitle = prompt(`'${targetFolder ? targetFolder.name : '선택 폴더'}' 안에 생성할 원고 제목:`, '제목 없음');
+      const fileTitle = prompt(`'${targetFolder.name}' 폴더에 생성할 원고 제목:`, '제목 없음');
       if (fileTitle !== null) {
         const newFile = {
           id: 'file-' + Date.now(),
