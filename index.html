@@ -16,6 +16,7 @@
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title-wrapper">
+        <img src="icon.webp" alt="Logo" class="app-icon" onerror="this.style.display='none'">
         <span class="sidebar-title">내 글 목록</span>
       </div>
       <div class="sidebar-actions">
@@ -40,9 +41,9 @@
           <option value="MaruBuri" selected>마루부리</option>
           <option value="Pretendard">프리텐다드</option>
           <option value="RIDIBatang">리디바탕</option>
-          <option value="'Nanum Myeongjo'">나눔명조</option>
-          <option value="'Noto Serif KR'">본명조</option>
-          <option value="'Nanum Barun Gothic'">나눔바른고딕</option>
+          <option value="Nanum Myeongjo">나눔명조</option>
+          <option value="Noto Serif KR">본명조</option>
+          <option value="Nanum Barun Gothic">나눔바른고딕</option>
         </select>
         
         <!-- 제목/본문 선택 -->
@@ -127,7 +128,7 @@
       </div>
     </div>
 
-    <!-- 찾기/바꾸기 팝업 (기본 상태 숨김) -->
+    <!-- 찾기/바꾸기 팝업 -->
     <div class="search-popover-box" id="search-popover-box" style="display: none;">
       <div class="search-top-row">
         <input type="text" id="input-search" placeholder="찾을 단어" class="search-input-field">
@@ -140,8 +141,8 @@
 
       <div class="replace-bottom-row" id="replace-bottom-row" style="display: none;">
         <input type="text" id="input-replace" placeholder="바꿀 단어" class="replace-input-field">
-        <button id="btn-replace-all" class="action-btn-sm">모두 바꾸기</button>
         <button id="btn-replace-one" class="action-btn-sm highlight-btn">바꾸기</button>
+        <button id="btn-replace-all" class="action-btn-sm">모두 바꾸기</button>
       </div>
     </div>
 
