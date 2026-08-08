@@ -66,41 +66,36 @@ selectFontEl.addEventListener('change', (e) => {
 });
 document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
 
-// ★ 팔레트 팝업 열기/닫기 로직 제어 ★
+// ★ 팔레트 토글 이벤트 핸들러 ★
 const paletteBtn = document.getElementById('btn-color-palette');
 const palettePopover = document.getElementById('color-palette-popover');
 
-paletteBtn.addEventListener('click', (e) => { 
+paletteBtn.onclick = (e) => {
   e.preventDefault();
-  e.stopPropagation(); // 외부 클릭 닫기 이벤트로 전파 방지
-  palettePopover.classList.toggle('show'); 
-});
-
-// 팔레트 팝업 내부 클릭 시 닫히지 않도록 이벤트 전파 차단
-palettePopover.addEventListener('click', (e) => {
   e.stopPropagation();
-});
+  palettePopover.classList.toggle('show');
+};
 
-// 색상 선택 시 적용
+palettePopover.onclick = (e) => {
+  e.stopPropagation();
+};
+
 document.querySelectorAll('.color-swatch').forEach(swatch => {
-  swatch.addEventListener('mousedown', (e) => e.preventDefault());
-  swatch.addEventListener('click', (e) => {
+  swatch.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
     const hexColor = swatch.getAttribute('data-color');
-    
-    // 선택한 텍스트 영역에 글자 색상 적용
     editor.chain().focus().setColor(hexColor).run();
-    
     palettePopover.classList.remove('show');
     updateToolbarState();
-  });
+  };
 });
 
-// 외부 영역 클릭 시 팝업들 닫기
+// 외부 클릭 처리
 document.addEventListener('click', () => {
   palettePopover.classList.remove('show');
-  wordCountPopover.classList.remove('show');
+  const wcPopover = document.getElementById('word-count-popover');
+  if (wcPopover) wcPopover.classList.remove('show');
 });
 
 // 툴바 서식 상태 업데이트
