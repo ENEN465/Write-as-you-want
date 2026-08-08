@@ -30,9 +30,8 @@
       </div>
 
       <div class="toolbar-section toolbar-center">
-        <!-- 폰트 선택 -->
+        <!-- 문서 전체 폰트 선택 -->
         <select id="select-font">
-          <option value="" disabled selected>글씨체</option>
           <option value="Pretendard">프리텐다드</option>
           <option value="MaruBuri">마루부리</option>
           <option value="RIDIBatang">리디바탕</option>
@@ -41,7 +40,7 @@
           <option value="'Nanum Barun Gothic'">나눔바른고딕</option>
         </select>
         
-        <!-- 본문 / 제목 선택 (픽셀 단위 제거) -->
+        <!-- 본문 / 제목 선택 -->
         <select id="select-heading">
           <option value="p">본문</option>
           <option value="h1">제목 1</option>
@@ -97,23 +96,51 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 찾기 버튼 -->
-        <button id="btn-search" title="찾기"><i data-lucide="search"></i></button>
+        <button id="btn-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
       </div>
 
-      <!-- 실시간 글자수 세기 표시 -->
+      <!-- 노벨라 스타일 글자수 세기 드롭다운 -->
       <div class="toolbar-section toolbar-right">
-        <div class="word-counter" id="word-counter">
-          공백포함 0자 | 공백제외 0자
+        <div class="word-counter-wrapper">
+          <button id="btn-word-count-toggle" class="word-count-btn">
+            <span id="word-count-label">0 자</span>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          
+          <div class="word-count-popover" id="word-count-popover">
+            <div class="word-count-option active" data-mode="withSpace">
+              <span>공백 포함: <strong id="cnt-with-space">0자</strong></span>
+              <i data-lucide="check" class="check-icon"></i>
+            </div>
+            <div class="word-count-option" data-mode="noSpace">
+              <span>공백 제외: <strong id="cnt-no-space">0자</strong></span>
+              <i data-lucide="check" class="check-icon"></i>
+            </div>
+            <div class="word-count-option" data-mode="noSpaceSpecial">
+              <span>공백, 특문 제외: <strong id="cnt-no-spec">0자</strong></span>
+              <i data-lucide="check" class="check-icon"></i>
+            </div>
+            <div class="word-count-option" data-mode="words">
+              <span>단어 수: <strong id="cnt-words">0 단어</strong></span>
+              <i data-lucide="check" class="check-icon"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 찾기 팝업 레이어 -->
-    <div class="search-bar" id="search-bar" style="display:none;">
-      <input type="text" id="input-search" placeholder="찾을 단어 입력...">
-      <button id="btn-search-next">다음</button>
-      <button id="btn-search-close">✕</button>
+    <!-- 고급 찾기 / 바꾸기 바 -->
+    <div class="search-replace-bar" id="search-replace-bar" style="display:none;">
+      <div class="search-inputs">
+        <input type="text" id="input-search" placeholder="찾을 단어">
+        <input type="text" id="input-replace" placeholder="바꿀 단어">
+      </div>
+      <div class="search-actions">
+        <button id="btn-search-prev" title="이전"><i data-lucide="chevron-up"></i></button>
+        <button id="btn-search-next" title="다음"><i data-lucide="chevron-down"></i></button>
+        <button id="btn-replace-all">일괄 바꾸기</button>
+        <button id="btn-search-close">✕</button>
+      </div>
     </div>
 
     <div class="main-content">
