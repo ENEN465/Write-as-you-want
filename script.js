@@ -1,4 +1,4 @@
-import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
+import { Editor, Mark } from 'https://esm.sh/@tiptap/core@2.1.13';
 import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
 import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.1.13';
 import Color from 'https://esm.sh/@tiptap/extension-color@2.1.13';
@@ -6,70 +6,27 @@ import FontFamily from 'https://esm.sh/@tiptap/extension-font-family@2.1.13';
 import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
-import { Extension } from 'https://esm.sh/@tiptap/core@2.1.13';
-import { Plugin, PluginKey } from 'https://esm.sh/@tiptap/pm@2.1.13/state';
-import { Decoration, DecorationSet } from 'https://esm.sh/@tiptap/pm@2.1.13/view';
 
-// 찾기/바꾸기 하이라이트용 ProseMirror 플러그인
-// (DOM을 직접 조작하지 않고 에디터 상태(state)를 통해 하이라이트를 관리하여
-//  ProseMirror의 자체 렌더링과 충돌하지 않도록 함)
-const searchHighlightKey = new PluginKey('searchHighlight');
-
-const SearchHighlight = Extension.create({
+// 찾기/바꾸기 하이라이트를 위한 마크 (span.search-highlight / span.search-highlight-active)
+const SearchHighlightMark = Mark.create({
   name: 'searchHighlight',
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        key: searchHighlightKey,
-        state: {
-          init() {
-            return { term: '', matches: [], activeIndex: -1, decorations: DecorationSet.empty };
-          },
-          apply(tr, prev) {
-            const meta = tr.getMeta(searchHighlightKey);
-            let { term, matches, activeIndex } = prev;
-
-            if (meta && meta.term !== undefined) term = meta.term;
-            if (meta && meta.activeIndex !== undefined) activeIndex = meta.activeIndex;
-
-            if ((meta && meta.term !== undefined) || tr.docChanged) {
-              matches = [];
-              if (term) {
-                tr.doc.descendants((node, pos) => {
-                  if (!node.isText) return;
-                  const text = node.text;
-                  let idx = 0;
-                  while (true) {
-                    const found = text.indexOf(term, idx);
-                    if (found === -1) break;
-                    matches.push({ from: pos + found, to: pos + found + term.length });
-                    idx = found + term.length;
-                  }
-                });
-              }
-              if (activeIndex >= matches.length) {
-                activeIndex = matches.length ? 0 : -1;
-              }
-            }
-
-            const decorations = DecorationSet.create(
-              tr.doc,
-              matches.map((m, i) => Decoration.inline(m.from, m.to, {
-                class: i === activeIndex ? 'search-highlight-active' : 'search-highlight'
-              }))
-            );
-
-            return { term, matches, activeIndex, decorations };
-          }
-        },
-        props: {
-          decorations(state) {
-            return this.getState(state).decorations;
-          }
-        }
-      })
-    ];
-  }
+  addAttributes() {
+    return {
+      active: {
+        default: false,
+        parseHTML: element => element.classList.contains('search-highlight-active'),
+        renderHTML: attributes => ({
+          class: attributes.active ? 'search-highlight-active' : 'search-highlight'
+        }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'span.search-highlight' }, { tag: 'span.search-highlight-active' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['span', HTMLAttributes, 0];
+  },
 });
 
 // 버튼 클릭 시 커서 풀림 방지
@@ -97,6 +54,11 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
 let countDisplayMode = 'withSpace';
 
+// 검색 하이라이트 트랜잭션을 일반 편집과 구분하기 위한 메타 키
+const SEARCH_TX_META = 'searchHighlightTx';
+let currentSearchMatches = [];
+let currentSearchActiveIndex = -1;
+
 // Tiptap 에디터 생성
 const editor = new Editor({
   element: document.querySelector('#editor'),
@@ -108,13 +70,15 @@ const editor = new Editor({
     FontFamily, 
     Image,
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    SearchHighlight,
+    SearchHighlightMark,
   ],
   content: '',
-  onUpdate() { 
-    triggerAutoSave(); 
-    updateWordCount();
+  onUpdate({ transaction }) {
     updateToolbarState();
+    // 검색 하이라이트 전용 트랜잭션은 실제 문서 편집이 아니므로 저장/글자수 계산에서 제외
+    if (transaction.getMeta(SEARCH_TX_META)) return;
+    triggerAutoSave();
+    updateWordCount();
   },
   onSelectionUpdate() { 
     updateToolbarState(); 
@@ -240,42 +204,77 @@ const btnReplaceOne = document.getElementById('btn-replace-one');
 const btnReplaceAll = document.getElementById('btn-replace-all');
 const btnSearchClose = document.getElementById('btn-search-close');
 
-function getSearchState() {
-  return searchHighlightKey.getState(editor.state);
+function findSearchMatches(doc, term) {
+  const matches = [];
+  if (!term) return matches;
+  doc.descendants((node, pos) => {
+    if (!node.isText) return;
+    const text = node.text;
+    let idx = 0;
+    while (true) {
+      const found = text.indexOf(term, idx);
+      if (found === -1) break;
+      matches.push({ from: pos + found, to: pos + found + term.length });
+      idx = found + term.length;
+    }
+  });
+  return matches;
 }
 
 function updateSearchBadge() {
-  const { matches, activeIndex } = getSearchState();
-  searchCountBadge.textContent = matches.length ? `${activeIndex + 1} / ${matches.length}` : '0 / 0';
+  searchCountBadge.textContent = currentSearchMatches.length
+    ? `${currentSearchActiveIndex + 1} / ${currentSearchMatches.length}`
+    : '0 / 0';
 }
 
 function scrollToActiveMatch() {
-  const { matches, activeIndex } = getSearchState();
-  if (activeIndex < 0 || !matches[activeIndex]) return;
-  const domInfo = editor.view.domAtPos(matches[activeIndex].from);
+  const match = currentSearchMatches[currentSearchActiveIndex];
+  if (!match) return;
+  const domInfo = editor.view.domAtPos(match.from);
   const el = domInfo.node.nodeType === 3 ? domInfo.node.parentElement : domInfo.node;
   if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
+// 문서 내 모든 검색 하이라이트 마크를 지우고, 현재 매치 목록에 맞춰 다시 적용
+function repaintSearchMarks(activeIndex) {
+  const { state, view } = editor;
+  const markType = state.schema.marks.searchHighlight;
+  let tr = state.tr.removeMark(0, state.doc.content.size, markType);
+  currentSearchMatches.forEach((m, i) => {
+    tr = tr.addMark(m.from, m.to, markType.create({ active: i === activeIndex }));
+  });
+  tr.setMeta(SEARCH_TX_META, true);
+  tr.setMeta('addToHistory', false);
+  view.dispatch(tr);
+}
+
 // 검색어를 반영해 전체 일치 항목을 하이라이트 (첫 번째 일치 항목을 활성화)
 function setSearchTerm(term) {
-  const tr = editor.state.tr.setMeta(searchHighlightKey, { term, activeIndex: 0 });
-  editor.view.dispatch(tr);
+  currentSearchMatches = findSearchMatches(editor.state.doc, term);
+  currentSearchActiveIndex = currentSearchMatches.length ? 0 : -1;
+  repaintSearchMarks(currentSearchActiveIndex);
   updateSearchBadge();
   scrollToActiveMatch();
 }
 
 // 활성(주황색) 하이라이트 위치만 변경
 function setActiveIndex(index) {
-  const tr = editor.state.tr.setMeta(searchHighlightKey, { activeIndex: index });
-  editor.view.dispatch(tr);
+  currentSearchActiveIndex = index;
+  repaintSearchMarks(currentSearchActiveIndex);
   updateSearchBadge();
   scrollToActiveMatch();
 }
 
 function clearSearchHighlights() {
-  const tr = editor.state.tr.setMeta(searchHighlightKey, { term: '', activeIndex: -1 });
-  editor.view.dispatch(tr);
+  const { state, view } = editor;
+  const markType = state.schema.marks.searchHighlight;
+  const tr = state.tr
+    .removeMark(0, state.doc.content.size, markType)
+    .setMeta(SEARCH_TX_META, true)
+    .setMeta('addToHistory', false);
+  view.dispatch(tr);
+  currentSearchMatches = [];
+  currentSearchActiveIndex = -1;
   searchCountBadge.textContent = '0 / 0';
 }
 
@@ -311,39 +310,35 @@ btnToggleReplace.onclick = (e) => {
 inputSearch.oninput = () => setSearchTerm(inputSearch.value);
 
 btnSearchNext.onclick = () => {
-  const { matches, activeIndex } = getSearchState();
-  if (matches.length === 0) return;
-  setActiveIndex((activeIndex + 1) % matches.length);
+  if (currentSearchMatches.length === 0) return;
+  setActiveIndex((currentSearchActiveIndex + 1) % currentSearchMatches.length);
 };
 
 btnSearchPrev.onclick = () => {
-  const { matches, activeIndex } = getSearchState();
-  if (matches.length === 0) return;
-  setActiveIndex((activeIndex - 1 + matches.length) % matches.length);
+  if (currentSearchMatches.length === 0) return;
+  setActiveIndex((currentSearchActiveIndex - 1 + currentSearchMatches.length) % currentSearchMatches.length);
 };
 
 // 현재 활성 항목 하나만 바꾸기
 btnReplaceOne.onclick = () => {
-  const { matches, activeIndex } = getSearchState();
-  if (matches.length === 0 || activeIndex === -1) return;
-  const match = matches[activeIndex];
+  if (currentSearchMatches.length === 0 || currentSearchActiveIndex === -1) return;
+  const match = currentSearchMatches[currentSearchActiveIndex];
   const tr = editor.state.tr.insertText(inputReplace.value, match.from, match.to);
   editor.view.dispatch(tr);
-  updateSearchBadge();
-  scrollToActiveMatch();
+  // 문서가 바뀌었으므로 같은 검색어로 매치 목록을 다시 계산
+  setSearchTerm(inputSearch.value);
 };
 
 // 검색된 항목 전체 일괄 바꾸기
 btnReplaceAll.onclick = () => {
-  const { matches } = getSearchState();
-  if (matches.length === 0) return;
+  if (currentSearchMatches.length === 0) return;
   let tr = editor.state.tr;
   // 뒤쪽 일치 항목부터 순서대로 치환해야 앞쪽 위치가 밀리지 않음
-  [...matches].sort((a, b) => b.from - a.from).forEach(m => {
+  [...currentSearchMatches].sort((a, b) => b.from - a.from).forEach(m => {
     tr = tr.insertText(inputReplace.value, m.from, m.to);
   });
   editor.view.dispatch(tr);
-  updateSearchBadge();
+  setSearchTerm(inputSearch.value);
 };
 
 // 사이드바 및 저장
@@ -362,6 +357,9 @@ function loadDoc(docId) {
   document.getElementById('title-input').value = doc.title || doc.name || '';
   document.getElementById('subtitle-input').value = doc.subtitle || '';
   editor.commands.setContent(doc.content || '');
+  currentSearchMatches = [];
+  currentSearchActiveIndex = -1;
+  if (typeof searchCountBadge !== 'undefined') searchCountBadge.textContent = '0 / 0';
   updateWordCount();
   renderTree();
 }
