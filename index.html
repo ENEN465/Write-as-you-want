@@ -19,104 +19,15 @@
   <!-- Firebase CDN -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Lucide 아이콘 라이브러리 추가 -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
 <div class="app-layout">
-  <!-- 1. 좌측 사이드바 (파일 목록 영역) -->
-  <div class="sidebar" id="sidebar">
-    ... (기존 사이드바 내용) ...
-  </div>
-
-  <!-- 2. 우측 메인 영역 (여기 감싸는 태그가 들어갑니다) -->
-  <div class="main-wrapper">
-    
-    <!-- 우측 영역 최상단 툴바 -->
-    <div class="toolbar">
-      ... (기존 툴바 버튼들) ...
-    </div>
-
-    <!-- 우측 영역 본문 에디터 -->
-    <div class="main-content">
-      <div class="editor-container font-maruburi" id="editor-container">
   
-    <!-- 폰트 & 스타일 -->
-    <select id="select-font">
-      <option value="font-maruburi">마루부리</option>
-      <option value="font-pretendard">프리텐다드</option>
-      <option value="font-bookk-myungjo">부크크명조</option>
-      <option value="font-nanum-myeongjo">나눔명조</option>
-      <option value="font-noto-serif">본명조</option>
-      <option value="font-nanum-barun">나눔바른고딕</option>
-    </select>
-
-    <select id="select-heading">
-      <option value="p">본문</option>
-      <option value="h1">제목 1</option>
-      <option value="h2">제목 2</option>
-      <option value="h3">제목 3</option>
-    </select>
-
-    <div class="toolbar-divider"></div>
-
-    <!-- 서식 (볼드, 이탈릭, 취소선, 첨자) -->
-    <button id="btn-bold" title="굵게"><b>B</b></button>
-    <button id="btn-italic" title="기울임"><i>I</i></button>
-    <button id="btn-strike" title="취소선"><s>S</s></button>
-    <button id="btn-subscript" title="아래 첨자">X₂</button>
-    <button id="btn-superscript" title="위 첨자">X²</button>
-
-    <div class="toolbar-divider"></div>
-
-    <!-- ★ 신규 추가 1: 글씨 색상 ★ -->
-    <input type="color" id="input-text-color" title="글자 색상 변경" value="#212529">
-
-    <!-- ★ 신규 추가 2: 정렬 ★ -->
-    <button id="btn-align-left" title="왼쪽 정렬">⬅️</button>
-    <button id="btn-align-center" title="가운데 정렬">↔️</button>
-    <button id="btn-align-right" title="오른쪽 정렬">➡️</button>
-    <button id="btn-align-justify" title="양쪽 정렬">☰</button>
-
-    <div class="toolbar-divider"></div>
-
-    <!-- ★ 신규 추가 3: 표 & 이미지 ★ -->
-    <button id="btn-insert-table" title="표 삽입 (3x3)">📊 표</button>
-    <button id="btn-insert-image" title="이미지 삽입">🖼️ 이미지</button>
-
-    <!-- 구분선 -->
-    <select id="select-hr">
-      <option value="" disabled selected>구분선 삽입</option>
-      <option value="line">실선</option>
-      <option value="dashed">점선</option>
-      <option value="asterisk">별표 (***)</option>
-      <option value="ornament">다이아 (◇◇◇)</option>
-    </select>
-
-    <div class="toolbar-divider"></div>
-
-    <button id="btn-open-search">찾기</button>
-
-    <!-- 글자 수 카운터 -->
-    <div class="word-counter-wrapper">
-      <div class="counter-badge" id="counter-badge">0자</div>
-      <div class="counter-dropdown" id="counter-dropdown">
-        <div class="counter-item active" data-type="char-no-space">
-          <span>공백 제외 글자 수</span>
-          <span class="check-mark">✓</span>
-        </div>
-        <div class="counter-item" data-type="char-with-space">
-          <span>공백 포함 글자 수</span>
-          <span class="check-mark">✓</span>
-        </div>
-        <div class="counter-item" data-type="word">
-          <span>단어 수</span>
-          <span class="check-mark">✓</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 좌측 사이드바 -->
+  <!-- 1. 좌측 사이드바 (파일 목록 영역) -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <span class="sidebar-title">내 글 목록</span>
@@ -128,17 +39,106 @@
     <div class="file-tree" id="file-tree"></div>
   </div>
 
-  <!-- 메인 에디터 -->
-  <div class="main-content">
-    <div class="editor-container font-maruburi" id="editor-container">
-      <div class="post-header">
-        <input type="text" class="title-input" id="title-input" placeholder="제목을 입력하세요">
-        <input type="text" class="subtitle-input" id="subtitle-input" placeholder="소제목을 입력하세요 (선택)">
-        <hr class="header-divider">
+  <!-- 2. 우측 메인 영역 (상단바 + 편집기) -->
+  <div class="main-wrapper">
+    
+    <!-- 우측 영역 최상단 툴바 -->
+    <div class="toolbar">
+      <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
+      <button id="btn-sync-setting" title="연동 설정"><i data-lucide="cloud"></i></button>
+      <div class="save-status" id="save-status"></div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- 폰트 & 스타일 -->
+      <select id="select-font">
+        <option value="font-maruburi">마루부리</option>
+        <option value="font-pretendard">프리텐다드</option>
+        <option value="font-bookk-myungjo">부크크명조</option>
+        <option value="font-nanum-myeongjo">나눔명조</option>
+        <option value="font-noto-serif">본명조</option>
+        <option value="font-nanum-barun">나눔바른고딕</option>
+      </select>
+
+      <select id="select-heading">
+        <option value="p">본문</option>
+        <option value="h1">제목 1</option>
+        <option value="h2">제목 2</option>
+        <option value="h3">제목 3</option>
+      </select>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- 서식 (볼드, 이탈릭, 취소선, 첨자) -->
+      <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
+      <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
+      <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
+      <button id="btn-subscript" title="아래 첨자"><i data-lucide="subscript"></i></button>
+      <button id="btn-superscript" title="위 첨자"><i data-lucide="superscript"></i></button>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- 글씨 색상 -->
+      <input type="color" id="input-text-color" title="글자 색상 변경" value="#212529">
+
+      <!-- 정렬 -->
+      <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
+      <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
+      <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
+      <button id="btn-align-justify" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- 표 & 이미지 -->
+      <button id="btn-insert-table" title="표 삽입"><i data-lucide="table"></i></button>
+      <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
+
+      <!-- 구분선 -->
+      <select id="select-hr">
+        <option value="" disabled selected>구분선</option>
+        <option value="line">실선</option>
+        <option value="dashed">점선</option>
+        <option value="asterisk">별표 (***)</option>
+        <option value="ornament">다이아 (◇◇◇)</option>
+      </select>
+
+      <div class="toolbar-divider"></div>
+
+      <button id="btn-open-search" title="찾기"><i data-lucide="search"></i></button>
+
+      <!-- 글자 수 카운터 -->
+      <div class="word-counter-wrapper">
+        <div class="counter-badge" id="counter-badge">0자</div>
+        <div class="counter-dropdown" id="counter-dropdown">
+          <div class="counter-item active" data-type="char-no-space">
+            <span>공백 제외 글자 수</span>
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="counter-item" data-type="char-with-space">
+            <span>공백 포함 글자 수</span>
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="counter-item" data-type="word">
+            <span>단어 수</span>
+            <span class="check-mark">✓</span>
+          </div>
+        </div>
       </div>
-      <div id="editor"></div>
     </div>
-  </div>
+
+    <!-- 우측 영역 본문 에디터 -->
+    <div class="main-content">
+      <div class="editor-container font-maruburi" id="editor-container">
+        <div class="post-header">
+          <input type="text" class="title-input" id="title-input" placeholder="제목을 입력하세요">
+          <input type="text" class="subtitle-input" id="subtitle-input" placeholder="소제목을 입력하세요 (선택)">
+          <hr class="header-divider">
+        </div>
+        <div id="editor"></div>
+      </div>
+    </div>
+
+  </div> <!-- /main-wrapper -->
 </div>
 
 <!-- 검색 모달 -->
@@ -441,6 +441,9 @@
   // 초기화 실행
   renderTree();
   loadDoc(activeDocId);
+
+  // Lucide 아이콘 최종 변환 실행
+  lucide.createIcons();
 </script>
 
 </body>
