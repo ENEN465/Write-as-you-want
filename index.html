@@ -18,6 +18,9 @@
 <body>
 
 <div class="app-layout">
+  <!-- 모바일용 사이드바 배경 오버레이 -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
   <!-- 사이드바 -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -29,6 +32,7 @@
         <button id="btn-add-doc" title="새 문서">+ 문서</button>
       </div>
     </div>
+    <!-- 파일/폴더 트리 영역 -->
     <div class="file-tree" id="file-tree"></div>
   </div>
 
@@ -101,6 +105,12 @@
 
         <!-- 찾기 버튼 -->
         <button id="btn-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
+        
+        <!-- 히스토리(버전 관리) 버튼 -->
+        <button id="btn-history" title="버전 기록 및 복원"><i data-lucide="history"></i></button>
+        
+        <!-- 깃허브 동기화 설정 버튼 -->
+        <button id="btn-github-sync" title="GitHub 연동 설정"><i data-lucide="github"></i></button>
       </div>
 
       <div class="toolbar-section toolbar-right">
@@ -151,6 +161,48 @@
       </div>
     </div>
 
+    <!-- 히스토리(버전 관리) 모달 -->
+    <div class="modal-overlay" id="history-modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>버전 히스토리 (자동 기록)</h3>
+          <button id="btn-close-history" class="icon-btn-sm">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">5분마다 자동으로 버전이 기록되며, 복원 버튼 클릭 시 복원 직전 상태가 안전하게 자동 저장됩니다.</p>
+          <ul id="history-list" class="history-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- GitHub 동기화 설정 모달 -->
+    <div class="modal-overlay" id="github-modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>GitHub 동기화 설정</h3>
+          <button id="btn-close-github" class="icon-btn-sm">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="github-guide">
+            <strong>토큰 발급 가이드:</strong><br>
+            GitHub > Settings > Developer Settings > Personal Access Tokens (Classic)에서 <code>gist</code> 권한을 체크한 토큰을 생성하여 입력해 주세요.
+          </div>
+          <div class="input-group">
+            <label>GitHub Personal Access Token:</label>
+            <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxx">
+          </div>
+          <div class="input-group">
+            <label>Gist ID (선택 - 기존 데이터 불러올 때):</label>
+            <input type="text" id="gh-gist-id-input" placeholder="없을 경우 동기화 시 자동 생성">
+          </div>
+          <div class="modal-actions">
+            <button id="btn-save-gh-config" class="action-btn-sm highlight-btn">설정 저장</button>
+            <button id="btn-sync-github" class="action-btn-sm">지금 클라우드 동기화</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 에디터 영역 -->
     <div class="main-content">
       <div class="editor-container" id="editor-container">
@@ -163,6 +215,14 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- 사이드바 드롭다운 메뉴 (점 세 개) -->
+<div class="context-menu" id="context-menu" style="display: none;">
+  <div class="menu-item" id="menu-rename"><i data-lucide="edit-2"></i> 이름 수정</div>
+  <div class="menu-item" id="menu-copy"><i data-lucide="copy"></i> 복사</div>
+  <div class="menu-item" id="menu-move"><i data-lucide="folder-output"></i> 다른 폴더로 이동</div>
+  <div class="menu-item danger" id="menu-delete"><i data-lucide="trash-2"></i> 삭제</div>
 </div>
 
 <script type="module" src="script.js"></script>
