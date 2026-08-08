@@ -42,20 +42,138 @@
     .font-kopub { font-family: 'KoPub World Batang', serif; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       background-color: #f8f9fa;
       color: #212529;
       display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 메인 컨테이너 레이아웃 (사이드바 + 메인 영역) */
+    .app-layout {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* 좌측 사이드바 */
+    .sidebar {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid #e9ecef;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.25s ease;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .sidebar.collapsed {
+      margin-left: -260px;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #f1f3f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #343a40;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .sidebar-actions button {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .sidebar-actions button:hover { background: #e9ecef; }
+
+    .file-tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 8px;
+    }
+
+    .tree-folder-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #868e96;
+      padding: 6px 8px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tree-folder-title:hover .btn-del-folder { display: inline-block; }
+
+    .btn-del-folder {
+      display: none;
+      background: none;
+      border: none;
+      color: #fa5252;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tree-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #495057;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
+
+    .tree-item:hover { background: #f1f3f5; }
+    .tree-item.active { background: #e7f5ff; color: #1c7ed6; font-weight: 600; }
+
+    .tree-item .btn-del-file {
+      display: none;
+      background: none;
+      border: none;
+      color: #fa5252;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tree-item:hover .btn-del-file { display: inline-block; }
+
+    /* 메인 콘텐츠 영역 (툴바 + 에디터) */
+    .main-content {
+      flex: 1;
+      display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
+      overflow-y: auto;
       padding: 20px 10px;
     }
 
     /* 상단 고정 툴바 */
     .toolbar {
       position: sticky;
-      top: 10px;
+      top: 0;
       z-index: 100;
       background: #ffffff;
       border: 1px solid #e9ecef;
@@ -190,7 +308,7 @@
       margin-top: 4px;
     }
 
-    /* 하이라이트 스타일 (검색어 강조 노란색) */
+    /* 하이라이트 스타일 */
     mark {
       background-color: #ffe066 !important;
       color: #000000 !important;
@@ -208,6 +326,7 @@
       border-radius: 4px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       border: 1px solid #e9ecef;
+      margin-bottom: 40px;
     }
 
     .post-header { margin-bottom: 30px; }
@@ -279,97 +398,119 @@
 </head>
 <body class="font-maruburi">
 
-  <!-- 툴바 영역 -->
-  <div class="toolbar">
-    <select id="fontSelect" title="폰트 변경">
-      <optgroup label="명조 계열">
-        <option value="font-maruburi" selected>마루부리</option>
-        <option value="font-bookk-myungjo">부크크명조</option>
-        <option value="font-nanum-myeongjo">나눔명조</option>
-        <option value="font-noto-serif">본명조 (Noto Serif)</option>
-        <option value="font-kopub">KoPub 바탕</option>
-      </optgroup>
-      <optgroup label="고딕 계열">
-        <option value="font-pretendard">프리텐다드</option>
-        <option value="font-nanum-barun">나눔바른고딕</option>
-      </optgroup>
-    </select>
-
-    <select id="headingSelect" title="본문/제목 스타일">
-      <option value="paragraph">본문</option>
-      <option value="1">제목 1</option>
-      <option value="2">제목 2</option>
-      <option value="3">제목 3</option>
-    </select>
-
-    <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
-
-    <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
-    <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
-    <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
-    <button id="btnSub" title="아래 첨자">X<sub>2</sub></button>
-    <button id="btnSup" title="위 첨자">X<sup>2</sup></button>
-
-    <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
-
-    <select id="dividerSelect" class="divider-select" title="구분선 선택">
-      <option value="" disabled selected>구분선 삽입</option>
-      <option value="line">───── (실선)</option>
-      <option value="dashed">╌╌╌╌╌ (점선)</option>
-      <option value="asterisk">*** (아스테리스크)</option>
-      <option value="ornament">◇ ◇ ◇ (문양)</option>
-    </select>
-
-    <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
-
-    <!-- 글자 수 카운터 드롭다운 UI -->
-    <div class="word-counter-wrapper">
-      <div id="counterBadge" class="counter-badge">0자</div>
-      <div id="counterDropdown" class="counter-dropdown">
-        <div class="counter-item active" data-type="with-space">
-          <span>공백 포함: <b id="cntWithSpace">0자</b></span>
-          <span class="check-mark">✓</span>
-        </div>
-        <div class="counter-item" data-type="no-space">
-          <span>공백 제외: <b id="cntNoSpace">0자</b></span>
-          <span class="check-mark">✓</span>
-        </div>
-        <div class="counter-item" data-type="no-special">
-          <span>공백, 특문 제외: <b id="cntNoSpecial">0자</b></span>
-          <span class="check-mark">✓</span>
-        </div>
-        <div class="counter-item" data-type="word-count">
-          <span>단어 수: <b id="cntWords">0 단어</b></span>
-          <span class="check-mark">✓</span>
+  <div class="app-layout">
+    <!-- 좌측 사이드바 영역 -->
+    <div id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">원고 목록</span>
+        <div class="sidebar-actions">
+          <button id="btnAddFolder" title="새 폴더">+ 폴더</button>
+          <button id="btnAddFile" title="새 파일">+ 파일</button>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Ctrl+F 찾기 및 바꾸기 모달 창 -->
-  <div id="searchModal" class="search-modal">
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="찾을 단어 입력..." />
-      <button id="btnFindNext">찾기</button>
-    </div>
-    <div class="search-row">
-      <input type="text" id="replaceInput" placeholder="바꿀 단어 입력..." />
-      <button id="btnReplaceAll">모두 바꾸기</button>
-    </div>
-    <div class="search-status">
-      <span id="searchResultCount">단어를 검색하세요</span>
-      <button id="btnCloseSearch" style="padding: 2px 6px; font-size: 11px;">닫기 (Esc)</button>
-    </div>
-  </div>
-
-  <div class="editor-container">
-    <div class="post-header">
-      <input type="text" class="title-input" placeholder="제목 없음" />
-      <input type="text" class="subtitle-input" placeholder="부제목을 입력하세요." />
-      <hr class="header-divider" />
+      <div id="fileTree" class="file-tree">
+        <!-- JS로 폴더 및 파일 트리가 동적 생성됩니다 -->
+      </div>
     </div>
 
-    <div id="editor"></div>
+    <!-- 메인 콘텐츠 영역 -->
+    <div class="main-content">
+      <!-- 툴바 영역 -->
+      <div class="toolbar">
+        <button id="btnToggleSidebar" title="사이드바 토글">목록</button>
+        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
+
+        <select id="fontSelect" title="폰트 변경">
+          <optgroup label="명조 계열">
+            <option value="font-maruburi" selected>마루부리</option>
+            <option value="font-bookk-myungjo">부크크명조</option>
+            <option value="font-nanum-myeongjo">나눔명조</option>
+            <option value="font-noto-serif">본명조 (Noto Serif)</option>
+            <option value="font-kopub">KoPub 바탕</option>
+          </optgroup>
+          <optgroup label="고딕 계열">
+            <option value="font-pretendard">프리텐다드</option>
+            <option value="font-nanum-barun">나눔바른고딕</option>
+          </optgroup>
+        </select>
+
+        <select id="headingSelect" title="본문/제목 스타일">
+          <option value="paragraph">본문</option>
+          <option value="1">제목 1</option>
+          <option value="2">제목 2</option>
+          <option value="3">제목 3</option>
+        </select>
+
+        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
+
+        <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
+        <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
+        <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
+        <button id="btnSub" title="아래 첨자">X<sub>2</sub></button>
+        <button id="btnSup" title="위 첨자">X<sup>2</sup></button>
+
+        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
+
+        <select id="dividerSelect" class="divider-select" title="구분선 선택">
+          <option value="" disabled selected>구분선 삽입</option>
+          <option value="line">───── (실선)</option>
+          <option value="dashed">╌╌╌╌╌ (점선)</option>
+          <option value="asterisk">*** (아스테리스크)</option>
+          <option value="ornament">◇ ◇ ◇ (문양)</option>
+        </select>
+
+        <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
+
+        <!-- 글자 수 카운터 드롭다운 UI -->
+        <div class="word-counter-wrapper">
+          <div id="counterBadge" class="counter-badge">0자</div>
+          <div id="counterDropdown" class="counter-dropdown">
+            <div class="counter-item active" data-type="with-space">
+              <span>공백 포함: <b id="cntWithSpace">0자</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="no-space">
+              <span>공백 제외: <b id="cntNoSpace">0자</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="no-special">
+              <span>공백, 특문 제외: <b id="cntNoSpecial">0자</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="word-count">
+              <span>단어 수: <b id="cntWords">0 단어</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ctrl+F 찾기 및 바꾸기 모달 창 -->
+      <div id="searchModal" class="search-modal">
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="찾을 단어 입력..." />
+          <button id="btnFindNext">찾기</button>
+        </div>
+        <div class="search-row">
+          <input type="text" id="replaceInput" placeholder="바꿀 단어 입력..." />
+          <button id="btnReplaceAll">모두 바꾸기</button>
+        </div>
+        <div class="search-status">
+          <span id="searchResultCount">단어를 검색하세요</span>
+          <button id="btnCloseSearch" style="padding: 2px 6px; font-size: 11px;">닫기 (Esc)</button>
+        </div>
+      </div>
+
+      <div class="editor-container">
+        <div class="post-header">
+          <input type="text" class="title-input" placeholder="제목 없음" />
+          <input type="text" class="subtitle-input" placeholder="부제목을 입력하세요." />
+          <hr class="header-divider" />
+        </div>
+
+        <div id="editor"></div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -378,7 +519,7 @@
     import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.2.4';
     import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.2.4';
     import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.2.4';
-    import Highlight from 'https://esm.sh/@tiptap/extension-highlight@2.2.4'; // 하이라이트 확합 패키지
+    import Highlight from 'https://esm.sh/@tiptap/extension-highlight@2.2.4';
 
     const titleInput = document.querySelector('.title-input');
     const subtitleInput = document.querySelector('.subtitle-input');
@@ -402,7 +543,7 @@
         Subscript,
         Superscript,
         CustomHorizontalRule,
-        Highlight.configure({ multicolor: true }), // 하이라이트 기능 활성화
+        Highlight.configure({ multicolor: true }),
       ],
       content: `<p>여기에 본문을 입력하세요.</p>`,
       onTransaction({ editor }) {
@@ -419,11 +560,197 @@
         else headingSelect.value = 'paragraph';
 
         updateWordCount();
+        saveCurrentFileState();
       }
     });
 
     // ----------------------------------------------------
-    // 💡 5. Ctrl+F 실시간 검색 하이라이트 & 바꾸기
+    // 💡 4. 폴더 및 파일 (사이드바) 데이터 관리 로직
+    // ----------------------------------------------------
+
+    let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
+      folders: [
+        { id: 'folder-1', name: '기본 폴더' }
+      ],
+      files: [
+        { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>' }
+      ],
+      activeFileId: 'file-1'
+    };
+
+    const sidebar = document.getElementById('sidebar');
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+    const fileTree = document.getElementById('fileTree');
+    const btnAddFolder = document.getElementById('btnAddFolder');
+    const btnAddFile = document.getElementById('btnAddFile');
+
+    // 사이드바 토글
+    btnToggleSidebar.onclick = () => {
+      sidebar.classList.toggle('collapsed');
+    };
+
+    // 사이드바 UI 렌더링
+    function renderFileTree() {
+      fileTree.innerHTML = '';
+
+      documentStore.folders.forEach(folder => {
+        const folderDiv = document.createElement('div');
+        folderDiv.className = 'tree-folder';
+
+        const folderTitle = document.createElement('div');
+        folderTitle.className = 'tree-folder-title';
+        folderTitle.innerHTML = `
+          <span>${folder.name}</span>
+          <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
+        `;
+        folderDiv.appendChild(folderTitle);
+
+        // 폴더 삭제 처리
+        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
+            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
+            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
+            if (documentStore.files.length > 0) {
+              documentStore.activeFileId = documentStore.files[0].id;
+            } else {
+              documentStore.activeFileId = null;
+            }
+            saveStore();
+            renderFileTree();
+            loadActiveFile();
+          }
+        };
+
+        // 폴더 안 파일목록
+        const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
+        filesInFolder.forEach(file => {
+          const fileItem = document.createElement('div');
+          fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
+          fileItem.innerHTML = `
+            <span>${file.title || '제목 없음'}</span>
+            <button class="btn-del-file" data-id="${file.id}">삭제</button>
+          `;
+
+          fileItem.onclick = () => {
+            if (documentStore.activeFileId !== file.id) {
+              saveCurrentFileState();
+              documentStore.activeFileId = file.id;
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          // 파일 삭제
+          fileItem.querySelector('.btn-del-file').onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
+              documentStore.files = documentStore.files.filter(f => f.id !== file.id);
+              if (documentStore.activeFileId === file.id) {
+                documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
+              }
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          folderDiv.appendChild(fileItem);
+        });
+
+        fileTree.appendChild(folderDiv);
+      });
+    }
+
+    // 로컬 스토리지 저장
+    function saveStore() {
+      localStorage.setItem('my_documents', JSON.stringify(documentStore));
+    }
+
+    // 현재 작성 중인 파일 상태 동기화
+    function saveCurrentFileState() {
+      if (!documentStore.activeFileId) return;
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (activeFile) {
+        activeFile.title = titleInput.value;
+        activeFile.subtitle = subtitleInput.value;
+        activeFile.content = editor.getHTML();
+        saveStore();
+
+        // 사이드바 파일 제목 업데이트
+        const activeTreeItem = fileTree.querySelector('.tree-item.active span');
+        if (activeTreeItem) {
+          activeTreeItem.innerText = titleInput.value || '제목 없음';
+        }
+      }
+    }
+
+    // 선택된 파일 읽어와서 에디터에 로드
+    function loadActiveFile() {
+      if (!documentStore.activeFileId) {
+        titleInput.value = '';
+        subtitleInput.value = '';
+        editor.commands.setContent('', false);
+        return;
+      }
+
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (activeFile) {
+        titleInput.value = activeFile.title || '';
+        subtitleInput.value = activeFile.subtitle || '';
+        editor.commands.setContent(activeFile.content || '<p></p>', false);
+        updateWordCount();
+      }
+    }
+
+    // 새 폴더 추가
+    btnAddFolder.onclick = () => {
+      const folderName = prompt('새 폴더 이름을 입력하세요:', '새 폴더');
+      if (folderName) {
+        const newFolder = {
+          id: 'folder-' + Date.now(),
+          name: folderName
+        };
+        documentStore.folders.push(newFolder);
+        saveStore();
+        renderFileTree();
+      }
+    };
+
+    // 새 파일 추가
+    btnAddFile.onclick = () => {
+      if (documentStore.folders.length === 0) {
+        alert('먼저 폴더를 생성해주세요.');
+        return;
+      }
+      const fileTitle = prompt('새 원고 제목을 입력하세요:', '제목 없음');
+      if (fileTitle !== null) {
+        const newFile = {
+          id: 'file-' + Date.now(),
+          folderId: documentStore.folders[0].id, // 첫 번째 폴더에 기본 추가
+          title: fileTitle,
+          subtitle: '',
+          content: '<p></p>'
+        };
+        saveCurrentFileState();
+        documentStore.files.push(newFile);
+        documentStore.activeFileId = newFile.id;
+        saveStore();
+        renderFileTree();
+        loadActiveFile();
+      }
+    };
+
+    titleInput.addEventListener('input', saveCurrentFileState);
+    subtitleInput.addEventListener('input', saveCurrentFileState);
+
+    // 초기 실행
+    renderFileTree();
+    loadActiveFile();
+
+    // ----------------------------------------------------
+    // 5. Ctrl+F 실시간 검색 하이라이트 & 바꾸기
     // ----------------------------------------------------
 
     const searchModal = document.getElementById('searchModal');
@@ -434,24 +761,20 @@
     const btnCloseSearch = document.getElementById('btnCloseSearch');
     const searchResultCount = document.getElementById('searchResultCount');
 
-    // 하이라이트 초기화 함수
     function clearHighlights() {
       const html = editor.getHTML();
-      // 기존 mark 태그 제거
       const cleanHTML = html.replace(/<mark[^>]*>(.*?)<\/mark>/gi, '$1');
       if (html !== cleanHTML) {
         editor.commands.setContent(cleanHTML, false);
       }
     }
 
-    // 검색 모달 열기
     function openSearchModal() {
       searchModal.classList.add('show');
       searchInput.focus();
       searchInput.select();
     }
 
-    // 검색 모달 닫기 (닫을 때 하이라이트 싹 제거)
     function closeSearchModal() {
       searchModal.classList.remove('show');
       searchResultCount.innerText = '단어를 검색하세요';
@@ -464,7 +787,6 @@
     btnSearch.onclick = openSearchModal;
     btnCloseSearch.onclick = closeSearchModal;
 
-    // 단축키 Ctrl+F / Cmd+F
     window.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
@@ -475,10 +797,8 @@
       }
     });
 
-    // 검색어 입력 시 본문 실시간 노란색 하이라이트 적용
     function performSearch() {
       const query = searchInput.value;
-
       clearHighlights();
 
       if (!query.trim()) {
@@ -488,8 +808,6 @@
 
       const currentHTML = editor.getHTML();
       const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      
-      // HTML 태그 외부의 순수 텍스트 부분만 노란색 <mark> 태그로 감싸기
       const regex = new RegExp(`(?<!<[^>]*)${escapedQuery}(?![^<]*>)`, 'gi');
       const matches = currentHTML.match(regex);
       const count = matches ? matches.length : 0;
@@ -505,14 +823,12 @@
 
     searchInput.addEventListener('input', performSearch);
 
-    // 모두 바꾸기 기능
     btnReplaceAll.onclick = () => {
       const searchVal = searchInput.value;
       const replaceVal = replaceInput.value;
 
       if (!searchVal) return;
 
-      // 먼저 하이라이트 해제 후 치환
       clearHighlights();
       const currentHTML = editor.getHTML();
       const escapedSearch = searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -522,6 +838,7 @@
 
       editor.commands.setContent(newHTML, false);
       updateWordCount();
+      saveCurrentFileState();
       searchResultCount.innerText = '모두 교체되었습니다!';
       searchInput.value = '';
     };
