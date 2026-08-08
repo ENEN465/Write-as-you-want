@@ -1,1 +1,28 @@
-{}
+{
+  "folders": [
+    {
+      "id": "folder-1",
+      "name": "은쟁반"
+    }
+  ],
+  "files": [
+    {
+      "id": "file-1",
+      "folderId": "folder-1",
+      "title": "은쟁반",
+      "subtitle": "",
+      "content": "<p>여기에 내용을 작성하세요.</p>",
+      "history": [
+        {
+          "timestamp": "8. 8. 오후 03:30",
+          "title": "첫 번째 원고",
+          "subtitle": "",
+          "content": "<p>여기에 내용을 작성하세요.</p>"
+        }
+      ]
+    }
+  ],
+  "selectedFolderId": null,
+  "activeFileId": "file-1",
+  "collapsedFolders": []
+}
