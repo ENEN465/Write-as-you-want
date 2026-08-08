@@ -8,6 +8,26 @@
   <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 안정적인 모듈 로드를 위한 Import Map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@tiptap/core": "https://esm.sh/@tiptap/core@2.1.13",
+      "@tiptap/starter-kit": "https://esm.sh/@tiptap/starter-kit@2.1.13",
+      "@tiptap/extension-color": "https://esm.sh/@tiptap/extension-color@2.1.13",
+      "@tiptap/extension-text-style": "https://esm.sh/@tiptap/extension-text-style@2.1.13",
+      "@tiptap/extension-font-family": "https://esm.sh/@tiptap/extension-font-family@2.1.13",
+      "@tiptap/extension-text-align": "https://esm.sh/@tiptap/extension-text-align@2.1.13",
+      "@tiptap/extension-image": "https://esm.sh/@tiptap/extension-image@2.1.13",
+      "@tiptap/extension-table": "https://esm.sh/@tiptap/extension-table@2.1.13",
+      "@tiptap/extension-table-row": "https://esm.sh/@tiptap/extension-table-row@2.1.13",
+      "@tiptap/extension-table-header": "https://esm.sh/@tiptap/extension-table-header@2.1.13",
+      "@tiptap/extension-table-cell": "https://esm.sh/@tiptap/extension-table-cell@2.1.13",
+      "@tiptap/extension-horizontal-rule": "https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -32,12 +52,13 @@
 
       <div class="toolbar-section toolbar-center">
         <select id="select-font">
-          <option value="font-maruburi">마루부리</option>
-          <option value="font-ridi-batang">리디바탕</option>
-          <option value="font-pretendard">프리텐다드</option>
-          <option value="font-nanum-myeongjo">나눔명조</option>
-          <option value="font-noto-serif">본명조</option>
-          <option value="font-nanum-barun">나눔바른고딕</option>
+          <option value="" disabled selected>글씨체</option>
+          <option value="Pretendard">프리텐다드</option>
+          <option value="MaruBuri">마루부리</option>
+          <option value="RIDIBatang">리디바탕</option>
+          <option value="NanumMyeongjo">나눔명조</option>
+          <option value="'Noto Serif KR'">본명조</option>
+          <option value="NanumBarunGothic">나눔바른고딕</option>
         </select>
 
         <select id="select-heading">
@@ -108,7 +129,6 @@
 
       <div class="toolbar-section toolbar-right">
         <button id="btn-open-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
-
         <div class="word-counter-wrapper">
           <div class="counter-badge" id="counter-badge">0자</div>
           <div class="counter-dropdown" id="counter-dropdown">
@@ -121,7 +141,7 @@
     </div>
 
     <div class="main-content">
-      <div class="editor-container font-maruburi" id="editor-container">
+      <div class="editor-container" id="editor-container">
         <div class="post-header">
           <input type="text" class="title-input" id="title-input" placeholder="제목을 입력하세요">
           <input type="text" class="subtitle-input" id="subtitle-input" placeholder="소제목을 입력하세요 (선택)">
@@ -149,23 +169,20 @@
 </div>
 
 <script type="module">
-  import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
-  import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
-  import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
-  import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.1.13';
-  import Color from 'https://esm.sh/@tiptap/extension-color@2.1.13';
-  import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
-  import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
-  import Table from 'https://esm.sh/@tiptap/extension-table@2.1.13';
-  import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.1.13';
-  import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.13';
-  import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.13';
+  import { Editor } from '@tiptap/core';
+  import StarterKit from '@tiptap/starter-kit';
+  import HorizontalRule from '@tiptap/extension-horizontal-rule';
+  import TextStyle from '@tiptap/extension-text-style';
+  import Color from '@tiptap/extension-color';
+  import FontFamily from '@tiptap/extension-font-family';
+  import TextAlign from '@tiptap/extension-text-align';
+  import Image from '@tiptap/extension-image';
+  import Table from '@tiptap/extension-table';
+  import TableRow from '@tiptap/extension-table-row';
+  import TableCell from '@tiptap/extension-table-cell';
+  import TableHeader from '@tiptap/extension-table-header';
 
-  // [핵심 문제 해결 1] 모든 툴바 요소 클릭 시 에디터 포커스 상실 방지
-  document.querySelectorAll('.toolbar button, .color-swatch, .table-popover button, select').forEach(el => {
-    el.addEventListener('mousedown', (e) => e.preventDefault());
-  });
-
+  // 1. 커스텀 구분선 확장
   const CustomHorizontalRule = HorizontalRule.extend({
     addAttributes() {
       return {
@@ -186,12 +203,16 @@
   let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
   let counterType = 'char-no-space';
 
+  // 2. 에디터 인스턴스 생성
   const editor = new Editor({
     element: document.querySelector('#editor'),
     extensions: [
-      StarterKit.configure({ horizontalRule: false }),
+      StarterKit.configure({ horizontalRule: false }), // 기본 HR 끄고 커스텀 HR 사용
       CustomHorizontalRule,
-      TextStyle, Color, Image,
+      TextStyle, 
+      Color, 
+      FontFamily, // 폰트 확장 추가
+      Image,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Table.configure({ resizable: true }),
       TableRow, TableHeader, TableCell,
@@ -201,29 +222,154 @@
     onSelectionUpdate() { updateToolbarState(); }
   });
 
-  function loadDoc(docId) {
-    const doc = findNode(treeData, docId);
-    if (!doc) return;
-    activeDocId = docId;
-    localStorage.setItem('my_active_doc_id', docId);
-
-    document.getElementById('title-input').value = doc.title || doc.name || '';
-    document.getElementById('subtitle-input').value = doc.subtitle || '';
-    editor.commands.setContent(doc.content || '');
-    if(originalHtmlForSearch) originalHtmlForSearch = null; // 문서 이동 시 검색 리셋
-    updateWordCount();
-    renderTree();
+  // 3. 툴바 버튼 상태 업데이트 (활성화 된 포맷 표시)
+  function updateToolbarState() {
+    document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
+    document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
+    document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
+    
+    // 제목 셀렉트박스 동기화
+    const headingSelect = document.getElementById('select-heading');
+    if (editor.isActive('heading', { level: 1 })) headingSelect.value = 'h1';
+    else if (editor.isActive('heading', { level: 2 })) headingSelect.value = 'h2';
+    else if (editor.isActive('heading', { level: 3 })) headingSelect.value = 'h3';
+    else headingSelect.value = 'p';
   }
 
+  // 4. 서식 버튼 이벤트 리스너 (.chain().focus()를 이용해 클릭 후 에디터로 포커스 반환)
+  document.getElementById('btn-bold').addEventListener('click', () => editor.chain().focus().toggleBold().run());
+  document.getElementById('btn-italic').addEventListener('click', () => editor.chain().focus().toggleItalic().run());
+  document.getElementById('btn-strike').addEventListener('click', () => editor.chain().focus().toggleStrike().run());
+
+  document.getElementById('btn-align-left').addEventListener('click', () => editor.chain().focus().setTextAlign('left').run());
+  document.getElementById('btn-align-center').addEventListener('click', () => editor.chain().focus().setTextAlign('center').run());
+  document.getElementById('btn-align-right').addEventListener('click', () => editor.chain().focus().setTextAlign('right').run());
+  document.getElementById('btn-align-justify').addEventListener('click', () => editor.chain().focus().setTextAlign('justify').run());
+
+  // 5. 드롭다운 변경 이벤트
+  document.getElementById('select-heading').addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (v === 'p') editor.chain().focus().setParagraph().run();
+    else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
+  });
+
+  document.getElementById('select-font').addEventListener('change', (e) => {
+    if (e.target.value) {
+      editor.chain().focus().setFontFamily(e.target.value).run();
+      e.target.value = ''; // 선택 후 초기화하여 깔끔하게
+    }
+  });
+
+  document.getElementById('select-hr').addEventListener('change', (e) => {
+    if (e.target.value) {
+      editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
+      e.target.value = ''; 
+    }
+  });
+
+  // 6. 컬러 피커 제어
+  const paletteBtn = document.getElementById('btn-color-palette');
+  const palettePopover = document.getElementById('color-palette-popover');
+  paletteBtn.addEventListener('click', (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); });
+  
+  document.querySelectorAll('.color-swatch').forEach(swatch => {
+    swatch.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const color = swatch.getAttribute('data-color');
+      editor.chain().focus().setColor(color).run();
+      palettePopover.classList.remove('show');
+    });
+  });
+
+  // 7. 표 기능 제어
+  const tableBtn = document.getElementById('btn-table-menu');
+  const tablePopover = document.getElementById('table-popover');
+  tableBtn.addEventListener('click', (e) => { e.stopPropagation(); tablePopover.classList.toggle('show'); });
+  
+  const execTable = (fn) => () => { fn(); tablePopover.classList.remove('show'); };
+  document.getElementById('btn-table-insert').addEventListener('click', execTable(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()));
+  document.getElementById('btn-table-add-row-before').addEventListener('click', execTable(() => editor.chain().focus().addRowBefore().run()));
+  document.getElementById('btn-table-add-row-after').addEventListener('click', execTable(() => editor.chain().focus().addRowAfter().run()));
+  document.getElementById('btn-table-add-col-before').addEventListener('click', execTable(() => editor.chain().focus().addColumnBefore().run()));
+  document.getElementById('btn-table-add-col-after').addEventListener('click', execTable(() => editor.chain().focus().addColumnAfter().run()));
+  document.getElementById('btn-table-delete-row').addEventListener('click', execTable(() => editor.chain().focus().deleteRow().run()));
+  document.getElementById('btn-table-delete-col').addEventListener('click', execTable(() => editor.chain().focus().deleteColumn().run()));
+  document.getElementById('btn-table-delete').addEventListener('click', execTable(() => editor.chain().focus().deleteTable().run()));
+
+  // 8. 기타 기능(이미지, 찾기, 파일트리 등 기존 동일 로직)
+  document.getElementById('btn-insert-image').onclick = () => document.getElementById('input-image-file').click();
+  document.getElementById('input-image-file').onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => editor.chain().focus().setImage({ src: event.target.result }).run();
+      reader.readAsDataURL(file);
+    }
+  };
+
+  /* 찾기 및 일괄 수정 */
+  const searchModal = document.getElementById('search-modal');
+  const searchInput = document.getElementById('search-input');
+  const searchCount = document.getElementById('search-count');
+  let originalHtmlForSearch = null;
+
+  document.getElementById('btn-open-search').onclick = (e) => {
+    e.stopPropagation(); searchModal.classList.toggle('show');
+    if (searchModal.classList.contains('show')) { originalHtmlForSearch = editor.getHTML(); searchInput.focus(); } 
+    else { clearSearch(); }
+  };
+  document.getElementById('btn-close-search').onclick = () => clearSearch();
+
+  function clearSearch() {
+    searchModal.classList.remove('show');
+    if(originalHtmlForSearch !== null) {
+      const cleanContent = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
+      editor.commands.setContent(cleanContent); originalHtmlForSearch = null;
+    }
+    searchCount.textContent = '검색어 대기 중'; searchInput.value = '';
+  }
+
+  searchInput.oninput = () => {
+    const term = searchInput.value;
+    if (!term) {
+      if(originalHtmlForSearch) editor.commands.setContent(originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, ''));
+      searchCount.textContent = '0건 발견'; return;
+    }
+    if (originalHtmlForSearch === null) originalHtmlForSearch = editor.getHTML();
+    const cleanHtml = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
+    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
+    let matchCount = 0;
+    const highlightedHtml = cleanHtml.replace(regex, (match) => { matchCount++; return `<mark class="search-highlight">${match}</mark>`; });
+    editor.commands.setContent(highlightedHtml);
+    searchCount.textContent = `${matchCount}건 발견`;
+  };
+
+  document.getElementById('btn-replace-all').onclick = () => {
+    const term = searchInput.value;
+    const replaceWith = document.getElementById('replace-input').value;
+    if(!term) return;
+    const cleanHtml = originalHtmlForSearch ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
+    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
+    const newHtml = cleanHtml.replace(regex, replaceWith);
+    editor.commands.setContent(newHtml);
+    originalHtmlForSearch = newHtml; searchInput.value = ''; searchCount.textContent = '일괄 수정 완료!'; triggerAutoSave();
+  };
+
+  /* 세이브, 로드, 파일트리 */
   function findNode(nodes, id) {
     for (let node of nodes) {
       if (node.id === id) return node;
-      if (node.children) {
-        let res = findNode(node.children, id);
-        if (res) return res;
-      }
-    }
-    return null;
+      if (node.children) { let res = findNode(node.children, id); if (res) return res; }
+    } return null;
+  }
+  function loadDoc(docId) {
+    const doc = findNode(treeData, docId); if (!doc) return;
+    activeDocId = docId; localStorage.setItem('my_active_doc_id', docId);
+    document.getElementById('title-input').value = doc.title || doc.name || '';
+    document.getElementById('subtitle-input').value = doc.subtitle || '';
+    editor.commands.setContent(doc.content || '');
+    if(originalHtmlForSearch) originalHtmlForSearch = null;
+    updateWordCount(); renderTree();
   }
 
   let saveTimer = null;
@@ -237,8 +383,6 @@
         doc.title = document.getElementById('title-input').value;
         doc.subtitle = document.getElementById('subtitle-input').value;
         doc.name = doc.title || '제목 없음';
-        
-        // 검색 모드일 때는 원본 HTML 저장, 아닐 때는 현재 에디터 내용 저장
         doc.content = originalHtmlForSearch !== null ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
         localStorage.setItem('my_tree_data', JSON.stringify(treeData));
         status.textContent = '저장됨'; status.className = 'save-status synced';
@@ -248,175 +392,33 @@
   }
 
   function updateWordCount() {
-    const text = editor.getText();
-    let count = 0;
+    const text = editor.getText(); let count = 0;
     if (counterType === 'char-no-space') count = text.replace(/\s/g, '').length;
     else if (counterType === 'char-with-space') count = text.length;
     else if (counterType === 'word') count = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
     document.getElementById('counter-badge').textContent = `${count.toLocaleString()}${counterType === 'word' ? '단어' : '자'}`;
   }
 
-  function updateToolbarState() {
-    document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
-    document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
-    document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
-  }
-
-  /* 서식 적용 (mousedown 이벤트에서 e.preventDefault() 처리되므로 정상 작동) */
-  document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
-  document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
-  document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
-
-  document.getElementById('btn-align-left').onclick = () => editor.chain().focus().setTextAlign('left').run();
-  document.getElementById('btn-align-center').onclick = () => editor.chain().focus().setTextAlign('center').run();
-  document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
-  document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
-
-  /* 컬러 피커 */
-  const paletteBtn = document.getElementById('btn-color-palette');
-  const palettePopover = document.getElementById('color-palette-popover');
-  paletteBtn.onclick = (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); };
-  document.querySelectorAll('.color-swatch').forEach(swatch => {
-    swatch.onclick = (e) => {
-      e.stopPropagation();
-      const color = swatch.getAttribute('data-color');
-      editor.chain().focus().setColor(color).run();
-      palettePopover.classList.remove('show');
-    };
-  });
-
-  /* 표 기능 */
-  const tableBtn = document.getElementById('btn-table-menu');
-  const tablePopover = document.getElementById('table-popover');
-  tableBtn.onclick = (e) => { e.stopPropagation(); tablePopover.classList.toggle('show'); };
-  
-  const execTable = (fn) => () => { fn(); tablePopover.classList.remove('show'); };
-  document.getElementById('btn-table-insert').onclick = execTable(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run());
-  document.getElementById('btn-table-add-row-before').onclick = execTable(() => editor.chain().focus().addRowBefore().run());
-  document.getElementById('btn-table-add-row-after').onclick = execTable(() => editor.chain().focus().addRowAfter().run());
-  document.getElementById('btn-table-add-col-before').onclick = execTable(() => editor.chain().focus().addColumnBefore().run());
-  document.getElementById('btn-table-add-col-after').onclick = execTable(() => editor.chain().focus().addColumnAfter().run());
-  document.getElementById('btn-table-delete-row').onclick = execTable(() => editor.chain().focus().deleteRow().run());
-  document.getElementById('btn-table-delete-col').onclick = execTable(() => editor.chain().focus().deleteColumn().run());
-  document.getElementById('btn-table-delete').onclick = execTable(() => editor.chain().focus().deleteTable().run());
-
-  /* 이미지 삽입 */
-  document.getElementById('btn-insert-image').onclick = () => document.getElementById('input-image-file').click();
-  document.getElementById('input-image-file').onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => editor.chain().focus().setImage({ src: event.target.result }).run();
-      reader.readAsDataURL(file);
-    }
-  };
-
-  /* 폰트 및 구분선 */
-  document.getElementById('select-font').onchange = (e) => document.getElementById('editor-container').className = `editor-container ${e.target.value}`;
-  document.getElementById('select-heading').onchange = (e) => {
-    const v = e.target.value;
-    if (v === 'p') editor.chain().focus().setParagraph().run();
-    else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
-  };
-  document.getElementById('select-hr').onchange = (e) => {
-    if (e.target.value) {
-      editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
-      e.target.value = '';
-    }
-  };
-
-  /* 찾기 및 일괄 수정 (강조 포함) */
-  const searchModal = document.getElementById('search-modal');
-  const searchInput = document.getElementById('search-input');
-  const searchCount = document.getElementById('search-count');
-  let originalHtmlForSearch = null;
-
-  document.getElementById('btn-open-search').onclick = (e) => {
-    e.stopPropagation();
-    searchModal.classList.toggle('show');
-    if (searchModal.classList.contains('show')) {
-      originalHtmlForSearch = editor.getHTML();
-      searchInput.focus();
-    } else {
-      clearSearch();
-    }
-  };
-
-  document.getElementById('btn-close-search').onclick = () => clearSearch();
-
-  function clearSearch() {
-    searchModal.classList.remove('show');
-    if(originalHtmlForSearch !== null) {
-      const cleanContent = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
-      editor.commands.setContent(cleanContent);
-      originalHtmlForSearch = null;
-    }
-    searchCount.textContent = '검색어 대기 중';
-    searchInput.value = '';
-  }
-
-  searchInput.oninput = () => {
-    const term = searchInput.value;
-    if (!term) {
-      if(originalHtmlForSearch) editor.commands.setContent(originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, ''));
-      searchCount.textContent = '0건 발견';
-      return;
-    }
-    if (originalHtmlForSearch === null) originalHtmlForSearch = editor.getHTML();
-    
-    // HTML 태그 내부를 건드리지 않고 텍스트만 치환하여 하이라이트 (정규식 마법)
-    const cleanHtml = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
-    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
-    let matchCount = 0;
-    const highlightedHtml = cleanHtml.replace(regex, (match) => {
-      matchCount++;
-      return `<mark class="search-highlight">${match}</mark>`;
-    });
-
-    editor.commands.setContent(highlightedHtml);
-    searchCount.textContent = `${matchCount}건 발견`;
-  };
-
-  document.getElementById('btn-replace-all').onclick = () => {
-    const term = searchInput.value;
-    const replaceWith = document.getElementById('replace-input').value;
-    if(!term) return;
-    
-    const cleanHtml = originalHtmlForSearch ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
-    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
-    
-    const newHtml = cleanHtml.replace(regex, replaceWith);
-    editor.commands.setContent(newHtml);
-    originalHtmlForSearch = newHtml; // 교체된 결과를 새 원본으로 지정
-    searchInput.value = '';
-    searchCount.textContent = '일괄 수정 완료!';
-    triggerAutoSave();
-  };
-
-  /* 사이드바 액션 (폴더, 파일 추가) */
   document.getElementById('btn-add-folder').onclick = () => {
     const name = prompt("새 폴더 이름을 입력하세요:");
-    if(name) {
-      treeData.push({ id: 'f-' + Date.now(), name, type: 'folder', isOpen: true, children: [] });
-      renderTree(); triggerAutoSave();
-    }
+    if(name) { treeData.push({ id: 'f-' + Date.now(), name, type: 'folder', isOpen: true, children: [] }); renderTree(); triggerAutoSave(); }
   };
   document.getElementById('btn-add-doc').onclick = () => {
     const name = prompt("새 문서 이름을 입력하세요:");
     if(name) {
       if(treeData.length === 0) treeData.push({ id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [] });
       const newDoc = { id: 'd-' + Date.now(), name, type: 'doc', content: '<p>새로운 문서입니다.</p>', title: name, subtitle: '' };
-      treeData[0].children.push(newDoc);
-      renderTree(); loadDoc(newDoc.id); triggerAutoSave();
+      treeData[0].children.push(newDoc); renderTree(); loadDoc(newDoc.id); triggerAutoSave();
     }
   };
 
-  /* 팝업 닫기 및 렌더링 */
+  /* 바탕 클릭 시 팝업 닫기 */
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.color-picker-wrapper')) palettePopover.classList.remove('show');
     if (!e.target.closest('.table-menu-wrapper')) tablePopover.classList.remove('show');
     if (!e.target.closest('.word-counter-wrapper')) document.getElementById('counter-dropdown').classList.remove('show');
   });
+  
   document.getElementById('counter-badge').onclick = (e) => { e.stopPropagation(); document.getElementById('counter-dropdown').classList.toggle('show'); }
   document.querySelectorAll('.counter-item').forEach(item => {
     item.onclick = (e) => {
@@ -425,6 +427,7 @@
       document.getElementById('counter-dropdown').classList.remove('show');
     };
   });
+
   document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
   document.getElementById('title-input').oninput = triggerAutoSave;
   document.getElementById('subtitle-input').oninput = triggerAutoSave;
