@@ -287,7 +287,7 @@ body {
   max-width: 720px;
 }
 
-/* 대제목 및 소제목은 시스템 기본 폰트 고정 */
+/* 대제목 및 소제목은 본문과 동일하게 선택한 에디터 폰트를 따름 (사이드바/툴바 등 시스템 UI와는 분리) */
 .title-input {
   width: 100%;
   border: none;
@@ -295,7 +295,7 @@ body {
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 12px;
-  font-family: var(--system-ui-font);
+  font-family: var(--editor-content-font);
 }
 
 .subtitle-input {
@@ -305,7 +305,7 @@ body {
   font-size: 18px;
   color: #868e96;
   margin-bottom: 20px;
-  font-family: var(--system-ui-font);
+  font-family: var(--editor-content-font);
 }
 
 .header-divider {
