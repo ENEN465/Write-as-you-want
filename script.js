@@ -7,7 +7,7 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 툴바 버튼 클릭 시 에디터 선택 영역 해제 방지
+// 버튼 클릭 시 커서 풀림 방지
 document.querySelectorAll('.toolbar button').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
@@ -32,7 +32,7 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
 let countDisplayMode = 'withSpace';
 
-// Tiptap 에디터 초기화
+// Tiptap 에디터 생성
 const editor = new Editor({
   element: document.querySelector('#editor'),
   extensions: [
@@ -58,32 +58,20 @@ const editor = new Editor({
   }
 });
 
-// 폰트 변경 연동
+// 폰트 설정
 const selectFontEl = document.getElementById('select-font');
 selectFontEl.addEventListener('change', (e) => {
-  const fontValue = e.target.value;
-  document.documentElement.style.setProperty('--editor-font', fontValue);
+  document.documentElement.style.setProperty('--editor-font', e.target.value);
 });
-document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
 
-// 글자 색상 로직
+// 글자 색상
 const colorInput = document.getElementById('input-font-color');
-const paletteBtn = document.getElementById('btn-color-palette');
+colorInput.addEventListener('input', (e) => {
+  editor.chain().focus().setColor(e.target.value).run();
+  updateToolbarState();
+});
 
-if (paletteBtn && colorInput) {
-  paletteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    colorInput.click();
-  });
-
-  colorInput.addEventListener('input', (e) => {
-    const selectedColor = e.target.value;
-    editor.chain().focus().setColor(selectedColor).run();
-    updateToolbarState();
-  });
-}
-
-// 툴바 서식 상태 업데이트
+// 툴바 상태
 function updateToolbarState() {
   document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
   document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
@@ -96,28 +84,28 @@ function updateToolbarState() {
   else headingSelect.value = 'p';
 }
 
-document.getElementById('btn-bold').addEventListener('click', () => { editor.chain().focus().toggleBold().run(); updateToolbarState(); });
-document.getElementById('btn-italic').addEventListener('click', () => { editor.chain().focus().toggleItalic().run(); updateToolbarState(); });
-document.getElementById('btn-strike').addEventListener('click', () => { editor.chain().focus().toggleStrike().run(); updateToolbarState(); });
+document.getElementById('btn-bold').onclick = () => { editor.chain().focus().toggleBold().run(); updateToolbarState(); };
+document.getElementById('btn-italic').onclick = () => { editor.chain().focus().toggleItalic().run(); updateToolbarState(); };
+document.getElementById('btn-strike').onclick = () => { editor.chain().focus().toggleStrike().run(); updateToolbarState(); };
 
-// 글자 수 계산
+// 글자 수
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
-wordCountBtn.addEventListener('click', (e) => {
+wordCountBtn.onclick = (e) => {
   e.stopPropagation();
   wordCountPopover.classList.toggle('show');
-});
+};
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
-  opt.addEventListener('click', (e) => {
+  opt.onclick = (e) => {
     e.stopPropagation();
     document.querySelectorAll('.word-count-option').forEach(o => o.classList.remove('active'));
     opt.classList.add('active');
     countDisplayMode = opt.getAttribute('data-mode');
     wordCountPopover.classList.remove('show');
     updateWordCount();
-  });
+  };
 });
 
 function updateWordCount() {
@@ -145,18 +133,18 @@ document.getElementById('btn-align-center').onclick = () => editor.chain().focus
 document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
 document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
 
-document.getElementById('select-heading').addEventListener('change', (e) => {
+document.getElementById('select-heading').onchange = (e) => {
   const v = e.target.value;
   if (v === 'p') editor.chain().focus().setParagraph().run();
   else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
-});
+};
 
-document.getElementById('select-hr').addEventListener('change', (e) => {
+document.getElementById('select-hr').onchange = (e) => {
   if (e.target.value) {
     editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
     e.target.value = '';
   }
-});
+};
 
 document.getElementById('btn-insert-image').onclick = () => document.getElementById('input-image-file').click();
 document.getElementById('input-image-file').onchange = (e) => {
@@ -168,7 +156,7 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// ★ 3번: 찾기 및 바꾸기 로직 ★
+// ★ 찾기 및 바꾸기 완벽 로직 ★
 const btnSearch = document.getElementById('btn-search');
 const searchPopover = document.getElementById('search-popover-box');
 const inputSearch = document.getElementById('input-search');
@@ -185,10 +173,11 @@ const btnSearchClose = document.getElementById('btn-search-close');
 let searchMatches = [];
 let currentMatchIndex = -1;
 
-btnSearch.onclick = () => {
-  const isHidden = searchPopover.style.display === 'none';
-  searchPopover.style.display = isHidden ? 'block' : 'none';
-  if (isHidden) {
+btnSearch.onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const isOpen = searchPopover.classList.toggle('show');
+  if (isOpen) {
     inputSearch.focus();
     performSearch();
   } else {
@@ -197,16 +186,16 @@ btnSearch.onclick = () => {
 };
 
 btnSearchClose.onclick = () => {
-  searchPopover.style.display = 'none';
+  searchPopover.classList.remove('show');
   clearSearchHighlights();
 };
 
 btnToggleReplace.onclick = () => {
-  const isRowHidden = replaceRow.style.display === 'none' || replaceRow.style.display === '';
-  replaceRow.style.display = isRowHidden ? 'flex' : 'none';
+  const isHidden = replaceRow.style.display === 'none' || replaceRow.style.display === '';
+  replaceRow.style.display = isHidden ? 'flex' : 'none';
 };
 
-inputSearch.addEventListener('input', () => performSearch());
+inputSearch.oninput = () => performSearch();
 
 function clearSearchHighlights() {
   const editorEl = document.querySelector('#editor .ProseMirror');
@@ -296,26 +285,19 @@ btnSearchPrev.onclick = () => {
 btnReplaceOne.onclick = () => {
   if (searchMatches.length === 0 || currentMatchIndex === -1) return;
   const targetSpan = searchMatches[currentMatchIndex];
-  const replaceText = inputReplace.value;
-
-  targetSpan.textContent = replaceText;
+  targetSpan.textContent = inputReplace.value;
   targetSpan.className = ''; 
-
   const htmlContent = document.querySelector('#editor .ProseMirror').innerHTML;
   editor.commands.setContent(htmlContent);
-
   performSearch();
 };
 
 btnReplaceAll.onclick = () => {
   const query = inputSearch.value;
-  const replaceText = inputReplace.value;
   if (!query) return;
-
   let content = editor.getHTML();
   const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-  content = content.replace(regex, replaceText);
-
+  content = content.replace(regex, inputReplace.value);
   editor.commands.setContent(content);
   performSearch();
 };
