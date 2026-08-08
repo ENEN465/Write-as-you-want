@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 브라우저 캐시 방지 (F5 눌러도 항상 최신 코드 로드) -->
+  <!-- 브라우저 캐시 방지 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -38,7 +38,6 @@
       font-style: normal;
     }
 
-    /* 폰트 클래스 정의 */
     .font-pretendard { font-family: 'Pretendard', sans-serif; }
     .font-nanum-barun { font-family: 'NanumBarunGothic', sans-serif; }
     .font-maruburi { font-family: 'MaruBuri', serif; }
@@ -57,7 +56,6 @@
       overflow: hidden;
     }
 
-    /* 메인 컨테이너 레이아웃 */
     .app-layout {
       display: flex;
       width: 100vw;
@@ -158,7 +156,6 @@
       width: 12px;
       display: inline-block;
       text-align: center;
-      transition: transform 0.15s ease;
     }
 
     .tree-item {
@@ -284,6 +281,7 @@
     }
 
     .save-status.saving { color: #f59f00; }
+    .save-status.synced { color: #2b8a3e; font-weight: bold; }
 
     /* 글자 수 카운터 UI */
     .word-counter-wrapper {
@@ -336,8 +334,8 @@
     .counter-item .check-mark { color: #09a05e; font-weight: bold; visibility: hidden; }
     .counter-item.active .check-mark { visibility: visible; }
 
-    /* 모달 UI */
-    .search-modal, .history-modal {
+    /* 모달 UI 공통 */
+    .search-modal, .history-modal, .sync-modal {
       display: none;
       position: fixed;
       top: 20px;
@@ -347,11 +345,34 @@
       border: 1px solid #dee2e6;
       border-radius: 10px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-      padding: 14px 18px;
-      width: 340px;
+      padding: 16px 20px;
+      width: 360px;
     }
 
-    .search-modal.show, .history-modal.show { display: block; }
+    .search-modal.show, .history-modal.show, .sync-modal.show { display: block; }
+
+    .modal-field {
+      margin-bottom: 10px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      color: #495057;
+      margin-bottom: 4px;
+    }
+
+    .modal-field input {
+      width: 100%;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .modal-field input:focus { border-color: #339af0; }
 
     .history-list {
       max-height: 260px;
@@ -396,8 +417,6 @@
       outline: none;
     }
 
-    .search-row input:focus { border-color: #339af0; }
-
     .search-row button {
       background: #f1f3f5;
       border: 1px solid #dee2e6;
@@ -407,8 +426,6 @@
       cursor: pointer;
       white-space: nowrap;
     }
-
-    .search-row button:hover { background: #e9ecef; }
 
     .search-status {
       font-size: 12px;
@@ -509,7 +526,6 @@
 <body class="font-maruburi">
 
   <div class="app-layout">
-    <!-- 좌측 사이드바 영역 -->
     <div id="sidebar" class="sidebar">
       <div class="sidebar-header">
         <span class="sidebar-title">원고 목록</span>
@@ -521,9 +537,7 @@
       <div id="fileTree" class="file-tree"></div>
     </div>
 
-    <!-- 메인 콘텐츠 영역 -->
     <div class="main-content">
-      <!-- 툴바 영역 -->
       <div class="toolbar">
         <button id="btnToggleSidebar" title="사이드바 토글">목록</button>
         <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
@@ -569,9 +583,9 @@
 
         <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
         <button id="btnHistory" title="버전 히스토리 보기">버전</button>
+        <button id="btnSync" title="GitHub 클라우드 연동">☁️ 연동</button>
         <span id="saveStatus" class="save-status">저장됨</span>
 
-        <!-- 글자 수 카운터 드롭다운 UI -->
         <div class="word-counter-wrapper">
           <div id="counterBadge" class="counter-badge">0자</div>
           <div id="counterDropdown" class="counter-dropdown">
@@ -595,7 +609,32 @@
         </div>
       </div>
 
-      <!-- Ctrl+F 찾기 및 바꾸기 모달 창 -->
+      <!-- GitHub 연동 설정 모달 -->
+      <div id="syncModal" class="sync-modal">
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 12px;">GitHub 클라우드 연동 설정</div>
+        <div class="modal-field">
+          <label for="ghOwner">GitHub 아이디 (Owner)</label>
+          <input type="text" id="ghOwner" placeholder="예: mygithubid" />
+        </div>
+        <div class="modal-field">
+          <label for="ghRepo">저장소 이름 (Repository)</label>
+          <input type="text" id="ghRepo" placeholder="예: my-novela-notes" />
+        </div>
+        <div class="modal-field">
+          <label for="ghToken">Personal Access Token (PAT)</label>
+          <input type="password" id="ghToken" placeholder="ghp_..." />
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 14px;">
+          <button id="btnSaveSyncConfig" style="flex: 1; padding: 6px; background: #339af0; color: white; border: none; border-radius: 4px; cursor: pointer;">저장 및 연동</button>
+          <button id="btnManualPull" style="padding: 6px; background: #f1f3f5; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer;">클라우드에서 동기화</button>
+        </div>
+        <div class="search-status" style="margin-top: 10px;">
+          <span id="syncStatusMsg">설정 정보를 입력하세요.</span>
+          <button id="btnCloseSync" style="padding: 2px 6px; font-size: 11px;">닫기</button>
+        </div>
+      </div>
+
+      <!-- Ctrl+F 찾기 모달 -->
       <div id="searchModal" class="search-modal">
         <div class="search-row">
           <input type="text" id="searchInput" placeholder="찾을 단어 입력..." />
@@ -611,7 +650,7 @@
         </div>
       </div>
 
-      <!-- 버전 히스토리 모달 창 -->
+      <!-- 버전 히스토리 모달 -->
       <div id="historyModal" class="history-modal">
         <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">버전 기록 (타임머신)</div>
         <div id="historyList" class="history-list"></div>
@@ -671,23 +710,16 @@
       const trimmed = fullText.trim();
       const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
 
-      const elWithSpace = document.getElementById('cntWithSpace');
-      const elNoSpace = document.getElementById('cntNoSpace');
-      const elNoSpecial = document.getElementById('cntNoSpecial');
-      const elWords = document.getElementById('cntWords');
+      document.getElementById('cntWithSpace').innerText = `${withSpace}자`;
+      document.getElementById('cntNoSpace').innerText = `${noSpace}자`;
+      document.getElementById('cntNoSpecial').innerText = `${noSpecial}자`;
+      document.getElementById('cntWords').innerText = `${wordCount} 단어`;
+
       const counterBadge = document.getElementById('counterBadge');
-
-      if (elWithSpace) elWithSpace.innerText = `${withSpace}자`;
-      if (elNoSpace) elNoSpace.innerText = `${noSpace}자`;
-      if (elNoSpecial) elNoSpecial.innerText = `${noSpecial}자`;
-      if (elWords) elWords.innerText = `${wordCount} 단어`;
-
-      if (counterBadge) {
-        if (selectedCountType === 'with-space') counterBadge.innerText = `${withSpace}자`;
-        else if (selectedCountType === 'no-space') counterBadge.innerText = `${noSpace}자`;
-        else if (selectedCountType === 'no-special') counterBadge.innerText = `${noSpecial}자`;
-        else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
-      }
+      if (selectedCountType === 'with-space') counterBadge.innerText = `${withSpace}자`;
+      else if (selectedCountType === 'no-space') counterBadge.innerText = `${noSpace}자`;
+      else if (selectedCountType === 'no-special') counterBadge.innerText = `${noSpecial}자`;
+      else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
     }
 
     const editor = new Editor({
@@ -720,36 +752,32 @@
     });
 
     let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
-      folders: [
-        { id: 'folder-1', name: '기본 폴더' }
-      ],
-      files: [
-        { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>', history: [] }
-      ],
+      folders: [{ id: 'folder-1', name: '기본 폴더' }],
+      files: [{ id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>', history: [] }],
       selectedFolderId: null,
       activeFileId: 'file-1',
-      collapsedFolders: [] // 접힌 폴더 ID 목록 저장
+      collapsedFolders: []
     };
 
-    if (!documentStore.collapsedFolders) {
-      documentStore.collapsedFolders = [];
-    }
+    if (!documentStore.collapsedFolders) documentStore.collapsedFolders = [];
 
     let saveTimeout = null;
+    let githubSyncTimeout = null;
 
     function saveStore() {
       localStorage.setItem('my_documents', JSON.stringify(documentStore));
       saveStatus.innerText = '저장됨';
-      saveStatus.classList.remove('saving');
+      saveStatus.className = 'save-status';
     }
 
     function triggerAutoSave() {
       saveStatus.innerText = '저장 중...';
-      saveStatus.classList.add('saving');
+      saveStatus.className = 'save-status saving';
 
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(() => {
         saveCurrentFileState();
+        triggerGitHubPushDebounced();
       }, 800);
     }
 
@@ -769,26 +797,138 @@
       }
     }
 
+    /* === GitHub API 동기화 엔진 === */
+    let ghConfig = JSON.parse(localStorage.getItem('gh_config')) || { owner: '', repo: '', token: '' };
+    let fileSha = null;
+
+    function triggerGitHubPushDebounced() {
+      clearTimeout(githubSyncTimeout);
+      githubSyncTimeout = setTimeout(() => {
+        pushToGitHub();
+      }, 3000); // 작성 중단 후 3초 뒤 GitHub로 저장
+    }
+
+    async function pushToGitHub() {
+      if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) return;
+
+      saveStatus.innerText = '☁️ 동기화 중...';
+      saveStatus.className = 'save-status saving';
+
+      const contentStr = btoa(unescape(encodeURIComponent(JSON.stringify(documentStore, null, 2))));
+      const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/data.json`;
+
+      try {
+        if (!fileSha) {
+          const getRes = await fetch(url, { headers: { Authorization: `token ${ghConfig.token}` } });
+          if (getRes.ok) {
+            const getData = await getRes.json();
+            fileSha = getData.sha;
+          }
+        }
+
+        const body = {
+          message: 'Auto-sync from Novela Editor',
+          content: contentStr,
+          sha: fileSha || undefined
+        };
+
+        const putRes = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            Authorization: `token ${ghConfig.token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (putRes.ok) {
+          const resData = await putRes.json();
+          fileSha = resData.content.sha;
+          saveStatus.innerText = '☁️ 동기화 완료';
+          saveStatus.className = 'save-status synced';
+        } else {
+          saveStatus.innerText = '☁️ 동기화 실패';
+        }
+      } catch (err) {
+        console.error(err);
+        saveStatus.innerText = '☁️ 오류 발생';
+      }
+    }
+
+    async function pullFromGitHub() {
+      if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) return;
+
+      const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/data.json`;
+      document.getElementById('syncStatusMsg').innerText = '클라우드 데이터 확인 중...';
+
+      try {
+        const res = await fetch(url, { headers: { Authorization: `token ${ghConfig.token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          fileSha = data.sha;
+          const decoded = decodeURIComponent(escape(atob(data.content)));
+          documentStore = JSON.parse(decoded);
+          saveStore();
+          renderFileTree();
+          loadActiveFile();
+          document.getElementById('syncStatusMsg').innerText = '성공적으로 불러왔습니다!';
+        } else {
+          document.getElementById('syncStatusMsg').innerText = '저장소 데이터를 찾을 수 없습니다.';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('syncStatusMsg').innerText = '동기화 중 오류 발생';
+      }
+    }
+
+    // 모달 및 UI 로직
+    const syncModal = document.getElementById('syncModal');
+    const btnSync = document.getElementById('btnSync');
+    const btnCloseSync = document.getElementById('btnCloseSync');
+    const btnSaveSyncConfig = document.getElementById('btnSaveSyncConfig');
+    const btnManualPull = document.getElementById('btnManualPull');
+
+    btnSync.onclick = () => {
+      document.getElementById('ghOwner').value = ghConfig.owner || '';
+      document.getElementById('ghRepo').value = ghConfig.repo || '';
+      document.getElementById('ghToken').value = ghConfig.token || '';
+      syncModal.classList.add('show');
+    };
+
+    btnCloseSync.onclick = () => syncModal.classList.remove('show');
+
+    btnSaveSyncConfig.onclick = () => {
+      ghConfig.owner = document.getElementById('ghOwner').value.trim();
+      ghConfig.repo = document.getElementById('ghRepo').value.trim();
+      ghConfig.token = document.getElementById('ghToken').value.trim();
+
+      localStorage.setItem('gh_config', JSON.stringify(ghConfig));
+      document.getElementById('syncStatusMsg').innerText = '설정이 저장되었습니다.';
+      pushToGitHub();
+    };
+
+    btnManualPull.onclick = () => {
+      pullFromGitHub();
+    };
+
     function createHistorySnapshot() {
       if (!documentStore.activeFileId) return;
       const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
       if (!activeFile) return;
 
       if (!activeFile.history) activeFile.history = [];
-
       const currentContent = editor.getHTML();
       const lastSnapshot = activeFile.history[0];
 
       if (lastSnapshot && lastSnapshot.content === currentContent) return;
 
-      const newSnapshot = {
+      activeFile.history.unshift({
         timestamp: new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         title: titleInput.value,
         subtitle: subtitleInput.value,
         content: currentContent
-      };
+      });
 
-      activeFile.history.unshift(newSnapshot);
       if (activeFile.history.length > 20) activeFile.history.pop();
       saveStore();
     }
@@ -801,9 +941,7 @@
     const btnAddFolder = document.getElementById('btnAddFolder');
     const btnAddFile = document.getElementById('btnAddFile');
 
-    // 사이드바 상태 복원
-    const isSidebarCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
-    if (isSidebarCollapsed) {
+    if (localStorage.getItem('sidebar_collapsed') === 'true') {
       sidebar.classList.add('collapsed');
     }
 
@@ -864,6 +1002,7 @@
               documentStore.selectedFolderId = folder.id;
               saveStore();
               renderFileTree();
+              triggerGitHubPushDebounced();
             }
           }
         };
@@ -887,7 +1026,6 @@
           </div>
         `;
 
-        // 폴더 클릭 시 접기/펼치기 토글 기능
         folderTitle.onclick = (e) => {
           e.stopPropagation();
           closeAllMenus();
@@ -921,6 +1059,7 @@
             folder.name = newName.trim();
             saveStore();
             renderFileTree();
+            triggerGitHubPushDebounced();
           }
         };
 
@@ -936,12 +1075,12 @@
             saveStore();
             renderFileTree();
             loadActiveFile();
+            triggerGitHubPushDebounced();
           }
         };
 
         folderDiv.appendChild(folderTitle);
 
-        // 폴더가 열려있을 때만 하위 파일들을 생성/표시
         if (!isCollapsed) {
           const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
           filesInFolder.forEach(file => {
@@ -1008,6 +1147,7 @@
               saveStore();
               renderFileTree();
               loadActiveFile();
+              triggerGitHubPushDebounced();
             };
 
             fileItem.querySelector('.btn-del-file').onclick = (e) => {
@@ -1021,6 +1161,7 @@
                 saveStore();
                 renderFileTree();
                 loadActiveFile();
+                triggerGitHubPushDebounced();
               }
             };
 
@@ -1040,6 +1181,7 @@
         documentStore.selectedFolderId = newFolder.id;
         saveStore();
         renderFileTree();
+        triggerGitHubPushDebounced();
       }
     };
 
@@ -1050,8 +1192,6 @@
       }
 
       let targetFolderId = documentStore.selectedFolderId || documentStore.folders[0].id;
-      
-      // 혹시 새 파일 추가하려는 폴더가 접혀있다면 펼침 처리
       if (documentStore.collapsedFolders.includes(targetFolderId)) {
         documentStore.collapsedFolders = documentStore.collapsedFolders.filter(id => id !== targetFolderId);
       }
@@ -1072,6 +1212,7 @@
         saveStore();
         renderFileTree();
         loadActiveFile();
+        triggerGitHubPushDebounced();
       }
     };
 
@@ -1081,9 +1222,15 @@
     document.addEventListener('keyup', updateWordCount);
     document.addEventListener('paste', () => setTimeout(updateWordCount, 50));
 
-    renderFileTree();
-    loadActiveFile();
+    // 접속 시 클라우드 자동 동기화 시도
+    if (ghConfig.owner && ghConfig.repo && ghConfig.token) {
+      pullFromGitHub();
+    } else {
+      renderFileTree();
+      loadActiveFile();
+    }
 
+    // 버전 히스토리
     const btnHistory = document.getElementById('btnHistory');
     const historyModal = document.getElementById('historyModal');
     const historyList = document.getElementById('historyList');
@@ -1114,6 +1261,7 @@
               saveCurrentFileState();
               updateWordCount();
               historyModal.classList.remove('show');
+              triggerGitHubPushDebounced();
             }
           };
           historyList.appendChild(item);
@@ -1125,6 +1273,7 @@
 
     btnCloseHistory.onclick = () => historyModal.classList.remove('show');
 
+    // Ctrl+F 찾기
     const searchModal = document.getElementById('searchModal');
     const searchInput = document.getElementById('searchInput');
     const replaceInput = document.getElementById('replaceInput');
@@ -1163,6 +1312,7 @@
       if (e.key === 'Escape') {
         searchModal.classList.remove('show');
         historyModal.classList.remove('show');
+        syncModal.classList.remove('show');
       }
     });
 
@@ -1200,6 +1350,7 @@
       saveCurrentFileState();
       searchResultCount.innerText = '모두 교체되었습니다!';
       searchInput.value = '';
+      triggerGitHubPushDebounced();
     };
 
     const counterBadge = document.getElementById('counterBadge');
