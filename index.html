@@ -13,13 +13,11 @@
   <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- Lucide 아이콘 라이브러리 -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
 <div class="app-layout">
-  
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <span class="sidebar-title">내 글 목록</span>
@@ -32,9 +30,7 @@
   </div>
 
   <div class="main-wrapper">
-    
     <div class="toolbar">
-      
       <!-- [좌측] -->
       <div class="toolbar-section toolbar-left">
         <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
@@ -46,8 +42,8 @@
       <div class="toolbar-section toolbar-center">
         <select id="select-font">
           <option value="font-maruburi">마루부리</option>
+          <option value="font-ridi-batang">리디바탕</option>
           <option value="font-pretendard">프리텐다드</option>
-          <option value="font-bookk-myungjo">부크크명조</option>
           <option value="font-nanum-myeongjo">나눔명조</option>
           <option value="font-noto-serif">본명조</option>
           <option value="font-nanum-barun">나눔바른고딕</option>
@@ -145,7 +141,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <div class="main-content">
@@ -158,7 +153,6 @@
         <div id="editor"></div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -174,19 +168,19 @@
 </div>
 
 <script type="module">
-  import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
-  import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
-  import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.1.13';
-  import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.1.13';
-  import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
-  import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.1.13';
-  import Color from 'https://esm.sh/@tiptap/extension-color@2.1.13';
-  import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
-  import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
-  import Table from 'https://esm.sh/@tiptap/extension-table@2.1.13';
-  import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.1.13';
-  import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.13';
-  import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.13';
+  import { Editor } from 'https://cdn.skypack.dev/@tiptap/core@2.1.13';
+  import StarterKit from 'https://cdn.skypack.dev/@tiptap/starter-kit@2.1.13';
+  import Subscript from 'https://cdn.skypack.dev/@tiptap/extension-subscript@2.1.13';
+  import Superscript from 'https://cdn.skypack.dev/@tiptap/extension-superscript@2.1.13';
+  import HorizontalRule from 'https://cdn.skypack.dev/@tiptap/extension-horizontal-rule@2.1.13';
+  import TextStyle from 'https://cdn.skypack.dev/@tiptap/extension-text-style@2.1.13';
+  import Color from 'https://cdn.skypack.dev/@tiptap/extension-color@2.1.13';
+  import TextAlign from 'https://cdn.skypack.dev/@tiptap/extension-text-align@2.1.13';
+  import Image from 'https://cdn.skypack.dev/@tiptap/extension-image@2.1.13';
+  import Table from 'https://cdn.skypack.dev/@tiptap/extension-table@2.1.13';
+  import TableRow from 'https://cdn.skypack.dev/@tiptap/extension-table-row@2.1.13';
+  import TableCell from 'https://cdn.skypack.dev/@tiptap/extension-table-cell@2.1.13';
+  import TableHeader from 'https://cdn.skypack.dev/@tiptap/extension-table-header@2.1.13';
 
   const CustomHorizontalRule = HorizontalRule.extend({
     addAttributes() {
@@ -222,9 +216,6 @@
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Table.configure({
         resizable: true,
-        HTMLAttributes: {
-          class: 'editor-table',
-        },
       }),
       TableRow,
       TableHeader,
@@ -308,7 +299,7 @@
     document.getElementById('btn-superscript').classList.toggle('is-active', editor.isActive('superscript'));
   }
 
-  /* 포맷팅 기본 버튼 */
+  /* 서식 버튼 */
   document.getElementById('btn-bold').onclick = () => editor.chain().focus().toggleBold().run();
   document.getElementById('btn-italic').onclick = () => editor.chain().focus().toggleItalic().run();
   document.getElementById('btn-strike').onclick = () => editor.chain().focus().toggleStrike().run();
@@ -320,64 +311,53 @@
   document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
   document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
 
-  /* 1. 색상 선택 */
+  /* 1. 색상 선택 완벽 수정 */
   const paletteBtn = document.getElementById('btn-color-palette');
   const palettePopover = document.getElementById('color-palette-popover');
   
-  paletteBtn.onclick = (e) => {
+  paletteBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    tablePopover.classList.remove('show');
+    dropdown.classList.remove('show');
     palettePopover.classList.toggle('show');
-  };
+  });
 
   document.querySelectorAll('.color-swatch').forEach(swatch => {
-    swatch.onclick = (e) => {
+    swatch.addEventListener('click', (e) => {
       e.stopPropagation();
       const color = swatch.getAttribute('data-color');
       editor.chain().focus().setColor(color).run();
       palettePopover.classList.remove('show');
-    };
+    });
   });
 
-  /* 5. 표(Table) 기능 완벽 보완 및 수정 */
+  /* 2. 표(Table) 완벽 수정 및 조작 보완 */
   const tableBtn = document.getElementById('btn-table-menu');
   const tablePopover = document.getElementById('table-popover');
-  tableBtn.onclick = (e) => {
+  
+  tableBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    palettePopover.classList.remove('show');
+    dropdown.classList.remove('show');
     tablePopover.classList.toggle('show');
-  };
+  });
 
-  const handleTableCommand = (commandFn) => {
+  const execTableCmd = (fn) => {
     return (e) => {
       e.stopPropagation();
-      commandFn();
+      fn();
       tablePopover.classList.remove('show');
     };
   };
 
-  document.getElementById('btn-table-insert').onclick = handleTableCommand(() => {
-    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-  });
-  document.getElementById('btn-table-add-row-before').onclick = handleTableCommand(() => {
-    editor.chain().focus().addRowBefore().run();
-  });
-  document.getElementById('btn-table-add-row-after').onclick = handleTableCommand(() => {
-    editor.chain().focus().addRowAfter().run();
-  });
-  document.getElementById('btn-table-add-col-before').onclick = handleTableCommand(() => {
-    editor.chain().focus().addColumnBefore().run();
-  });
-  document.getElementById('btn-table-add-col-after').onclick = handleTableCommand(() => {
-    editor.chain().focus().addColumnAfter().run();
-  });
-  document.getElementById('btn-table-delete-row').onclick = handleTableCommand(() => {
-    editor.chain().focus().deleteRow().run();
-  });
-  document.getElementById('btn-table-delete-col').onclick = handleTableCommand(() => {
-    editor.chain().focus().deleteColumn().run();
-  });
-  document.getElementById('btn-table-delete').onclick = handleTableCommand(() => {
-    editor.chain().focus().deleteTable().run();
-  });
+  document.getElementById('btn-table-insert').onclick = execTableCmd(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run());
+  document.getElementById('btn-table-add-row-before').onclick = execTableCmd(() => editor.chain().focus().addRowBefore().run());
+  document.getElementById('btn-table-add-row-after').onclick = execTableCmd(() => editor.chain().focus().addRowAfter().run());
+  document.getElementById('btn-table-add-col-before').onclick = execTableCmd(() => editor.chain().focus().addColumnBefore().run());
+  document.getElementById('btn-table-add-col-after').onclick = execTableCmd(() => editor.chain().focus().addColumnAfter().run());
+  document.getElementById('btn-table-delete-row').onclick = execTableCmd(() => editor.chain().focus().deleteRow().run());
+  document.getElementById('btn-table-delete-col').onclick = execTableCmd(() => editor.chain().focus().deleteColumn().run());
+  document.getElementById('btn-table-delete').onclick = execTableCmd(() => editor.chain().focus().deleteTable().run());
 
   /* 이미지 */
   const imgBtn = document.getElementById('btn-insert-image');
@@ -405,7 +385,7 @@
     imgInput.value = '';
   };
 
-  /* 폰트 및 요소 */
+  /* 폰트 및 구분선 */
   document.getElementById('select-font').onchange = (e) => {
     const container = document.getElementById('editor-container');
     container.className = `editor-container ${e.target.value}`;
@@ -427,7 +407,7 @@
     }
   };
 
-  /* 3. 찾기 모달 */
+  /* 찾기 모달 */
   const searchModal = document.getElementById('search-modal');
   const searchInput = document.getElementById('search-input');
   const searchCount = document.getElementById('search-count');
@@ -453,12 +433,14 @@
     searchCount.textContent = matches > 0 ? `${matches}개 발견됨` : '검색 결과 없음';
   };
 
-  /* 4. 글자 수 카운터 */
+  /* 글자 수 드롭다운 */
   const badge = document.getElementById('counter-badge');
   const dropdown = document.getElementById('counter-dropdown');
   
   badge.onclick = (e) => {
     e.stopPropagation();
+    palettePopover.classList.remove('show');
+    tablePopover.classList.remove('show');
     dropdown.classList.toggle('show');
   };
 
@@ -473,7 +455,7 @@
     };
   });
 
-  /* 바깥 영역 클릭 시 팝업 닫기 */
+  /* 바깥 배경 클릭 시 팝업 닫기 */
   document.addEventListener('click', () => {
     palettePopover.classList.remove('show');
     tablePopover.classList.remove('show');
