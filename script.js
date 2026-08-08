@@ -7,7 +7,7 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 찾기/바꾸기 하이라이트를 위한 마크 (span.search-highlight / span.search-highlight-active)
+// 찾기/바꾸기 하이라이트용 마크
 const SearchHighlightMark = Mark.create({
   name: 'searchHighlight',
   addAttributes() {
@@ -29,7 +29,7 @@ const SearchHighlightMark = Mark.create({
   },
 });
 
-// 버튼 클릭 시 커서 풀림 방지
+// 버튼 클릭 시 포커스 해제 방지
 document.querySelectorAll('.toolbar button').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
@@ -54,7 +54,6 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
 let countDisplayMode = 'withSpace';
 
-// 검색 하이라이트 트랜잭션을 일반 편집과 구분하기 위한 메타 키
 const SEARCH_TX_META = 'searchHighlightTx';
 let currentSearchMatches = [];
 let currentSearchActiveIndex = -1;
@@ -75,7 +74,6 @@ const editor = new Editor({
   content: '',
   onUpdate({ transaction }) {
     updateToolbarState();
-    // 검색 하이라이트 전용 트랜잭션은 실제 문서 편집이 아니므로 저장/글자수 계산에서 제외
     if (transaction.getMeta(SEARCH_TX_META)) return;
     triggerAutoSave();
     updateWordCount();
@@ -88,10 +86,20 @@ const editor = new Editor({
   }
 });
 
-// 폰트 설정 (전역 body가 아닌, 에디터 전용 CSS 변수만 변경)
+// 폰트 변경 처리
 const selectFontEl = document.getElementById('select-font');
+const fontMap = {
+  'MaruBuri': "'MaruBuri', serif",
+  'Pretendard': "'Pretendard', sans-serif",
+  'RIDIBatang': "'RIDIBatang', serif",
+  'Nanum Myeongjo': "'Nanum Myeongjo', serif",
+  'Noto Serif KR': "'Noto Serif KR', serif",
+  'Nanum Barun Gothic': "'NanumBarunGothic', sans-serif"
+};
+
 selectFontEl.addEventListener('change', (e) => {
-  document.documentElement.style.setProperty('--editor-content-font', e.target.value);
+  const fontValue = fontMap[e.target.value] || e.target.value;
+  document.documentElement.style.setProperty('--editor-content-font', fontValue);
 });
 
 // 글자 색상
@@ -101,7 +109,7 @@ colorInput.addEventListener('input', (e) => {
   updateToolbarState();
 });
 
-// 툴바 상태
+// 툴바 상태 update
 function updateToolbarState() {
   document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
   document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
@@ -124,11 +132,7 @@ const wordCountPopover = document.getElementById('word-count-popover');
 
 wordCountBtn.onclick = (e) => {
   e.stopPropagation();
-  if (wordCountPopover.style.display === 'none' || wordCountPopover.style.display === '') {
-    wordCountPopover.style.display = 'block';
-  } else {
-    wordCountPopover.style.display = 'none';
-  }
+  wordCountPopover.style.display = (wordCountPopover.style.display === 'none' || wordCountPopover.style.display === '') ? 'block' : 'none';
 };
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
@@ -190,7 +194,7 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// 찾기 및 바꾸기 인라인 제어 로직
+// 찾기 및 바꾸기 로직
 const btnSearch = document.getElementById('btn-search');
 const searchPopover = document.getElementById('search-popover-box');
 const inputSearch = document.getElementById('input-search');
@@ -235,7 +239,6 @@ function scrollToActiveMatch() {
   if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// 문서 내 모든 검색 하이라이트 마크를 지우고, 현재 매치 목록에 맞춰 다시 적용
 function repaintSearchMarks(activeIndex) {
   const { state, view } = editor;
   const markType = state.schema.marks.searchHighlight;
@@ -248,16 +251,14 @@ function repaintSearchMarks(activeIndex) {
   view.dispatch(tr);
 }
 
-// 검색어를 반영해 전체 일치 항목을 하이라이트 (첫 번째 일치 항목을 활성화)
 function setSearchTerm(term) {
   currentSearchMatches = findSearchMatches(editor.state.doc, term);
   currentSearchActiveIndex = currentSearchMatches.length ? 0 : -1;
   repaintSearchMarks(currentSearchActiveIndex);
   updateSearchBadge();
-  scrollToActiveMatch();
+  if (currentSearchActiveIndex !== -1) scrollToActiveMatch();
 }
 
-// 활성(주황색) 하이라이트 위치만 변경
 function setActiveIndex(index) {
   currentSearchActiveIndex = index;
   repaintSearchMarks(currentSearchActiveIndex);
@@ -283,7 +284,7 @@ btnSearch.onclick = (e) => {
   e.stopPropagation();
 
   if (searchPopover.style.display === 'none' || searchPopover.style.display === '') {
-    searchPopover.style.display = 'block';
+    searchPopover.style.display = 'flex';
     inputSearch.focus();
     setSearchTerm(inputSearch.value);
   } else {
@@ -300,11 +301,7 @@ btnSearchClose.onclick = (e) => {
 
 btnToggleReplace.onclick = (e) => {
   e.preventDefault();
-  if (replaceRow.style.display === 'none' || replaceRow.style.display === '') {
-    replaceRow.style.display = 'flex';
-  } else {
-    replaceRow.style.display = 'none';
-  }
+  replaceRow.style.display = (replaceRow.style.display === 'none' || replaceRow.style.display === '') ? 'flex' : 'none';
 };
 
 inputSearch.oninput = () => setSearchTerm(inputSearch.value);
@@ -319,26 +316,38 @@ btnSearchPrev.onclick = () => {
   setActiveIndex((currentSearchActiveIndex - 1 + currentSearchMatches.length) % currentSearchMatches.length);
 };
 
-// 현재 활성 항목 하나만 바꾸기
+// 선택 단어 변경
 btnReplaceOne.onclick = () => {
   if (currentSearchMatches.length === 0 || currentSearchActiveIndex === -1) return;
   const match = currentSearchMatches[currentSearchActiveIndex];
+  
+  // 하이라이트 제거 후 텍스트 입력
+  clearSearchHighlights();
   const tr = editor.state.tr.insertText(inputReplace.value, match.from, match.to);
   editor.view.dispatch(tr);
-  // 문서가 바뀌었으므로 같은 검색어로 매치 목록을 다시 계산
+
   setSearchTerm(inputSearch.value);
 };
 
-// 검색된 항목 전체 일괄 바꾸기
+// 전체 일괄 바꾸기 (뒤쪽 인덱스부터 치환하여 Offset 유지)
 btnReplaceAll.onclick = () => {
   if (currentSearchMatches.length === 0) return;
+  
+  const searchWord = inputSearch.value;
+  const replaceWord = inputReplace.value;
+  if (!searchWord) return;
+
+  clearSearchHighlights();
+
   let tr = editor.state.tr;
-  // 뒤쪽 일치 항목부터 순서대로 치환해야 앞쪽 위치가 밀리지 않음
-  [...currentSearchMatches].sort((a, b) => b.from - a.from).forEach(m => {
-    tr = tr.insertText(inputReplace.value, m.from, m.to);
+  const matches = [...currentSearchMatches].sort((a, b) => b.from - a.from);
+  
+  matches.forEach(m => {
+    tr = tr.insertText(replaceWord, m.from, m.to);
   });
+  
   editor.view.dispatch(tr);
-  setSearchTerm(inputSearch.value);
+  setSearchTerm(searchWord);
 };
 
 // 사이드바 및 저장
