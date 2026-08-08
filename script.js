@@ -7,7 +7,7 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 툴바 버튼 클릭 시 에디터 커서 풀림 방지
+// 툴바 버튼 클릭 시 에디터 선택 영역 해제 방지
 document.querySelectorAll('.toolbar button, .color-swatch').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
@@ -38,7 +38,10 @@ const editor = new Editor({
   extensions: [
     StarterKit.configure({ horizontalRule: false }), 
     CustomHorizontalRule,
-    TextStyle, Color, FontFamily, Image,
+    TextStyle, 
+    Color, 
+    FontFamily, 
+    Image,
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
   ],
   content: '',
@@ -55,15 +58,38 @@ const editor = new Editor({
   }
 });
 
-// ★ 핵심: 폰트 바꾸면 문서 전체(:root) 변수를 바꿔서 제목/소제목/본문이 다 같이 바뀌게 함 ★
+// 폰트 변경 연동
 const selectFontEl = document.getElementById('select-font');
 selectFontEl.addEventListener('change', (e) => {
   const fontValue = e.target.value;
   document.documentElement.style.setProperty('--editor-font', fontValue);
 });
-
-// 페이지 처음 켜질 때 기본 선택되어 있는 폰트를 변수에 즉시 반영
 document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
+
+// ★ 핵심: 글자 색상 변경 로직 강화 ★
+const paletteBtn = document.getElementById('btn-color-palette');
+const palettePopover = document.getElementById('color-palette-popover');
+
+paletteBtn.addEventListener('click', (e) => { 
+  e.preventDefault();
+  e.stopPropagation(); 
+  palettePopover.classList.toggle('show'); 
+});
+
+document.querySelectorAll('.color-swatch').forEach(swatch => {
+  swatch.addEventListener('mousedown', (e) => e.preventDefault());
+  swatch.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const hexColor = swatch.getAttribute('data-color');
+    
+    // 선택한 텍스트 영역에 글자 색상 적용
+    editor.chain().focus().setColor(hexColor).run();
+    
+    palettePopover.classList.remove('show');
+    updateToolbarState();
+  });
+});
 
 // 툴바 서식 상태 업데이트
 function updateToolbarState() {
@@ -150,7 +176,12 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// 사이드바 및 저장 기능
+document.addEventListener('click', () => {
+  palettePopover.classList.remove('show');
+  wordCountPopover.classList.remove('show');
+});
+
+// 사이드바 및 저장
 document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
 
 function findNode(nodes, id) {
