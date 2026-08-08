@@ -618,7 +618,7 @@
         </div>
         <div class="modal-field">
           <label for="ghRepo">저장소 이름 (Repository)</label>
-          <input type="text" id="ghRepo" placeholder="예: my-novela-notes" />
+          <input type="text" id="ghRepo" placeholder="예: write-as-you-want" />
         </div>
         <div class="modal-field">
           <label for="ghToken">Personal Access Token (PAT)</label>
@@ -805,7 +805,7 @@
       clearTimeout(githubSyncTimeout);
       githubSyncTimeout = setTimeout(() => {
         pushToGitHub();
-      }, 3000); // 작성 중단 후 3초 뒤 GitHub로 저장
+      }, 3000);
     }
 
     async function pushToGitHub() {
@@ -827,7 +827,7 @@
         }
 
         const body = {
-          message: 'Auto-sync from Novela Editor',
+          message: 'Auto-sync from Write as you want',
           content: contentStr,
           sha: fileSha || undefined
         };
@@ -846,12 +846,16 @@
           fileSha = resData.content.sha;
           saveStatus.innerText = '☁️ 동기화 완료';
           saveStatus.className = 'save-status synced';
+          document.getElementById('syncStatusMsg').innerText = '동기화 성공!';
         } else {
+          const errData = await putRes.json();
           saveStatus.innerText = '☁️ 동기화 실패';
+          document.getElementById('syncStatusMsg').innerText = `오류 (${putRes.status}): ${errData.message || '정보 확인 필요'}`;
         }
       } catch (err) {
         console.error(err);
         saveStatus.innerText = '☁️ 오류 발생';
+        document.getElementById('syncStatusMsg').innerText = '네트워크 연결 상태를 확인하세요.';
       }
     }
 
@@ -872,12 +876,15 @@
           renderFileTree();
           loadActiveFile();
           document.getElementById('syncStatusMsg').innerText = '성공적으로 불러왔습니다!';
+        } else if (res.status === 404) {
+          document.getElementById('syncStatusMsg').innerText = 'data.json 파일이 없습니다. 새로 생성합니다...';
+          pushToGitHub(); // 파일이 없으면 자동으로 생성 시도
         } else {
-          document.getElementById('syncStatusMsg').innerText = '저장소 데이터를 찾을 수 없습니다.';
+          document.getElementById('syncStatusMsg').innerText = `불러오기 실패 (${res.status}): 계정/토큰 확인`;
         }
       } catch (err) {
         console.error(err);
-        document.getElementById('syncStatusMsg').innerText = '동기화 중 오류 발생';
+        document.getElementById('syncStatusMsg').innerText = '동기화 중 오류가 발생했습니다.';
       }
     }
 
@@ -903,7 +910,7 @@
       ghConfig.token = document.getElementById('ghToken').value.trim();
 
       localStorage.setItem('gh_config', JSON.stringify(ghConfig));
-      document.getElementById('syncStatusMsg').innerText = '설정이 저장되었습니다.';
+      document.getElementById('syncStatusMsg').innerText = '설정 저장 중...';
       pushToGitHub();
     };
 
