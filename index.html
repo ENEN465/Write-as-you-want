@@ -58,9 +58,9 @@
 
         <div class="toolbar-divider"></div>
 
-        <!-- 글자 색상 팔레트 -->
+        <!-- 글자 색상 팔레트 (버튼과 팝업 분리) -->
         <div class="color-picker-wrapper">
-          <button id="btn-color-palette" title="글자 색상"><i data-lucide="palette"></i></button>
+          <button id="btn-color-palette" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
           <div class="color-palette-popover" id="color-palette-popover">
             <div class="color-swatch" style="background:#212529" data-color="#212529"></div>
             <div class="color-swatch" style="background:#868e96" data-color="#868e96"></div>
@@ -100,7 +100,6 @@
         <button id="btn-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
       </div>
 
-      <!-- 노벨라 스타일 글자 수 -->
       <div class="toolbar-section toolbar-right">
         <div class="word-counter-wrapper">
           <button id="btn-word-count-toggle" class="word-count-btn">
@@ -130,7 +129,7 @@
       </div>
     </div>
 
-    <!-- 이미지 참고형 팝업 UI 찾기/바꾸기 -->
+    <!-- 찾기/바꾸기 팝업 -->
     <div class="search-popover-box" id="search-popover-box" style="display:none;">
       <div class="search-top-row">
         <input type="text" id="input-search" placeholder="찾을 단어" class="search-input-field">
