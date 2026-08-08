@@ -23,7 +23,7 @@ const SearchHighlightMark = Mark.create({
   renderHTML({ HTMLAttributes }) { return ['span', HTMLAttributes, 0]; },
 });
 
-// [2번 요구사항 완전 해결] 구분선 Attributes 및 RenderHTML 연동 보완
+// 구분선 Extensions
 const CustomHorizontalRule = HorizontalRule.extend({
   addAttributes() {
     return {
@@ -47,7 +47,7 @@ document.querySelectorAll('.toolbar button').forEach(el => {
 
 let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
   { id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [
-      { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>부크크 명조 폰트로 작성을 시작합니다.</p>', title: '첫 번째 글', subtitle: '' }
+      { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>마루부리 폰트로 작성을 시작합니다.</p>', title: '첫 번째 글', subtitle: '' }
     ] }
 ];
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
@@ -77,11 +77,11 @@ const editor = new Editor({
   onTransaction() { updateToolbarState(); }
 });
 
-// [1번 요구사항 해결] 부크크명조 폰트 매핑
+// 폰트 매핑 (기본값 마루부리)
 const selectFontEl = document.getElementById('select-font');
 const fontMap = {
-  'BookkMyungjo': "'BookkMyungjo', serif",
   'MaruBuri': "'MaruBuri', serif",
+  'BookkMyungjo': "'BookkMyungjo', serif",
   'Pretendard': "'Pretendard', sans-serif",
   'Nanum Myeongjo': "'Nanum Myeongjo', serif",
   'Noto Serif KR': "'Noto Serif KR', serif",
@@ -128,7 +128,6 @@ document.getElementById('select-heading').onchange = (e) => {
   else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
 };
 
-// [2번 요구사항 해결] 구분선 삽입 스크립트 보완
 document.getElementById('select-hr').onchange = (e) => {
   const selectedStyle = e.target.value;
   if (selectedStyle) {
@@ -150,22 +149,33 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// [3번 요구사항 해결] 글자 수 세기 Popover 창 토글 및 선택 로직 완벽 보완
+// 플로팅 팝오버
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
 wordCountBtn.onclick = (e) => {
   e.stopPropagation();
   const isHidden = wordCountPopover.style.display === 'none' || wordCountPopover.style.display === '';
-  wordCountPopover.style.display = isHidden ? 'block' : 'none';
+  
+  if (isHidden) {
+    const rect = wordCountBtn.getBoundingClientRect();
+    wordCountPopover.style.top = `${rect.bottom + 6}px`;
+    wordCountPopover.style.left = `${rect.right - 240}px`;
+    wordCountPopover.style.display = 'block';
+  } else {
+    wordCountPopover.style.display = 'none';
+  }
 };
 
-// 외부 클릭 시 Popover 닫기
 document.addEventListener('click', (e) => {
   if (!wordCountPopover.contains(e.target) && !wordCountBtn.contains(e.target)) {
     wordCountPopover.style.display = 'none';
   }
 });
+
+window.addEventListener('scroll', () => {
+  wordCountPopover.style.display = 'none';
+}, true);
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
   opt.onclick = (e) => {
