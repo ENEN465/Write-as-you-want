@@ -7,19 +7,19 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 툴바 버튼 클릭 시 에디터 포커스 유지를 위한 예방 대책
+// 툴바 버튼 클릭 시 에디터 포커스 유지를 위한 대책
 document.querySelectorAll('.toolbar button, .color-swatch').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
 
-// 커스텀 구분선 (HR) 확장 기능
+// 구분선 확장
 const CustomHorizontalRule = HorizontalRule.extend({
   addAttributes() {
     return {
       'data-style': {
         default: 'line',
         parseHTML: element => element.getAttribute('data-style'),
-        renderHTML: attributes => { return { 'data-style': attributes['data-style'] }; },
+        renderHTML: attributes => ({ 'data-style': attributes['data-style'] }),
       },
     };
   },
@@ -31,8 +31,9 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
     ] }
 ];
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
+let countDisplayMode = 'withSpace'; 
 
-// 에디터 초기화
+// 에디터 생성
 const editor = new Editor({
   element: document.querySelector('#editor'),
   extensions: [
@@ -46,18 +47,46 @@ const editor = new Editor({
     triggerAutoSave(); 
     updateWordCount();
   },
-  onSelectionUpdate() { updateToolbarState(); }
+  onSelectionUpdate() { 
+    updateToolbarState(); 
+  }
 });
 
-// 글자수 세기 로직
-function updateWordCount() {
-  const text = editor.getText();
-  const totalChar = text.length;
-  const noSpaceChar = text.replace(/\s/g, '').length;
-  document.getElementById('word-counter').textContent = `공백포함 ${totalChar}자 | 공백제외 ${noSpaceChar}자`;
+// 1. 문서 전체 폰트 일괄 변경
+document.getElementById('select-font').addEventListener('change', (e) => {
+  const selectedFont = e.target.value;
+  const editorEl = document.querySelector('.ProseMirror');
+  if (editorEl) {
+    editorEl.style.fontFamily = selectedFont;
+  }
+});
+
+// 2 & 3. 서식 버튼 클릭 시 즉시 툴바 상태 동기화 및 색상 적용 Fix
+function executeFormat(command) {
+  command();
+  updateToolbarState();
 }
 
-// 툴바 상태 연동
+document.getElementById('btn-bold').addEventListener('click', () => executeFormat(() => editor.chain().focus().toggleBold().run()));
+document.getElementById('btn-italic').addEventListener('click', () => executeFormat(() => editor.chain().focus().toggleItalic().run()));
+document.getElementById('btn-strike').addEventListener('click', () => executeFormat(() => editor.chain().focus().toggleStrike().run()));
+
+// 색상 변경
+const paletteBtn = document.getElementById('btn-color-palette');
+const palettePopover = document.getElementById('color-palette-popover');
+paletteBtn.addEventListener('click', (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); });
+
+document.querySelectorAll('.color-swatch').forEach(swatch => {
+  swatch.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const hexColor = swatch.getAttribute('data-color');
+    editor.chain().focus().setColor(hexColor).run();
+    palettePopover.classList.remove('show');
+    updateToolbarState();
+  });
+});
+
+// 툴바 버튼 활성화 상태 표시
 function updateToolbarState() {
   document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
   document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
@@ -70,52 +99,149 @@ function updateToolbarState() {
   else headingSelect.value = 'p';
 }
 
-// 서식 버튼 클릭 이벤트
-document.getElementById('btn-bold').addEventListener('click', () => editor.chain().focus().toggleBold().run());
-document.getElementById('btn-italic').addEventListener('click', () => editor.chain().focus().toggleItalic().run());
-document.getElementById('btn-strike').addEventListener('click', () => editor.chain().focus().toggleStrike().run());
+// 4. 단어 찾기, 노란색 하이라이트 및 일괄 바꾸기
+const searchBar = document.getElementById('search-replace-bar');
+const inputSearch = document.getElementById('input-search');
+const inputReplace = document.getElementById('input-replace');
 
-document.getElementById('btn-align-left').addEventListener('click', () => editor.chain().focus().setTextAlign('left').run());
-document.getElementById('btn-align-center').addEventListener('click', () => editor.chain().focus().setTextAlign('center').run());
-document.getElementById('btn-align-right').addEventListener('click', () => editor.chain().focus().setTextAlign('right').run());
-document.getElementById('btn-align-justify').addEventListener('click', () => editor.chain().focus().setTextAlign('justify').run());
-
-// 폰트 설정 (정상 동작하도록 개선)
-document.getElementById('select-font').addEventListener('change', (e) => {
-  if (e.target.value) { 
-    editor.chain().focus().setFontFamily(e.target.value).run(); 
-  }
+document.getElementById('btn-search').addEventListener('click', () => {
+  const isHidden = searchBar.style.display === 'none';
+  searchBar.style.display = isHidden ? 'flex' : 'none';
+  if (isHidden) inputSearch.focus();
+  else clearHighlights();
 });
 
-// 본문 / 제목1 / 제목2 / 제목3 선택
+document.getElementById('btn-search-close').addEventListener('click', () => {
+  searchBar.style.display = 'none';
+  clearHighlights();
+});
+
+function clearHighlights() {
+  const editorEl = document.querySelector('.ProseMirror');
+  if (!editorEl) return;
+  const highlights = editorEl.querySelectorAll('mark.search-result');
+  highlights.forEach(h => {
+    const parent = h.parentNode;
+    parent.replaceChild(document.createTextNode(h.textContent), h);
+    parent.normalize();
+  });
+}
+
+function applyHighlights() {
+  clearHighlights();
+  const query = inputSearch.value;
+  if (!query) return;
+
+  const editorEl = document.querySelector('.ProseMirror');
+  const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
+  const nodesToReplace = [];
+
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.includes(query)) {
+      nodesToReplace.push(node);
+    }
+  }
+
+  nodesToReplace.forEach(textNode => {
+    const parts = textNode.nodeValue.split(query);
+    const fragment = document.createDocumentFragment();
+    parts.forEach((part, index) => {
+      fragment.appendChild(document.createTextNode(part));
+      if (index < parts.length - 1) {
+        const mark = document.createElement('mark');
+        mark.className = 'search-result';
+        mark.textContent = query;
+        fragment.appendChild(mark);
+      }
+    });
+    textNode.parentNode.replaceChild(fragment, textNode);
+  });
+}
+
+inputSearch.addEventListener('input', applyHighlights);
+
+document.getElementById('btn-search-next').addEventListener('click', () => {
+  const query = inputSearch.value;
+  if (query) window.find(query, false, false, true);
+});
+
+document.getElementById('btn-search-prev').addEventListener('click', () => {
+  const query = inputSearch.value;
+  if (query) window.find(query, false, true, true);
+});
+
+// 일괄 바꾸기
+document.getElementById('btn-replace-all').addEventListener('click', () => {
+  const query = inputSearch.value;
+  const replaceStr = inputReplace.value;
+  if (!query) return;
+
+  let currentContent = editor.getHTML();
+  const regex = new RegExp(query, 'g');
+  const newContent = currentContent.replace(regex, replaceStr);
+  editor.commands.setContent(newContent);
+  clearHighlights();
+});
+
+// 5. 노벨라 스타일 글자수 세기 로직
+const wordCountBtn = document.getElementById('btn-word-count-toggle');
+const wordCountPopover = document.getElementById('word-count-popover');
+
+wordCountBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  wordCountPopover.classList.toggle('show');
+});
+
+document.querySelectorAll('.word-count-option').forEach(opt => {
+  opt.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.word-count-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    countDisplayMode = opt.getAttribute('data-mode');
+    wordCountPopover.classList.remove('show');
+    updateWordCount();
+  });
+});
+
+function updateWordCount() {
+  const text = editor.getText();
+  const withSpace = text.length;
+  const noSpace = text.replace(/\s/g, '').length;
+  const noSpaceSpecial = text.replace(/[\s\wㄱ-ㅎㅏ-ㅣ가-힣]/g, '').length ? text.replace(/[^a-zA-O0-9가-힣]/g, '').length : noSpace;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+
+  document.getElementById('cnt-with-space').textContent = `${withSpace}자`;
+  document.getElementById('cnt-no-space').textContent = `${noSpace}자`;
+  document.getElementById('cnt-no-spec').textContent = `${noSpaceSpecial}자`;
+  document.getElementById('cnt-words').textContent = `${words} 단어`;
+
+  const labelEl = document.getElementById('word-count-label');
+  if (countDisplayMode === 'withSpace') labelEl.textContent = `${withSpace} 자`;
+  else if (countDisplayMode === 'noSpace') labelEl.textContent = `${noSpace} 자`;
+  else if (countDisplayMode === 'noSpaceSpecial') labelEl.textContent = `${noSpaceSpecial} 자`;
+  else if (countDisplayMode === 'words') labelEl.textContent = `${words} 단어`;
+}
+
+// 기타 제어
+document.getElementById('btn-align-left').onclick = () => editor.chain().focus().setTextAlign('left').run();
+document.getElementById('btn-align-center').onclick = () => editor.chain().focus().setTextAlign('center').run();
+document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
+document.getElementById('btn-align-justify').onclick = () => editor.chain().focus().setTextAlign('justify').run();
+
 document.getElementById('select-heading').addEventListener('change', (e) => {
   const v = e.target.value;
   if (v === 'p') editor.chain().focus().setParagraph().run();
   else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
 });
 
-// 구분선 선택
 document.getElementById('select-hr').addEventListener('change', (e) => {
   if (e.target.value) {
     editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
-    e.target.value = ''; 
+    e.target.value = '';
   }
 });
 
-// 색상 팔레트
-const paletteBtn = document.getElementById('btn-color-palette');
-const palettePopover = document.getElementById('color-palette-popover');
-paletteBtn.addEventListener('click', (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); });
-
-document.querySelectorAll('.color-swatch').forEach(swatch => {
-  swatch.addEventListener('click', (e) => {
-    e.stopPropagation();
-    editor.chain().focus().setColor(swatch.getAttribute('data-color')).run();
-    palettePopover.classList.remove('show');
-  });
-});
-
-// 이미지 업로드
 document.getElementById('btn-insert-image').onclick = () => document.getElementById('input-image-file').click();
 document.getElementById('input-image-file').onchange = (e) => {
   const file = e.target.files[0];
@@ -126,31 +252,12 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// 찾기(Search) 기능 로직
-const searchBar = document.getElementById('search-bar');
-const inputSearch = document.getElementById('input-search');
-
-document.getElementById('btn-search').addEventListener('click', () => {
-  searchBar.style.display = searchBar.style.display === 'none' ? 'flex' : 'none';
-  if (searchBar.style.display === 'flex') inputSearch.focus();
+document.addEventListener('click', () => {
+  palettePopover.classList.remove('show');
+  wordCountPopover.classList.remove('show');
 });
 
-document.getElementById('btn-search-close').addEventListener('click', () => {
-  searchBar.style.display = 'none';
-});
-
-document.getElementById('btn-search-next').addEventListener('click', () => {
-  const query = inputSearch.value;
-  if (query) {
-    window.find(query);
-  }
-});
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.color-picker-wrapper')) palettePopover.classList.remove('show');
-});
-
-// 사이드바 및 로컬스토리지 자동저장
+// 사이드바 및 저장
 document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
 
 function findNode(nodes, id) {
@@ -226,5 +333,4 @@ function renderTree() {
   });
 }
 
-// 초기화 실행
 renderTree(); loadDoc(activeDocId); lucide.createIcons();
