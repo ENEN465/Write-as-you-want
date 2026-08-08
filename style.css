@@ -138,3 +138,17 @@ mark.search-highlight.current { background-color: #339af0; color: #ffffff; }
 .ProseMirror hr[data-style="dashed"] { border-top: 1px dashed #ced4da; }
 .ProseMirror hr[data-style="asterisk"]::after { content: "***"; display: block; text-align: center; font-size: 1.5em; letter-spacing: 0.5em; color: #868e96; }
 .ProseMirror hr[data-style="ornament"]::after { content: "◇ ◇ ◇"; display: block; text-align: center; font-size: 1.2em; letter-spacing: 0.5em; color: #868e96; }
+
+/* 찾기/바꾸기 하이라이트 스타일 */
+.search-highlight {
+  background-color: #ffec99; /* 전체 검색 결과: 연한 노란색 */
+  color: #212529;
+  border-radius: 2px;
+}
+
+.search-highlight-active {
+  background-color: #fcc419; /* 현재 선택된 단어: 진한 주황/노란색 */
+  color: #212529;
+  font-weight: bold;
+  border-radius: 2px;
+}
