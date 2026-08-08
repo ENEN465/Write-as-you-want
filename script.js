@@ -8,7 +8,7 @@ import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
 // 툴바 버튼 클릭 시 에디터 선택 영역 해제 방지
-document.querySelectorAll('.toolbar button, .color-swatch').forEach(el => {
+document.querySelectorAll('.toolbar button').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
 
@@ -66,36 +66,19 @@ selectFontEl.addEventListener('change', (e) => {
 });
 document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
 
-// ★ 팔레트 토글 이벤트 핸들러 ★
+// ★ 글자 색상 바로 선택 로직 ★
+const colorInput = document.getElementById('input-font-color');
 const paletteBtn = document.getElementById('btn-color-palette');
-const palettePopover = document.getElementById('color-palette-popover');
 
-paletteBtn.onclick = (e) => {
+paletteBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  e.stopPropagation();
-  palettePopover.classList.toggle('show');
-};
-
-palettePopover.onclick = (e) => {
-  e.stopPropagation();
-};
-
-document.querySelectorAll('.color-swatch').forEach(swatch => {
-  swatch.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const hexColor = swatch.getAttribute('data-color');
-    editor.chain().focus().setColor(hexColor).run();
-    palettePopover.classList.remove('show');
-    updateToolbarState();
-  };
+  colorInput.click(); // 아이콘 누르면 바로 색상창 열기
 });
 
-// 외부 클릭 처리
-document.addEventListener('click', () => {
-  palettePopover.classList.remove('show');
-  const wcPopover = document.getElementById('word-count-popover');
-  if (wcPopover) wcPopover.classList.remove('show');
+colorInput.addEventListener('input', (e) => {
+  const selectedColor = e.target.value;
+  editor.chain().focus().setColor(selectedColor).run();
+  updateToolbarState();
 });
 
 // 툴바 서식 상태 업데이트
@@ -122,10 +105,6 @@ const wordCountPopover = document.getElementById('word-count-popover');
 wordCountBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   wordCountPopover.classList.toggle('show');
-});
-
-wordCountPopover.addEventListener('click', (e) => {
-  e.stopPropagation();
 });
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
