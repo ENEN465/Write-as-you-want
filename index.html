@@ -138,17 +138,6 @@
     .tree-folder-title:hover { background: #f1f3f5; }
     .tree-folder-title.selected { background: #edf2ff; color: #3b5bdb; }
 
-    .tree-folder-title:hover .btn-del-folder { display: inline-block; }
-
-    .btn-del-folder {
-      display: none;
-      background: none;
-      border: none;
-      color: #fa5252;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
     .tree-item {
       display: flex;
       justify-content: space-between;
@@ -169,16 +158,73 @@
     .tree-item:hover { background: #f1f3f5; }
     .tree-item.active { background: #e7f5ff; color: #1c7ed6; font-weight: 600; }
 
-    .tree-item .btn-del-file {
-      display: none;
-      background: none;
-      border: none;
-      color: #fa5252;
-      font-size: 11px;
-      cursor: pointer;
+    /* 점 세 개 더보기 메뉴 스타일 */
+    .menu-wrapper {
+      position: relative;
+      display: inline-block;
     }
 
-    .tree-item:hover .btn-del-file { display: inline-block; }
+    .btn-more {
+      background: none;
+      border: none;
+      font-size: 14px;
+      color: #868e96;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+      visibility: hidden;
+    }
+
+    .tree-folder-title:hover .btn-more,
+    .tree-item:hover .btn-more,
+    .menu-dropdown.show + .btn-more {
+      visibility: visible;
+    }
+
+    .btn-more:hover {
+      background: #e9ecef;
+      color: #212529;
+    }
+
+    .menu-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: #ffffff;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 80px;
+      padding: 4px 0;
+    }
+
+    .menu-dropdown.show {
+      display: block;
+    }
+
+    .menu-dropdown-item {
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #495057;
+      cursor: pointer;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .menu-dropdown-item:hover {
+      background: #f1f3f5;
+    }
+
+    .menu-dropdown-item.danger {
+      color: #fa5252;
+    }
+
+    .menu-dropdown-item.danger:hover {
+      background: #fff5f5;
+    }
 
     /* 메인 콘텐츠 영역 (툴바 + 에디터) */
     .main-content {
@@ -414,22 +460,14 @@
 
     sup { vertical-align: super; font-size: 0.75em; }
     sub { vertical-align: sub; font-size: 0.75em; }
-    
-    /* 💡 툴바 버튼 및 드롭다운 항목 hover 스타일 (통일) */
-        .toolbar button:hover, .toolbar select:hover, .counter-item:hover {
-            background-color: #e9ecef !important;
-        }
 
-        /* 💡 찾기 버튼 스타일 (돋보기 이모티콘 제거에 따른 여백 조정) */
-        #btnSearch {
-            padding: 6px 12px;
-        }
+    .toolbar button:hover, .toolbar select:hover, .counter-item:hover {
+      background-color: #e9ecef !important;
+    }
 
-        /* 💡 글자 수 카운터 배치 (툴바 오른쪽 끝으로) */
-        .word-counter-wrapper {
-            position: relative;
-            margin-left: auto; /* 중요: 오른쪽 정렬 */
-        }
+    #btnSearch {
+      padding: 6px 12px;
+    }
   </style>
 </head>
 <body class="font-maruburi">
@@ -444,9 +482,7 @@
           <button id="btnAddFile" title="선택된 폴더에 새 파일 생성">+ 파일</button>
         </div>
       </div>
-      <div id="fileTree" class="file-tree">
-        <!-- JS로 폴더 및 파일 트리가 동적 생성됩니다 -->
-      </div>
+      <div id="fileTree" class="file-tree"></div>
     </div>
 
     <!-- 메인 콘텐츠 영역 -->
@@ -601,7 +637,7 @@
     });
 
     // ----------------------------------------------------
-    // 💡 4. 폴더 및 파일 (사이드바) 안전한 데이터 관리
+    // 폴더 및 파일 (사이드바) 데이터 관리
     // ----------------------------------------------------
 
     let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
@@ -621,17 +657,14 @@
     const btnAddFolder = document.getElementById('btnAddFolder');
     const btnAddFile = document.getElementById('btnAddFile');
 
-    // 사이드바 토글
     btnToggleSidebar.onclick = () => {
       sidebar.classList.toggle('collapsed');
     };
 
-    // 로컬 스토리지 저장
     function saveStore() {
       localStorage.setItem('my_documents', JSON.stringify(documentStore));
     }
 
-    // 현재 작성 중인 파일 상태 동기화
     function saveCurrentFileState() {
       if (!documentStore.activeFileId) return;
       const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
@@ -648,7 +681,6 @@
       }
     }
 
-    // 선택된 파일 읽어와서 에디터에 로드
     function loadActiveFile() {
       if (!documentStore.activeFileId) {
         titleInput.value = '';
@@ -665,14 +697,12 @@
         updateWordCount();
       }
     }
-    
 
-    // 더보기 메뉴 닫기 헬퍼 함수
     function closeAllMenus() {
       document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
     }
 
-    // 💡 화면 전체 어디든 눌렀을 때: 선택된 폴더 해제 & 열려있는 메뉴 닫기
+    // 빈 공간 클릭 시 폴더 선택 해제 및 메뉴 닫기
     document.addEventListener('click', () => {
       closeAllMenus();
       if (documentStore.selectedFolderId !== null) {
@@ -691,7 +721,6 @@
         folderDiv.className = 'tree-folder';
         folderDiv.dataset.folderId = folder.id;
 
-        // 드래그 앤 드롭
         folderDiv.ondragover = (e) => {
           e.preventDefault();
           folderDiv.classList.add('drag-over');
@@ -717,7 +746,7 @@
           }
         };
 
-        // --- 폴더 타이틀 (점 세개 메뉴 포함) ---
+        // 폴더 타이틀
         const folderTitle = document.createElement('div');
         const isFolderSelected = folder.id === documentStore.selectedFolderId;
         folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
@@ -732,9 +761,8 @@
           </div>
         `;
 
-        // 폴더 선택 / 해제 토글
         folderTitle.onclick = (e) => {
-          e.stopPropagation(); // document 클릭 이벤트 전파 차단
+          e.stopPropagation();
           closeAllMenus();
           if (documentStore.selectedFolderId === folder.id) {
             documentStore.selectedFolderId = null;
@@ -745,7 +773,6 @@
           renderFileTree();
         };
 
-        // 점 세 개 버튼 클릭
         const folderMoreBtn = folderTitle.querySelector('.btn-more');
         const folderDropdown = folderTitle.querySelector('.menu-dropdown');
 
@@ -756,7 +783,6 @@
           if (!isShow) folderDropdown.classList.add('show');
         };
 
-        // 폴더 [이름 수정]
         folderTitle.querySelector('.btn-edit-folder').onclick = (e) => {
           e.stopPropagation();
           closeAllMenus();
@@ -768,7 +794,6 @@
           }
         };
 
-        // 폴더 [삭제]
         folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
           e.stopPropagation();
           closeAllMenus();
@@ -792,7 +817,7 @@
 
         folderDiv.appendChild(folderTitle);
 
-        // --- 파일 목록 (복제 / 삭제 메뉴 포함) ---
+        // 폴더 안 파일목록
         const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
         filesInFolder.forEach(file => {
           const fileItem = document.createElement('div');
@@ -831,7 +856,6 @@
             }
           };
 
-          // 파일 점 세 개 버튼 클릭
           const fileMoreBtn = fileItem.querySelector('.btn-more');
           const fileDropdown = fileItem.querySelector('.menu-dropdown');
 
@@ -842,7 +866,6 @@
             if (!isShow) fileDropdown.classList.add('show');
           };
 
-          // 파일 [복제]
           fileItem.querySelector('.btn-duplicate-file').onclick = (e) => {
             e.stopPropagation();
             closeAllMenus();
@@ -863,7 +886,6 @@
             loadActiveFile();
           };
 
-          // 파일 [삭제]
           fileItem.querySelector('.btn-del-file').onclick = (e) => {
             e.stopPropagation();
             closeAllMenus();
@@ -885,169 +907,6 @@
       });
     }
 
-       // 폴더 타이틀
-        const folderTitle = document.createElement('div');
-        const isFolderSelected = folder.id === documentStore.selectedFolderId;
-        folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
-        folderTitle.innerHTML = `
-          <span class="folder-name-text">📁 ${folder.name}</span>
-          <div class="folder-btns">
-            <button class="btn-edit-folder" data-id="${folder.id}">수정</button>
-            <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
-          </div>
-        `;
-
-        // 💡 폴더 이름 변경 함수
-        const renameFolder = () => {
-          const newName = prompt('변경할 폴더 이름을 입력하세요:', folder.name);
-          if (newName && newName.trim() !== '') {
-            folder.name = newName.trim();
-            saveStore();
-            renderFileTree();
-          }
-        };
-
-        // 폴더 타이틀 더블클릭 시 이름 변경
-        folderTitle.ondblclick = (e) => {
-          e.stopPropagation();
-          renameFolder();
-        };
-
-        // 폴더 클릭 토글 (한 번 클릭 시 선택/해제)
-        folderTitle.onclick = (e) => {
-          e.stopPropagation();
-          if (documentStore.selectedFolderId === folder.id) {
-            documentStore.selectedFolderId = null;
-          } else {
-            documentStore.selectedFolderId = folder.id;
-          }
-          saveStore();
-          renderFileTree();
-        };
-
-        // 💡 [수정] 버튼 클릭 시 이름 변경
-        folderTitle.querySelector('.btn-edit-folder').onclick = (e) => {
-          e.stopPropagation();
-          renameFolder();
-        };
-
-        // 폴더 삭제
-        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
-          e.stopPropagation();
-          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
-            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
-            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
-            
-            if (documentStore.selectedFolderId === folder.id) {
-              documentStore.selectedFolderId = null;
-            }
-            if (documentStore.files.length > 0) {
-              documentStore.activeFileId = documentStore.files[0].id;
-            } else {
-              documentStore.activeFileId = null;
-            }
-            saveStore();
-            renderFileTree();
-            loadActiveFile();
-          }
-        };
-
-        // 폴더 클릭 토글 (이미 클릭되어 있으면 선택 해제)
-        folderTitle.onclick = (e) => {
-          e.stopPropagation();
-          if (documentStore.selectedFolderId === folder.id) {
-            documentStore.selectedFolderId = null;
-          } else {
-            documentStore.selectedFolderId = folder.id;
-          }
-          saveStore();
-          renderFileTree();
-        };
-
-        // 폴더 삭제
-        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
-          e.stopPropagation();
-          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
-            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
-            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
-            
-            if (documentStore.selectedFolderId === folder.id) {
-              documentStore.selectedFolderId = null;
-            }
-            if (documentStore.files.length > 0) {
-              documentStore.activeFileId = documentStore.files[0].id;
-            } else {
-              documentStore.activeFileId = null;
-            }
-            saveStore();
-            renderFileTree();
-            loadActiveFile();
-          }
-        };
-
-        folderDiv.appendChild(folderTitle);
-
-        // 폴더 안 파일목록
-        const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
-        filesInFolder.forEach(file => {
-          const fileItem = document.createElement('div');
-          fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
-          fileItem.draggable = true;
-          fileItem.innerHTML = `
-            <span>${file.title || '제목 없음'}</span>
-            <button class="btn-del-file" data-id="${file.id}">삭제</button>
-          `;
-
-          fileItem.ondragstart = (e) => {
-            e.dataTransfer.setData('text/plain', file.id);
-            fileItem.classList.add('dragging');
-          };
-
-          fileItem.ondragend = () => {
-            fileItem.classList.remove('dragging');
-          };
-
-          fileItem.onclick = (e) => {
-            e.stopPropagation();
-            if (documentStore.activeFileId !== file.id) {
-              saveCurrentFileState();
-              documentStore.activeFileId = file.id;
-              documentStore.selectedFolderId = folder.id;
-              saveStore();
-              renderFileTree();
-              loadActiveFile();
-            }
-          };
-
-          fileItem.querySelector('.btn-del-file').onclick = (e) => {
-            e.stopPropagation();
-            if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
-              documentStore.files = documentStore.files.filter(f => f.id !== file.id);
-              if (documentStore.activeFileId === file.id) {
-                documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
-              }
-              saveStore();
-              renderFileTree();
-              loadActiveFile();
-            }
-          };
-
-          folderDiv.appendChild(fileItem);
-        });
-
-        fileTree.appendChild(folderDiv);
-      });
-    }
-
-   // 💡 화면 전체 어디든 눌렀을 때 선택된 폴더 해제
-document.addEventListener('click', (e) => {
-  // 이미 선택된 폴더가 있을 때만 동작
-  if (documentStore.selectedFolderId !== null) {
-    documentStore.selectedFolderId = null;
-    saveStore();
-    renderFileTree();
-  }
-});
     // 새 폴더 추가
     btnAddFolder.onclick = () => {
       const folderName = prompt('새 폴더 이름을 입력하세요:', '새 폴더');
@@ -1073,7 +932,6 @@ document.addEventListener('click', (e) => {
       let targetFolderId = documentStore.selectedFolderId;
       let targetFolder = documentStore.folders.find(f => f.id === targetFolderId);
       
-      // 선택된 폴더가 없으면 첫 번째 폴더에 생성
       if (!targetFolder) {
         targetFolder = documentStore.folders[0];
         targetFolderId = targetFolder.id;
@@ -1105,7 +963,7 @@ document.addEventListener('click', (e) => {
     loadActiveFile();
 
     // ----------------------------------------------------
-    // 5. Ctrl+F 실시간 검색 하이라이트 & 바꾸기
+    // Ctrl+F 검색 & 바꾸기
     // ----------------------------------------------------
 
     const searchModal = document.getElementById('searchModal');
@@ -1291,8 +1149,7 @@ document.addEventListener('click', (e) => {
       }
     }, true);
 
-    // ----------------------------------------------------
-
+    // 툴바 기능 연결
     document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
     document.getElementById('btnItalic').onclick = () => editor.chain().focus().toggleItalic().run();
     document.getElementById('btnStrike').onclick = () => editor.chain().focus().toggleStrike().run();
