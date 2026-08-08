@@ -7,12 +7,11 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 툴바 버튼 클릭 시 에디터 포커스 유지를 위한 대책
+// 툴바 클릭 시 에디터 선택 해제 방지
 document.querySelectorAll('.toolbar button, .color-swatch').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
 
-// 구분선 확장
 const CustomHorizontalRule = HorizontalRule.extend({
   addAttributes() {
     return {
@@ -31,9 +30,9 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
     ] }
 ];
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
-let countDisplayMode = 'withSpace'; 
+let countDisplayMode = 'withSpace';
 
-// 에디터 생성
+// Tiptap 에디터 생성
 const editor = new Editor({
   element: document.querySelector('#editor'),
   extensions: [
@@ -46,38 +45,53 @@ const editor = new Editor({
   onUpdate() { 
     triggerAutoSave(); 
     updateWordCount();
+    updateToolbarState();
+    highlightMatches();
   },
   onSelectionUpdate() { 
     updateToolbarState(); 
+  },
+  onTransaction() {
+    updateToolbarState();
   }
 });
 
-// 1. 문서 전체 폰트 일괄 변경
+// 1. 전체 폰트 변경 (제목, 소제목, 본문 통합 적용)
 document.getElementById('select-font').addEventListener('change', (e) => {
-  const selectedFont = e.target.value;
-  const editorEl = document.querySelector('.ProseMirror');
-  if (editorEl) {
-    editorEl.style.fontFamily = selectedFont;
-  }
+  const font = e.target.value;
+  document.documentElement.style.setProperty('--editor-font', font);
 });
 
-// 2 & 3. 서식 버튼 클릭 시 즉시 툴바 상태 동기화 및 색상 적용 Fix
-function executeFormat(command) {
-  command();
-  updateToolbarState();
+// 툴바 서식 상태 업데이트
+function updateToolbarState() {
+  document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
+  document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
+  document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
+
+  const headingSelect = document.getElementById('select-heading');
+  if (editor.isActive('heading', { level: 1 })) headingSelect.value = 'h1';
+  else if (editor.isActive('heading', { level: 2 })) headingSelect.value = 'h2';
+  else if (editor.isActive('heading', { level: 3 })) headingSelect.value = 'h3';
+  else headingSelect.value = 'p';
 }
 
-document.getElementById('btn-bold').addEventListener('click', () => executeFormat(() => editor.chain().focus().toggleBold().run()));
-document.getElementById('btn-italic').addEventListener('click', () => executeFormat(() => editor.chain().focus().toggleItalic().run()));
-document.getElementById('btn-strike').addEventListener('click', () => executeFormat(() => editor.chain().focus().toggleStrike().run()));
+document.getElementById('btn-bold').addEventListener('click', () => { editor.chain().focus().toggleBold().run(); updateToolbarState(); });
+document.getElementById('btn-italic').addEventListener('click', () => { editor.chain().focus().toggleItalic().run(); updateToolbarState(); });
+document.getElementById('btn-strike').addEventListener('click', () => { editor.chain().focus().toggleStrike().run(); updateToolbarState(); });
 
-// 색상 변경
+// 2. 글자 색상 변경 로직
 const paletteBtn = document.getElementById('btn-color-palette');
 const palettePopover = document.getElementById('color-palette-popover');
-paletteBtn.addEventListener('click', (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); });
+paletteBtn.addEventListener('click', (e) => { 
+  e.preventDefault();
+  e.stopPropagation(); 
+  palettePopover.classList.toggle('show'); 
+});
 
 document.querySelectorAll('.color-swatch').forEach(swatch => {
+  swatch.addEventListener('mousedown', (e) => e.preventDefault());
   swatch.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     const hexColor = swatch.getAttribute('data-color');
     editor.chain().focus().setColor(hexColor).run();
@@ -86,105 +100,133 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
   });
 });
 
-// 툴바 버튼 활성화 상태 표시
-function updateToolbarState() {
-  document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
-  document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
-  document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
-  
-  const headingSelect = document.getElementById('select-heading');
-  if (editor.isActive('heading', { level: 1 })) headingSelect.value = 'h1';
-  else if (editor.isActive('heading', { level: 2 })) headingSelect.value = 'h2';
-  else if (editor.isActive('heading', { level: 3 })) headingSelect.value = 'h3';
-  else headingSelect.value = 'p';
-}
-
-// 4. 단어 찾기, 노란색 하이라이트 및 일괄 바꾸기
-const searchBar = document.getElementById('search-replace-bar');
+// 3. 이미지 참고형 글 전체 강조 찾기/바꾸기 로직
+const searchBox = document.getElementById('search-popover-box');
 const inputSearch = document.getElementById('input-search');
 const inputReplace = document.getElementById('input-replace');
+const searchBadge = document.getElementById('search-count-badge');
+const replaceRow = document.getElementById('replace-bottom-row');
+
+let currentMatchIndex = -1;
+let matchedMarks = [];
 
 document.getElementById('btn-search').addEventListener('click', () => {
-  const isHidden = searchBar.style.display === 'none';
-  searchBar.style.display = isHidden ? 'flex' : 'none';
+  const isHidden = searchBox.style.display === 'none';
+  searchBox.style.display = isHidden ? 'flex' : 'none';
   if (isHidden) inputSearch.focus();
   else clearHighlights();
 });
 
 document.getElementById('btn-search-close').addEventListener('click', () => {
-  searchBar.style.display = 'none';
+  searchBox.style.display = 'none';
   clearHighlights();
+});
+
+document.getElementById('btn-toggle-replace').addEventListener('click', () => {
+  const isHidden = replaceRow.style.display === 'none';
+  replaceRow.style.display = isHidden ? 'flex' : 'none';
 });
 
 function clearHighlights() {
   const editorEl = document.querySelector('.ProseMirror');
   if (!editorEl) return;
-  const highlights = editorEl.querySelectorAll('mark.search-result');
-  highlights.forEach(h => {
-    const parent = h.parentNode;
-    parent.replaceChild(document.createTextNode(h.textContent), h);
+  const marks = editorEl.querySelectorAll('mark.search-highlight');
+  marks.forEach(mark => {
+    const parent = mark.parentNode;
+    parent.replaceChild(document.createTextNode(mark.textContent), mark);
     parent.normalize();
   });
+  matchedMarks = [];
+  currentMatchIndex = -1;
+  searchBadge.textContent = '0 / 0';
 }
 
-function applyHighlights() {
+function highlightMatches() {
   clearHighlights();
   const query = inputSearch.value;
   if (!query) return;
 
   const editorEl = document.querySelector('.ProseMirror');
   const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-  const nodesToReplace = [];
+  const nodesToProcess = [];
 
   let node;
   while ((node = walker.nextNode())) {
     if (node.nodeValue.includes(query)) {
-      nodesToReplace.push(node);
+      nodesToProcess.push(node);
     }
   }
 
-  nodesToReplace.forEach(textNode => {
+  nodesToProcess.forEach(textNode => {
     const parts = textNode.nodeValue.split(query);
     const fragment = document.createDocumentFragment();
-    parts.forEach((part, index) => {
+    parts.forEach((part, idx) => {
       fragment.appendChild(document.createTextNode(part));
-      if (index < parts.length - 1) {
+      if (idx < parts.length - 1) {
         const mark = document.createElement('mark');
-        mark.className = 'search-result';
+        mark.className = 'search-highlight';
         mark.textContent = query;
         fragment.appendChild(mark);
       }
     });
     textNode.parentNode.replaceChild(fragment, textNode);
   });
+
+  matchedMarks = Array.from(editorEl.querySelectorAll('mark.search-highlight'));
+  if (matchedMarks.length > 0) {
+    currentMatchIndex = 0;
+    updateActiveHighlight();
+  } else {
+    searchBadge.textContent = '0 / 0';
+  }
 }
 
-inputSearch.addEventListener('input', applyHighlights);
+function updateActiveHighlight() {
+  matchedMarks.forEach((m, idx) => {
+    if (idx === currentMatchIndex) {
+      m.classList.add('current');
+      m.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      m.classList.remove('current');
+    }
+  });
+  searchBadge.textContent = `${matchedMarks.length > 0 ? currentMatchIndex + 1 : 0} / ${matchedMarks.length}`;
+}
+
+inputSearch.addEventListener('input', highlightMatches);
 
 document.getElementById('btn-search-next').addEventListener('click', () => {
-  const query = inputSearch.value;
-  if (query) window.find(query, false, false, true);
+  if (matchedMarks.length === 0) return;
+  currentMatchIndex = (currentMatchIndex + 1) % matchedMarks.length;
+  updateActiveHighlight();
 });
 
 document.getElementById('btn-search-prev').addEventListener('click', () => {
-  const query = inputSearch.value;
-  if (query) window.find(query, false, true, true);
+  if (matchedMarks.length === 0) return;
+  currentMatchIndex = (currentMatchIndex - 1 + matchedMarks.length) % matchedMarks.length;
+  updateActiveHighlight();
 });
 
-// 일괄 바꾸기
+// 바꾸기 단일 적용
+document.getElementById('btn-replace-one').addEventListener('click', () => {
+  if (matchedMarks.length === 0 || currentMatchIndex < 0) return;
+  const targetMark = matchedMarks[currentMatchIndex];
+  targetMark.textContent = inputReplace.value;
+  highlightMatches();
+});
+
+// 모두 바꾸기
 document.getElementById('btn-replace-all').addEventListener('click', () => {
   const query = inputSearch.value;
-  const replaceStr = inputReplace.value;
   if (!query) return;
-
-  let currentContent = editor.getHTML();
-  const regex = new RegExp(query, 'g');
-  const newContent = currentContent.replace(regex, replaceStr);
-  editor.commands.setContent(newContent);
-  clearHighlights();
+  const replaceStr = inputReplace.value;
+  const currentHTML = editor.getHTML();
+  const updatedHTML = currentHTML.replace(new RegExp(query, 'g'), replaceStr);
+  editor.commands.setContent(updatedHTML);
+  highlightMatches();
 });
 
-// 5. 노벨라 스타일 글자수 세기 로직
+// 4. 노벨라 글자 수
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
@@ -208,7 +250,7 @@ function updateWordCount() {
   const text = editor.getText();
   const withSpace = text.length;
   const noSpace = text.replace(/\s/g, '').length;
-  const noSpaceSpecial = text.replace(/[\s\wㄱ-ㅎㅏ-ㅣ가-힣]/g, '').length ? text.replace(/[^a-zA-O0-9가-힣]/g, '').length : noSpace;
+  const noSpaceSpecial = text.replace(/[^a-zA-O0-9가-힣]/g, '').length;
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
 
   document.getElementById('cnt-with-space').textContent = `${withSpace}자`;
@@ -217,13 +259,13 @@ function updateWordCount() {
   document.getElementById('cnt-words').textContent = `${words} 단어`;
 
   const labelEl = document.getElementById('word-count-label');
-  if (countDisplayMode === 'withSpace') labelEl.textContent = `${withSpace} 자`;
-  else if (countDisplayMode === 'noSpace') labelEl.textContent = `${noSpace} 자`;
-  else if (countDisplayMode === 'noSpaceSpecial') labelEl.textContent = `${noSpaceSpecial} 자`;
+  if (countDisplayMode === 'withSpace') labelEl.textContent = `${withSpace}자`;
+  else if (countDisplayMode === 'noSpace') labelEl.textContent = `${noSpace}자`;
+  else if (countDisplayMode === 'noSpaceSpecial') labelEl.textContent = `${noSpaceSpecial}자`;
   else if (countDisplayMode === 'words') labelEl.textContent = `${words} 단어`;
 }
 
-// 기타 제어
+// 정렬
 document.getElementById('btn-align-left').onclick = () => editor.chain().focus().setTextAlign('left').run();
 document.getElementById('btn-align-center').onclick = () => editor.chain().focus().setTextAlign('center').run();
 document.getElementById('btn-align-right').onclick = () => editor.chain().focus().setTextAlign('right').run();
@@ -333,4 +375,6 @@ function renderTree() {
   });
 }
 
-renderTree(); loadDoc(activeDocId); lucide.createIcons();
+renderTree(); 
+loadDoc(activeDocId); 
+lucide.createIcons();
