@@ -685,14 +685,72 @@
           }
         };
 
-        // 폴더 타이틀
+       // 폴더 타이틀
         const folderTitle = document.createElement('div');
         const isFolderSelected = folder.id === documentStore.selectedFolderId;
         folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
         folderTitle.innerHTML = `
-          <span>${folder.name}</span>
-          <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
+          <span class="folder-name-text">📁 ${folder.name}</span>
+          <div class="folder-btns">
+            <button class="btn-edit-folder" data-id="${folder.id}">수정</button>
+            <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
+          </div>
         `;
+
+        // 💡 폴더 이름 변경 함수
+        const renameFolder = () => {
+          const newName = prompt('변경할 폴더 이름을 입력하세요:', folder.name);
+          if (newName && newName.trim() !== '') {
+            folder.name = newName.trim();
+            saveStore();
+            renderFileTree();
+          }
+        };
+
+        // 폴더 타이틀 더블클릭 시 이름 변경
+        folderTitle.ondblclick = (e) => {
+          e.stopPropagation();
+          renameFolder();
+        };
+
+        // 폴더 클릭 토글 (한 번 클릭 시 선택/해제)
+        folderTitle.onclick = (e) => {
+          e.stopPropagation();
+          if (documentStore.selectedFolderId === folder.id) {
+            documentStore.selectedFolderId = null;
+          } else {
+            documentStore.selectedFolderId = folder.id;
+          }
+          saveStore();
+          renderFileTree();
+        };
+
+        // 💡 [수정] 버튼 클릭 시 이름 변경
+        folderTitle.querySelector('.btn-edit-folder').onclick = (e) => {
+          e.stopPropagation();
+          renameFolder();
+        };
+
+        // 폴더 삭제
+        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
+            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
+            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
+            
+            if (documentStore.selectedFolderId === folder.id) {
+              documentStore.selectedFolderId = null;
+            }
+            if (documentStore.files.length > 0) {
+              documentStore.activeFileId = documentStore.files[0].id;
+            } else {
+              documentStore.activeFileId = null;
+            }
+            saveStore();
+            renderFileTree();
+            loadActiveFile();
+          }
+        };
 
         // 폴더 클릭 토글 (이미 클릭되어 있으면 선택 해제)
         folderTitle.onclick = (e) => {
