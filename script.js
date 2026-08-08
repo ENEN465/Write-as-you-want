@@ -88,13 +88,17 @@ document.getElementById('btn-bold').onclick = () => { editor.chain().focus().tog
 document.getElementById('btn-italic').onclick = () => { editor.chain().focus().toggleItalic().run(); updateToolbarState(); };
 document.getElementById('btn-strike').onclick = () => { editor.chain().focus().toggleStrike().run(); updateToolbarState(); };
 
-// 글자 수
+// 글자 수 팝오버
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
 wordCountBtn.onclick = (e) => {
   e.stopPropagation();
-  wordCountPopover.classList.toggle('show');
+  if (wordCountPopover.style.display === 'none' || wordCountPopover.style.display === '') {
+    wordCountPopover.style.display = 'block';
+  } else {
+    wordCountPopover.style.display = 'none';
+  }
 };
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
@@ -103,7 +107,7 @@ document.querySelectorAll('.word-count-option').forEach(opt => {
     document.querySelectorAll('.word-count-option').forEach(o => o.classList.remove('active'));
     opt.classList.add('active');
     countDisplayMode = opt.getAttribute('data-mode');
-    wordCountPopover.classList.remove('show');
+    wordCountPopover.style.display = 'none';
     updateWordCount();
   };
 });
@@ -156,7 +160,7 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// ★ 찾기 및 바꾸기 완벽 로직 ★
+// ★ 찾기 및 바꾸기 인라인 제어 로직 ★
 const btnSearch = document.getElementById('btn-search');
 const searchPopover = document.getElementById('search-popover-box');
 const inputSearch = document.getElementById('input-search');
@@ -176,23 +180,30 @@ let currentMatchIndex = -1;
 btnSearch.onclick = (e) => {
   e.preventDefault();
   e.stopPropagation();
-  const isOpen = searchPopover.classList.toggle('show');
-  if (isOpen) {
+
+  if (searchPopover.style.display === 'none' || searchPopover.style.display === '') {
+    searchPopover.style.display = 'block';
     inputSearch.focus();
     performSearch();
   } else {
+    searchPopover.style.display = 'none';
     clearSearchHighlights();
   }
 };
 
-btnSearchClose.onclick = () => {
-  searchPopover.classList.remove('show');
+btnSearchClose.onclick = (e) => {
+  e.preventDefault();
+  searchPopover.style.display = 'none';
   clearSearchHighlights();
 };
 
-btnToggleReplace.onclick = () => {
-  const isHidden = replaceRow.style.display === 'none' || replaceRow.style.display === '';
-  replaceRow.style.display = isHidden ? 'flex' : 'none';
+btnToggleReplace.onclick = (e) => {
+  e.preventDefault();
+  if (replaceRow.style.display === 'none' || replaceRow.style.display === '') {
+    replaceRow.style.display = 'flex';
+  } else {
+    replaceRow.style.display = 'none';
+  }
 };
 
 inputSearch.oninput = () => performSearch();
