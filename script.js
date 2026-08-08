@@ -66,16 +66,22 @@ selectFontEl.addEventListener('change', (e) => {
 });
 document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
 
-// ★ 핵심: 글자 색상 변경 로직 강화 ★
+// ★ 팔레트 팝업 열기/닫기 로직 제어 ★
 const paletteBtn = document.getElementById('btn-color-palette');
 const palettePopover = document.getElementById('color-palette-popover');
 
 paletteBtn.addEventListener('click', (e) => { 
   e.preventDefault();
-  e.stopPropagation(); 
+  e.stopPropagation(); // 외부 클릭 닫기 이벤트로 전파 방지
   palettePopover.classList.toggle('show'); 
 });
 
+// 팔레트 팝업 내부 클릭 시 닫히지 않도록 이벤트 전파 차단
+palettePopover.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+// 색상 선택 시 적용
 document.querySelectorAll('.color-swatch').forEach(swatch => {
   swatch.addEventListener('mousedown', (e) => e.preventDefault());
   swatch.addEventListener('click', (e) => {
@@ -89,6 +95,12 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
     palettePopover.classList.remove('show');
     updateToolbarState();
   });
+});
+
+// 외부 영역 클릭 시 팝업들 닫기
+document.addEventListener('click', () => {
+  palettePopover.classList.remove('show');
+  wordCountPopover.classList.remove('show');
 });
 
 // 툴바 서식 상태 업데이트
@@ -115,6 +127,10 @@ const wordCountPopover = document.getElementById('word-count-popover');
 wordCountBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   wordCountPopover.classList.toggle('show');
+});
+
+wordCountPopover.addEventListener('click', (e) => {
+  e.stopPropagation();
 });
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
@@ -175,11 +191,6 @@ document.getElementById('input-image-file').onchange = (e) => {
     reader.readAsDataURL(file);
   }
 };
-
-document.addEventListener('click', () => {
-  palettePopover.classList.remove('show');
-  wordCountPopover.classList.remove('show');
-});
 
 // 사이드바 및 저장
 document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
