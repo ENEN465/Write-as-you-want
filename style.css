@@ -1,20 +1,21 @@
+/* 리디바탕체 웹폰트 추가 */
+@font-face {
+  font-family: 'RIDIBatang';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @font-face {
   font-family: 'MaruBuri';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff2') format('woff2');
   font-weight: normal;
 }
 
-/* 부크크 명조 폰트 웹폰트 정의 수정 */
-@font-face {
-  font-family: 'BookkMyungjo';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Pt2.woff2') format('woff2');
-  font-weight: normal;
-}
-
 .font-pretendard, .font-pretendard * { font-family: 'Pretendard', sans-serif !important; }
 .font-nanum-barun, .font-nanum-barun * { font-family: 'NanumBarunGothic', sans-serif !important; }
 .font-maruburi, .font-maruburi * { font-family: 'MaruBuri', serif !important; }
-.font-bookk-myungjo, .font-bookk-myungjo * { font-family: 'BookkMyungjo', serif !important; }
+.font-ridi-batang, .font-ridi-batang * { font-family: 'RIDIBatang', serif !important; }
 .font-nanum-myeongjo, .font-nanum-myeongjo * { font-family: 'NanumMyeongjo', serif !important; }
 .font-noto-serif, .font-noto-serif * { font-family: 'Noto Serif KR', serif !important; }
 
@@ -101,7 +102,7 @@ body {
   flex-shrink: 0;
   gap: 8px;
   position: relative;
-  z-index: 50; /* 드롭다운을 위해 z-index 상향 */
+  z-index: 50;
 }
 
 .toolbar-section {
@@ -209,12 +210,8 @@ body {
 .table-popover.show { display: flex; }
 .table-popover button { justify-content: flex-start; padding: 4px 8px; font-size: 11px; width: 100%; }
 
-/* 글자 수 카운터 드롭다운 (z-index 수정) */
-.word-counter-wrapper {
-  position: relative;
-  flex-shrink: 0;
-}
-
+/* 글자 수 카운터 드롭다운 */
+.word-counter-wrapper { position: relative; flex-shrink: 0; }
 .counter-badge {
   font-size: 12px;
   color: #495057;
@@ -238,7 +235,7 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   width: 170px;
   padding: 4px 0;
-  z-index: 1000; /* 가장 최상단으로 레이어 지정 */
+  z-index: 1000;
 }
 .counter-dropdown.show { display: block; }
 
@@ -307,19 +304,39 @@ body {
 }
 
 .ProseMirror img { max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; }
+
+/* 표(Table) 스타일 적용 필수 요소 보완 */
 .ProseMirror table {
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
   margin: 12px 0;
+  overflow: hidden;
 }
+
 .ProseMirror td, .ProseMirror th {
   min-width: 1em;
   border: 1px solid #ced4da;
-  padding: 6px 8px;
+  padding: 8px 10px;
+  vertical-align: top;
   box-sizing: border-box;
+  position: relative;
 }
-.ProseMirror th { background: #f8f9fa; font-weight: bold; }
+
+.ProseMirror th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  text-align: left;
+}
+
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
 
 /* 검색 모달 스타일 */
 .search-modal {
