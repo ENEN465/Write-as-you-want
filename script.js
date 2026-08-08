@@ -58,10 +58,10 @@ const editor = new Editor({
   }
 });
 
-// 폰트 설정
+// 폰트 설정 (전역 body가 아닌, 에디터 전용 CSS 변수만 변경)
 const selectFontEl = document.getElementById('select-font');
 selectFontEl.addEventListener('change', (e) => {
-  document.documentElement.style.setProperty('--editor-font', e.target.value);
+  document.documentElement.style.setProperty('--editor-content-font', e.target.value);
 });
 
 // 글자 색상
@@ -160,7 +160,7 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// ★ 찾기 및 바꾸기 인라인 제어 로직 ★
+// 찾기 및 바꾸기 인라인 제어 로직
 const btnSearch = document.getElementById('btn-search');
 const searchPopover = document.getElementById('search-popover-box');
 const inputSearch = document.getElementById('input-search');
