@@ -6,6 +6,13 @@
   <title>Write as you want</title>
   <link rel="icon" type="image/webp" href="icon.webp">
 
+  <!-- 웹 폰트 CDN 사전 로드 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/ridi/RIDIBatang.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/naver/NanumBarunGothic.css">
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -16,7 +23,6 @@
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title-wrapper">
-        <img src="icon.webp" alt="Logo" class="app-icon" onerror="this.style.display='none'">
         <span class="sidebar-title">내 글 목록</span>
       </div>
       <div class="sidebar-actions">
@@ -128,7 +134,7 @@
       </div>
     </div>
 
-    <!-- 찾기/바꾸기 팝업 -->
+    <!-- 찾기/바꾸기 팝업 (위치 및 크기 잘림 완벽 수정) -->
     <div class="search-popover-box" id="search-popover-box" style="display: none;">
       <div class="search-top-row">
         <input type="text" id="input-search" placeholder="찾을 단어" class="search-input-field">
@@ -136,7 +142,7 @@
         <button id="btn-search-prev" class="icon-btn-sm" title="이전"><i data-lucide="chevron-up"></i></button>
         <button id="btn-search-next" class="icon-btn-sm" title="다음"><i data-lucide="chevron-down"></i></button>
         <button id="btn-toggle-replace" class="icon-btn-sm" title="바꾸기 열기/닫기"><i data-lucide="repeat"></i></button>
-        <button id="btn-search-close" class="icon-btn-sm">✕</button>
+        <button id="btn-search-close" class="icon-btn-sm" title="닫기">✕</button>
       </div>
 
       <div class="replace-bottom-row" id="replace-bottom-row" style="display: none;">
