@@ -7,7 +7,7 @@ import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2.1.13';
 import Image from 'https://esm.sh/@tiptap/extension-image@2.1.13';
 import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13';
 
-// 툴바 클릭 시 에디터 선택 해제 방지
+// 툴바 버튼 클릭 시 에디터 커서 풀림 방지
 document.querySelectorAll('.toolbar button, .color-swatch').forEach(el => {
   el.addEventListener('mousedown', (e) => e.preventDefault());
 });
@@ -32,7 +32,7 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
 let countDisplayMode = 'withSpace';
 
-// Tiptap 에디터 생성
+// Tiptap 에디터 초기화
 const editor = new Editor({
   element: document.querySelector('#editor'),
   extensions: [
@@ -46,7 +46,6 @@ const editor = new Editor({
     triggerAutoSave(); 
     updateWordCount();
     updateToolbarState();
-    highlightMatches();
   },
   onSelectionUpdate() { 
     updateToolbarState(); 
@@ -56,11 +55,15 @@ const editor = new Editor({
   }
 });
 
-// 1. 전체 폰트 변경 (제목, 소제목, 본문 통합 적용)
-document.getElementById('select-font').addEventListener('change', (e) => {
-  const font = e.target.value;
-  document.documentElement.style.setProperty('--editor-font', font);
+// ★ 핵심: 폰트 바꾸면 문서 전체(:root) 변수를 바꿔서 제목/소제목/본문이 다 같이 바뀌게 함 ★
+const selectFontEl = document.getElementById('select-font');
+selectFontEl.addEventListener('change', (e) => {
+  const fontValue = e.target.value;
+  document.documentElement.style.setProperty('--editor-font', fontValue);
 });
+
+// 페이지 처음 켜질 때 기본 선택되어 있는 폰트를 변수에 즉시 반영
+document.documentElement.style.setProperty('--editor-font', selectFontEl.value);
 
 // 툴바 서식 상태 업데이트
 function updateToolbarState() {
@@ -79,154 +82,7 @@ document.getElementById('btn-bold').addEventListener('click', () => { editor.cha
 document.getElementById('btn-italic').addEventListener('click', () => { editor.chain().focus().toggleItalic().run(); updateToolbarState(); });
 document.getElementById('btn-strike').addEventListener('click', () => { editor.chain().focus().toggleStrike().run(); updateToolbarState(); });
 
-// 2. 글자 색상 변경 로직
-const paletteBtn = document.getElementById('btn-color-palette');
-const palettePopover = document.getElementById('color-palette-popover');
-paletteBtn.addEventListener('click', (e) => { 
-  e.preventDefault();
-  e.stopPropagation(); 
-  palettePopover.classList.toggle('show'); 
-});
-
-document.querySelectorAll('.color-swatch').forEach(swatch => {
-  swatch.addEventListener('mousedown', (e) => e.preventDefault());
-  swatch.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const hexColor = swatch.getAttribute('data-color');
-    editor.chain().focus().setColor(hexColor).run();
-    palettePopover.classList.remove('show');
-    updateToolbarState();
-  });
-});
-
-// 3. 이미지 참고형 글 전체 강조 찾기/바꾸기 로직
-const searchBox = document.getElementById('search-popover-box');
-const inputSearch = document.getElementById('input-search');
-const inputReplace = document.getElementById('input-replace');
-const searchBadge = document.getElementById('search-count-badge');
-const replaceRow = document.getElementById('replace-bottom-row');
-
-let currentMatchIndex = -1;
-let matchedMarks = [];
-
-document.getElementById('btn-search').addEventListener('click', () => {
-  const isHidden = searchBox.style.display === 'none';
-  searchBox.style.display = isHidden ? 'flex' : 'none';
-  if (isHidden) inputSearch.focus();
-  else clearHighlights();
-});
-
-document.getElementById('btn-search-close').addEventListener('click', () => {
-  searchBox.style.display = 'none';
-  clearHighlights();
-});
-
-document.getElementById('btn-toggle-replace').addEventListener('click', () => {
-  const isHidden = replaceRow.style.display === 'none';
-  replaceRow.style.display = isHidden ? 'flex' : 'none';
-});
-
-function clearHighlights() {
-  const editorEl = document.querySelector('.ProseMirror');
-  if (!editorEl) return;
-  const marks = editorEl.querySelectorAll('mark.search-highlight');
-  marks.forEach(mark => {
-    const parent = mark.parentNode;
-    parent.replaceChild(document.createTextNode(mark.textContent), mark);
-    parent.normalize();
-  });
-  matchedMarks = [];
-  currentMatchIndex = -1;
-  searchBadge.textContent = '0 / 0';
-}
-
-function highlightMatches() {
-  clearHighlights();
-  const query = inputSearch.value;
-  if (!query) return;
-
-  const editorEl = document.querySelector('.ProseMirror');
-  const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-  const nodesToProcess = [];
-
-  let node;
-  while ((node = walker.nextNode())) {
-    if (node.nodeValue.includes(query)) {
-      nodesToProcess.push(node);
-    }
-  }
-
-  nodesToProcess.forEach(textNode => {
-    const parts = textNode.nodeValue.split(query);
-    const fragment = document.createDocumentFragment();
-    parts.forEach((part, idx) => {
-      fragment.appendChild(document.createTextNode(part));
-      if (idx < parts.length - 1) {
-        const mark = document.createElement('mark');
-        mark.className = 'search-highlight';
-        mark.textContent = query;
-        fragment.appendChild(mark);
-      }
-    });
-    textNode.parentNode.replaceChild(fragment, textNode);
-  });
-
-  matchedMarks = Array.from(editorEl.querySelectorAll('mark.search-highlight'));
-  if (matchedMarks.length > 0) {
-    currentMatchIndex = 0;
-    updateActiveHighlight();
-  } else {
-    searchBadge.textContent = '0 / 0';
-  }
-}
-
-function updateActiveHighlight() {
-  matchedMarks.forEach((m, idx) => {
-    if (idx === currentMatchIndex) {
-      m.classList.add('current');
-      m.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      m.classList.remove('current');
-    }
-  });
-  searchBadge.textContent = `${matchedMarks.length > 0 ? currentMatchIndex + 1 : 0} / ${matchedMarks.length}`;
-}
-
-inputSearch.addEventListener('input', highlightMatches);
-
-document.getElementById('btn-search-next').addEventListener('click', () => {
-  if (matchedMarks.length === 0) return;
-  currentMatchIndex = (currentMatchIndex + 1) % matchedMarks.length;
-  updateActiveHighlight();
-});
-
-document.getElementById('btn-search-prev').addEventListener('click', () => {
-  if (matchedMarks.length === 0) return;
-  currentMatchIndex = (currentMatchIndex - 1 + matchedMarks.length) % matchedMarks.length;
-  updateActiveHighlight();
-});
-
-// 바꾸기 단일 적용
-document.getElementById('btn-replace-one').addEventListener('click', () => {
-  if (matchedMarks.length === 0 || currentMatchIndex < 0) return;
-  const targetMark = matchedMarks[currentMatchIndex];
-  targetMark.textContent = inputReplace.value;
-  highlightMatches();
-});
-
-// 모두 바꾸기
-document.getElementById('btn-replace-all').addEventListener('click', () => {
-  const query = inputSearch.value;
-  if (!query) return;
-  const replaceStr = inputReplace.value;
-  const currentHTML = editor.getHTML();
-  const updatedHTML = currentHTML.replace(new RegExp(query, 'g'), replaceStr);
-  editor.commands.setContent(updatedHTML);
-  highlightMatches();
-});
-
-// 4. 노벨라 글자 수
+// 글자 수 계산
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
@@ -294,12 +150,7 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-document.addEventListener('click', () => {
-  palettePopover.classList.remove('show');
-  wordCountPopover.classList.remove('show');
-});
-
-// 사이드바 및 저장
+// 사이드바 및 저장 기능
 document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
 
 function findNode(nodes, id) {
