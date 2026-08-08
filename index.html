@@ -268,6 +268,20 @@
     .toolbar button:hover, .toolbar select:hover { background: #e9ecef; }
     .toolbar button.is-active { background: #339af0; color: white; border-color: #339af0; }
 
+    /* 저장 상태 인디케이터 */
+    .save-status {
+      font-size: 12px;
+      color: #868e96;
+      margin-left: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .save-status.saving {
+      color: #f59f00;
+    }
+
     /* 글자 수 카운터 드롭다운 UI */
     .word-counter-wrapper {
       position: relative;
@@ -320,7 +334,7 @@
     .counter-item.active .check-mark { visibility: visible; }
 
     /* Ctrl+F 찾기 및 바꾸기 모달 UI */
-    .search-modal {
+    .search-modal, .history-modal {
       display: none;
       position: fixed;
       top: 20px;
@@ -331,10 +345,46 @@
       border-radius: 10px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.15);
       padding: 14px 18px;
-      width: 320px;
+      width: 340px;
     }
 
-    .search-modal.show { display: block; }
+    .search-modal.show, .history-modal.show { display: block; }
+
+    /* 히스토리 모달 전용 스타일 */
+    .history-list {
+      max-height: 260px;
+      overflow-y: auto;
+      margin: 10px 0;
+      border: 1px solid #f1f3f5;
+      border-radius: 6px;
+    }
+
+    .history-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f3f5;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .history-item:hover {
+      background: #e7f5ff;
+    }
+
+    .history-time {
+      color: #495057;
+      font-weight: 600;
+    }
+
+    .history-preview {
+      color: #868e96;
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .search-row {
       display: flex;
@@ -374,7 +424,6 @@
       margin-top: 4px;
     }
 
-    /* 하이라이트 스타일 */
     mark {
       background-color: #ffe066 !important;
       color: #000000 !important;
@@ -465,8 +514,8 @@
       background-color: #e9ecef !important;
     }
 
-    #btnSearch {
-      padding: 6px 12px;
+    #btnSearch, #btnHistory {
+      padding: 6px 10px;
     }
   </style>
 </head>
@@ -532,6 +581,8 @@
         </select>
 
         <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
+        <button id="btnHistory" title="버전 히스토리 보기">버전</button>
+        <span id="saveStatus" class="save-status">저장됨</span>
 
         <!-- 글자 수 카운터 드롭다운 UI -->
         <div class="word-counter-wrapper">
@@ -573,6 +624,16 @@
         </div>
       </div>
 
+      <!-- 버전 히스토리 (타임머신) 모달 창 -->
+      <div id="historyModal" class="history-modal">
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">버전 기록 (타임머신)</div>
+        <div id="historyList" class="history-list"></div>
+        <div class="search-status">
+          <span>원하는 버전을 선택하여 복원하세요.</span>
+          <button id="btnCloseHistory" style="padding: 2px 6px; font-size: 11px;">닫기</button>
+        </div>
+      </div>
+
       <div class="editor-container">
         <div class="post-header">
           <input type="text" class="title-input" placeholder="제목 없음" />
@@ -595,6 +656,7 @@
 
     const titleInput = document.querySelector('.title-input');
     const subtitleInput = document.querySelector('.subtitle-input');
+    const saveStatus = document.getElementById('saveStatus');
 
     const CustomHorizontalRule = HorizontalRule.extend({
       addAttributes() {
@@ -632,12 +694,12 @@
         else headingSelect.value = 'paragraph';
 
         updateWordCount();
-        saveCurrentFileState();
+        triggerAutoSave();
       }
     });
 
     // ----------------------------------------------------
-    // 폴더 및 파일 (사이드바) 데이터 관리
+    // 데이터 스토어 & 디바운스 자동 저장
     // ----------------------------------------------------
 
     let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
@@ -645,24 +707,29 @@
         { id: 'folder-1', name: '기본 폴더' }
       ],
       files: [
-        { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>' }
+        { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>', history: [] }
       ],
       selectedFolderId: null,
       activeFileId: 'file-1'
     };
 
-    const sidebar = document.getElementById('sidebar');
-    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
-    const fileTree = document.getElementById('fileTree');
-    const btnAddFolder = document.getElementById('btnAddFolder');
-    const btnAddFile = document.getElementById('btnAddFile');
-
-    btnToggleSidebar.onclick = () => {
-      sidebar.classList.toggle('collapsed');
-    };
+    let saveTimeout = null;
+    let snapshotInterval = null;
 
     function saveStore() {
       localStorage.setItem('my_documents', JSON.stringify(documentStore));
+      saveStatus.innerText = '저장됨';
+      saveStatus.classList.remove('saving');
+    }
+
+    function triggerAutoSave() {
+      saveStatus.innerText = '저장 중...';
+      saveStatus.classList.add('saving');
+
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveCurrentFileState();
+      }, 800);
     }
 
     function saveCurrentFileState() {
@@ -680,6 +747,47 @@
         }
       }
     }
+
+    // 버전 관리 (타임머신 히스토리 스냅샷 생성)
+    function createHistorySnapshot() {
+      if (!documentStore.activeFileId) return;
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (!activeFile) return;
+
+      if (!activeFile.history) activeFile.history = [];
+
+      const currentContent = editor.getHTML();
+      const lastSnapshot = activeFile.history[0];
+
+      // 직전 스냅샷과 내용이 같으면 저장 안함
+      if (lastSnapshot && lastSnapshot.content === currentContent) return;
+
+      const newSnapshot = {
+        timestamp: new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        title: titleInput.value,
+        subtitle: subtitleInput.value,
+        content: currentContent
+      };
+
+      activeFile.history.unshift(newSnapshot);
+      if (activeFile.history.length > 20) activeFile.history.pop(); // 최대 20개 스냅샷 유지
+      saveStore();
+    }
+
+    // 1분 주기로 자동 버전 스냅샷 남기기
+    setInterval(createHistorySnapshot, 60000);
+
+    // ----------------------------------------------------
+    // 사이드바 및 UI 제어
+    // ----------------------------------------------------
+
+    const sidebar = document.getElementById('sidebar');
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+    const fileTree = document.getElementById('fileTree');
+    const btnAddFolder = document.getElementById('btnAddFolder');
+    const btnAddFile = document.getElementById('btnAddFile');
+
+    btnToggleSidebar.onclick = () => sidebar.classList.toggle('collapsed');
 
     function loadActiveFile() {
       if (!documentStore.activeFileId) {
@@ -702,7 +810,6 @@
       document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
     }
 
-    // 빈 공간 클릭 시 폴더 선택 해제 및 메뉴 닫기
     document.addEventListener('click', () => {
       closeAllMenus();
       if (documentStore.selectedFolderId !== null) {
@@ -712,7 +819,6 @@
       }
     });
 
-    // 사이드바 UI 렌더링
     function renderFileTree() {
       fileTree.innerHTML = '';
 
@@ -721,20 +827,12 @@
         folderDiv.className = 'tree-folder';
         folderDiv.dataset.folderId = folder.id;
 
-        folderDiv.ondragover = (e) => {
-          e.preventDefault();
-          folderDiv.classList.add('drag-over');
-        };
-
-        folderDiv.ondragleave = () => {
-          folderDiv.classList.remove('drag-over');
-        };
-
+        folderDiv.ondragover = (e) => { e.preventDefault(); folderDiv.classList.add('drag-over'); };
+        folderDiv.ondragleave = () => folderDiv.classList.remove('drag-over');
         folderDiv.ondrop = (e) => {
           e.preventDefault();
           folderDiv.classList.remove('drag-over');
           const draggedFileId = e.dataTransfer.getData('text/plain');
-          
           if (draggedFileId) {
             const targetFile = documentStore.files.find(f => f.id === draggedFileId);
             if (targetFile && targetFile.folderId !== folder.id) {
@@ -746,7 +844,6 @@
           }
         };
 
-        // 폴더 타이틀
         const folderTitle = document.createElement('div');
         const isFolderSelected = folder.id === documentStore.selectedFolderId;
         folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
@@ -764,11 +861,7 @@
         folderTitle.onclick = (e) => {
           e.stopPropagation();
           closeAllMenus();
-          if (documentStore.selectedFolderId === folder.id) {
-            documentStore.selectedFolderId = null;
-          } else {
-            documentStore.selectedFolderId = folder.id;
-          }
+          documentStore.selectedFolderId = documentStore.selectedFolderId === folder.id ? null : folder.id;
           saveStore();
           renderFileTree();
         };
@@ -800,15 +893,8 @@
           if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
             documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
             documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
-            
-            if (documentStore.selectedFolderId === folder.id) {
-              documentStore.selectedFolderId = null;
-            }
-            if (documentStore.files.length > 0) {
-              documentStore.activeFileId = documentStore.files[0].id;
-            } else {
-              documentStore.activeFileId = null;
-            }
+            if (documentStore.selectedFolderId === folder.id) documentStore.selectedFolderId = null;
+            documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
             saveStore();
             renderFileTree();
             loadActiveFile();
@@ -817,7 +903,6 @@
 
         folderDiv.appendChild(folderTitle);
 
-        // 폴더 안 파일목록
         const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
         filesInFolder.forEach(file => {
           const fileItem = document.createElement('div');
@@ -838,15 +923,13 @@
             e.dataTransfer.setData('text/plain', file.id);
             fileItem.classList.add('dragging');
           };
-
-          fileItem.ondragend = () => {
-            fileItem.classList.remove('dragging');
-          };
+          fileItem.ondragend = () => fileItem.classList.remove('dragging');
 
           fileItem.onclick = (e) => {
             e.stopPropagation();
             closeAllMenus();
             if (documentStore.activeFileId !== file.id) {
+              createHistorySnapshot();
               saveCurrentFileState();
               documentStore.activeFileId = file.id;
               documentStore.selectedFolderId = folder.id;
@@ -876,7 +959,8 @@
               folderId: file.folderId,
               title: (file.title || '제목 없음') + ' (사본)',
               subtitle: file.subtitle || '',
-              content: file.content || '<p></p>'
+              content: file.content || '<p></p>',
+              history: []
             };
 
             documentStore.files.push(duplicatedFile);
@@ -907,14 +991,10 @@
       });
     }
 
-    // 새 폴더 추가
     btnAddFolder.onclick = () => {
       const folderName = prompt('새 폴더 이름을 입력하세요:', '새 폴더');
       if (folderName) {
-        const newFolder = {
-          id: 'folder-' + Date.now(),
-          name: folderName
-        };
+        const newFolder = { id: 'folder-' + Date.now(), name: folderName };
         documentStore.folders.push(newFolder);
         documentStore.selectedFolderId = newFolder.id;
         saveStore();
@@ -922,29 +1002,22 @@
       }
     };
 
-    // 선택된 폴더 안에 새 파일 추가
     btnAddFile.onclick = () => {
       if (documentStore.folders.length === 0) {
         alert('먼저 폴더를 생성해주세요.');
         return;
       }
 
-      let targetFolderId = documentStore.selectedFolderId;
-      let targetFolder = documentStore.folders.find(f => f.id === targetFolderId);
-      
-      if (!targetFolder) {
-        targetFolder = documentStore.folders[0];
-        targetFolderId = targetFolder.id;
-      }
-
-      const fileTitle = prompt(`'${targetFolder.name}' 폴더에 생성할 원고 제목:`, '제목 없음');
+      let targetFolderId = documentStore.selectedFolderId || documentStore.folders[0].id;
+      const fileTitle = prompt('새 원고 제목:', '제목 없음');
       if (fileTitle !== null) {
         const newFile = {
           id: 'file-' + Date.now(),
           folderId: targetFolderId,
           title: fileTitle,
           subtitle: '',
-          content: '<p></p>'
+          content: '<p></p>',
+          history: []
         };
         saveCurrentFileState();
         documentStore.files.push(newFile);
@@ -955,12 +1028,56 @@
       }
     };
 
-    titleInput.addEventListener('input', saveCurrentFileState);
-    subtitleInput.addEventListener('input', saveCurrentFileState);
+    titleInput.addEventListener('input', triggerAutoSave);
+    subtitleInput.addEventListener('input', triggerAutoSave);
 
     // 초기 실행
     renderFileTree();
     loadActiveFile();
+
+    // ----------------------------------------------------
+    // 버전 히스토리 (타임머신) UI
+    // ----------------------------------------------------
+
+    const btnHistory = document.getElementById('btnHistory');
+    const historyModal = document.getElementById('historyModal');
+    const historyList = document.getElementById('historyList');
+    const btnCloseHistory = document.getElementById('btnCloseHistory');
+
+    btnHistory.onclick = () => {
+      createHistorySnapshot();
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      historyList.innerHTML = '';
+
+      if (!activeFile || !activeFile.history || activeFile.history.length === 0) {
+        historyList.innerHTML = '<div style="padding: 12px; font-size: 12px; color: #868e96; text-align: center;">저장된 이전 버전이 없습니다.</div>';
+      } else {
+        activeFile.history.forEach((snap, idx) => {
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          const plainText = snap.content.replace(/<[^>]*>?/gm, '');
+          item.innerHTML = `
+            <span class="history-time">${snap.timestamp}</span>
+            <span class="history-preview">${plainText || '빈 원고'}</span>
+          `;
+          item.onclick = () => {
+            if (confirm(`${snap.timestamp} 시점의 버전으로 복원하시겠습니까?`)) {
+              createHistorySnapshot(); // 현재 상태를 스냅샷에 백업 후 복원
+              titleInput.value = snap.title || '';
+              subtitleInput.value = snap.subtitle || '';
+              editor.commands.setContent(snap.content || '<p></p>', false);
+              saveCurrentFileState();
+              historyModal.classList.remove('show');
+            }
+          };
+          historyList.appendChild(item);
+        });
+      }
+
+      historyModal.classList.add('show');
+    };
+
+    btnCloseHistory.onclick = () => historyModal.classList.remove('show');
 
     // ----------------------------------------------------
     // Ctrl+F 검색 & 바꾸기
@@ -977,48 +1094,43 @@
     function clearHighlights() {
       const html = editor.getHTML();
       const cleanHTML = html.replace(/<mark[^>]*>(.*?)<\/mark>/gi, '$1');
-      if (html !== cleanHTML) {
-        editor.commands.setContent(cleanHTML, false);
-      }
+      if (html !== cleanHTML) editor.commands.setContent(cleanHTML, false);
     }
 
-    function openSearchModal() {
+    btnSearch.onclick = () => {
       searchModal.classList.add('show');
       searchInput.focus();
       searchInput.select();
-    }
+    };
 
-    function closeSearchModal() {
+    btnCloseSearch.onclick = () => {
       searchModal.classList.remove('show');
       searchResultCount.innerText = '단어를 검색하세요';
       searchInput.value = '';
       replaceInput.value = '';
       clearHighlights();
       editor.commands.focus();
-    }
-
-    btnSearch.onclick = openSearchModal;
-    btnCloseSearch.onclick = closeSearchModal;
+    };
 
     window.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        openSearchModal();
+        searchModal.classList.add('show');
+        searchInput.focus();
       }
-      if (e.key === 'Escape' && searchModal.classList.contains('show')) {
-        closeSearchModal();
+      if (e.key === 'Escape') {
+        searchModal.classList.remove('show');
+        historyModal.classList.remove('show');
       }
     });
 
-    function performSearch() {
+    searchInput.addEventListener('input', () => {
       const query = searchInput.value;
       clearHighlights();
-
       if (!query.trim()) {
         searchResultCount.innerText = '검색어를 입력하세요';
         return;
       }
-
       const currentHTML = editor.getHTML();
       const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(?<!<[^>]*)${escapedQuery}(?![^<]*>)`, 'gi');
@@ -1026,30 +1138,22 @@
       const count = matches ? matches.length : 0;
 
       if (count > 0) {
-        const highlightedHTML = currentHTML.replace(regex, `<mark>$&</mark>`);
-        editor.commands.setContent(highlightedHTML, false);
+        editor.commands.setContent(currentHTML.replace(regex, `<mark>$&</mark>`), false);
         searchResultCount.innerText = `총 ${count}개 발견`;
       } else {
         searchResultCount.innerText = '일치하는 단어가 없습니다';
       }
-    }
-
-    searchInput.addEventListener('input', performSearch);
+    });
 
     btnReplaceAll.onclick = () => {
       const searchVal = searchInput.value;
       const replaceVal = replaceInput.value;
-
       if (!searchVal) return;
 
       clearHighlights();
       const currentHTML = editor.getHTML();
-      const escapedSearch = searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(?<!<[^>]*)${escapedSearch}(?![^<]*>)`, 'g');
-      
-      const newHTML = currentHTML.replace(regex, replaceVal);
-
-      editor.commands.setContent(newHTML, false);
+      const regex = new RegExp(`(?<!<[^>]*)${searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![^<]*>)`, 'g');
+      editor.commands.setContent(currentHTML.replace(regex, replaceVal), false);
       updateWordCount();
       saveCurrentFileState();
       searchResultCount.innerText = '모두 교체되었습니다!';
@@ -1057,7 +1161,7 @@
     };
 
     // ----------------------------------------------------
-    // 글자 수 계산
+    // 글자 수 카운터
     // ----------------------------------------------------
 
     let selectedCountType = 'with-space';
@@ -1086,9 +1190,6 @@
       else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
     }
 
-    titleInput.addEventListener('input', updateWordCount);
-    subtitleInput.addEventListener('input', updateWordCount);
-
     const counterBadge = document.getElementById('counterBadge');
     const counterDropdown = document.getElementById('counterDropdown');
 
@@ -1107,16 +1208,9 @@
       });
     });
 
-    document.addEventListener('click', () => {
-      counterDropdown.classList.remove('show');
-    });
+    document.addEventListener('click', () => counterDropdown.classList.remove('show'));
 
-    updateWordCount();
-
-    // ----------------------------------------------------
     // 방향키 이동 이벤트
-    // ----------------------------------------------------
-
     titleInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
@@ -1149,7 +1243,7 @@
       }
     }, true);
 
-    // 툴바 기능 연결
+    // 툴바 버튼 이벤트
     document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
     document.getElementById('btnItalic').onclick = () => editor.chain().focus().toggleItalic().run();
     document.getElementById('btnStrike').onclick = () => editor.chain().focus().toggleStrike().run();
@@ -1158,11 +1252,8 @@
 
     document.getElementById('headingSelect').onchange = (e) => {
       const val = e.target.value;
-      if (val === 'paragraph') {
-        editor.chain().focus().setParagraph().run();
-      } else {
-        editor.chain().focus().toggleHeading({ level: parseInt(val) }).run();
-      }
+      if (val === 'paragraph') editor.chain().focus().setParagraph().run();
+      else editor.chain().focus().toggleHeading({ level: parseInt(val) }).run();
     };
 
     document.getElementById('fontSelect').onchange = (e) => {
@@ -1172,21 +1263,10 @@
     document.getElementById('dividerSelect').onchange = (e) => {
       const style = e.target.value;
       if (style) {
-        editor.chain().focus().insertContent({
-          type: 'horizontalRule',
-          attrs: { 'data-style': style }
-        }).run();
+        editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': style } }).run();
         e.target.value = '';
       }
     };
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW Registered!', reg))
-          .catch(err => console.error('SW Registration Failed!', err));
-      });
-    }
   </script>
 </body>
 </html>
