@@ -610,7 +610,7 @@
       sidebar.classList.toggle('collapsed');
     };
 
-    // 사이드바 UI 렌더링
+ // 사이드바 UI 렌더링
     function renderFileTree() {
       fileTree.innerHTML = '';
 
@@ -619,7 +619,7 @@
         folderDiv.className = 'tree-folder';
         folderDiv.dataset.folderId = folder.id;
 
-        // 폴더 드래그 앤 드롭 영역 이벤트 (파일을 받아들이는 target)
+        // 폴더 드래그 앤 드롭 영역 이벤트
         folderDiv.ondragover = (e) => {
           e.preventDefault();
           folderDiv.classList.add('drag-over');
@@ -654,9 +654,14 @@
           <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
         `;
 
-        // 폴더 클릭 시 '선택된 폴더' 지정
-        folderTitle.onclick = () => {
-          documentStore.selectedFolderId = folder.id;
+        // 💡 폴더 클릭 시 토글(다시 누르면 선택 해제)
+        folderTitle.onclick = (e) => {
+          e.stopPropagation(); // 빈 공간 클릭 이벤트로 전파 방지
+          if (documentStore.selectedFolderId === folder.id) {
+            documentStore.selectedFolderId = null; // 이미 선택된 폴더면 해제
+          } else {
+            documentStore.selectedFolderId = folder.id; // 선택
+          }
           saveStore();
           renderFileTree();
         };
@@ -689,11 +694,61 @@
         filesInFolder.forEach(file => {
           const fileItem = document.createElement('div');
           fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
-          fileItem.draggable = true; // 드래그 가능하게 설정
+          fileItem.draggable = true;
           fileItem.innerHTML = `
             <span>📄 ${file.title || '제목 없음'}</span>
             <button class="btn-del-file" data-id="${file.id}">삭제</button>
           `;
+
+          fileItem.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', file.id);
+            fileItem.classList.add('dragging');
+          };
+
+          fileItem.ondragend = () => {
+            fileItem.classList.remove('dragging');
+          };
+
+          fileItem.onclick = (e) => {
+            e.stopPropagation();
+            if (documentStore.activeFileId !== file.id) {
+              saveCurrentFileState();
+              documentStore.activeFileId = file.id;
+              documentStore.selectedFolderId = folder.id;
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          fileItem.querySelector('.btn-del-file').onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
+              documentStore.files = documentStore.files.filter(f => f.id !== file.id);
+              if (documentStore.activeFileId === file.id) {
+                documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
+              }
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          folderDiv.appendChild(fileItem);
+        });
+
+        fileTree.appendChild(folderDiv);
+      });
+    }
+
+    // 💡 사이드바 빈 공간이나 외부를 클릭했을 때 폴더 선택 해제
+    fileTree.onclick = () => {
+      if (documentStore.selectedFolderId !== null) {
+        documentStore.selectedFolderId = null;
+        saveStore();
+        renderFileTree();
+      }
+    };
 
           // 파일 드래그 시작 이벤트
           fileItem.ondragstart = (e) => {
