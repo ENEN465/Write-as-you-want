@@ -4,457 +4,1332 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Write as you want</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" as="style" crossorigin href="https://fastly.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Barun+Gothic&family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- PWA 및 웹 아이콘 설정 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a1a">
+  <link rel="icon" href="./icon.webp" type="image/webp">
 
-  <!-- 안정적인 모듈 로드를 위한 Import Map -->
-  <script type="importmap">
-  {
-    "imports": {
-      "@tiptap/core": "https://esm.sh/@tiptap/core@2.1.13",
-      "@tiptap/starter-kit": "https://esm.sh/@tiptap/starter-kit@2.1.13",
-      "@tiptap/extension-color": "https://esm.sh/@tiptap/extension-color@2.1.13",
-      "@tiptap/extension-text-style": "https://esm.sh/@tiptap/extension-text-style@2.1.13",
-      "@tiptap/extension-font-family": "https://esm.sh/@tiptap/extension-font-family@2.1.13",
-      "@tiptap/extension-text-align": "https://esm.sh/@tiptap/extension-text-align@2.1.13",
-      "@tiptap/extension-image": "https://esm.sh/@tiptap/extension-image@2.1.13",
-      "@tiptap/extension-table": "https://esm.sh/@tiptap/extension-table@2.1.13",
-      "@tiptap/extension-table-row": "https://esm.sh/@tiptap/extension-table-row@2.1.13",
-      "@tiptap/extension-table-header": "https://esm.sh/@tiptap/extension-table-header@2.1.13",
-      "@tiptap/extension-table-cell": "https://esm.sh/@tiptap/extension-table-cell@2.1.13",
-      "@tiptap/extension-horizontal-rule": "https://esm.sh/@tiptap/extension-horizontal-rule@2.1.13"
+  <!-- 웹폰트 불러오기 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="https://hangeul.naver.com/css/webfont/nanum-barun-gothic.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-ko-pub-batang@1.0.1/kopub-batang.min.css">
+  <link rel="stylesheet" href="https://hangeul.naver.com/css/webfont/nanum-myeongjo.css">
+
+  <style>
+    @font-face {
+      font-family: 'MaruBuri';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
     }
-  }
-  </script>
+
+    @font-face {
+      font-family: 'BookkMyungjo';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Pt2.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* 폰트 클래스 정의 */
+    .font-pretendard { font-family: 'Pretendard', sans-serif; }
+    .font-nanum-barun { font-family: 'NanumBarunGothic', sans-serif; }
+    .font-maruburi { font-family: 'MaruBuri', serif; }
+    .font-bookk-myungjo { font-family: 'BookkMyungjo', serif; }
+    .font-nanum-myeongjo { font-family: 'NanumMyeongjo', serif; }
+    .font-noto-serif { font-family: 'Noto Serif KR', serif; }
+    .font-kopub { font-family: 'KoPub World Batang', serif; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: #f8f9fa;
+      color: #212529;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 메인 컨테이너 레이아웃 (사이드바 + 메인 영역) */
+    .app-layout {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* 좌측 사이드바 */
+    .sidebar {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid #e9ecef;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.25s ease;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .sidebar.collapsed {
+      margin-left: -260px;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #f1f3f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #343a40;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .sidebar-actions button {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .sidebar-actions button:hover { background: #e9ecef; }
+
+    .file-tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 8px;
+    }
+
+    .tree-folder {
+      margin-bottom: 12px;
+      border-radius: 6px;
+      padding: 2px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .tree-folder.drag-over {
+      background: #e7f5ff;
+      outline: 2px dashed #339af0;
+    }
+
+    .tree-folder-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #495057;
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .tree-folder-title:hover { background: #f1f3f5; }
+    .tree-folder-title.selected { background: #edf2ff; color: #3b5bdb; }
+
+    .tree-folder-title:hover .btn-del-folder { display: inline-block; }
+
+    .btn-del-folder {
+      display: none;
+      background: none;
+      border: none;
+      color: #fa5252;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tree-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      margin-left: 8px;
+      font-size: 13px;
+      color: #495057;
+      border-radius: 6px;
+      cursor: grab;
+      margin-top: 2px;
+      user-select: none;
+    }
+
+    .tree-item:active { cursor: grabbing; }
+    .tree-item.dragging { opacity: 0.4; }
+
+    .tree-item:hover { background: #f1f3f5; }
+    .tree-item.active { background: #e7f5ff; color: #1c7ed6; font-weight: 600; }
+
+    .tree-item .btn-del-file {
+      display: none;
+      background: none;
+      border: none;
+      color: #fa5252;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tree-item:hover .btn-del-file { display: inline-block; }
+
+    /* 메인 콘텐츠 영역 (툴바 + 에디터) */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+      padding: 20px 10px;
+    }
+
+    /* 상단 고정 툴바 */
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #ffffff;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      max-width: 800px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .toolbar button, .toolbar select {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toolbar button:hover, .toolbar select:hover { background: #e9ecef; }
+    .toolbar button.is-active { background: #339af0; color: white; border-color: #339af0; }
+
+    /* 글자 수 카운터 드롭다운 UI */
+    .word-counter-wrapper {
+      position: relative;
+      margin-left: auto;
+    }
+
+    .counter-badge {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 13px;
+      color: #495057;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .counter-badge:hover { background: #e9ecef; }
+
+    .counter-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      background: #ffffff;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      width: 220px;
+      padding: 8px 0;
+      z-index: 200;
+    }
+
+    .counter-dropdown.show { display: block; }
+
+    .counter-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #333333;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .counter-item:hover { background-color: #f8f9fa; }
+    .counter-item .check-mark { color: #09a05e; font-weight: bold; visibility: hidden; }
+    .counter-item.active .check-mark { visibility: visible; }
+
+    /* Ctrl+F 찾기 및 바꾸기 모달 UI */
+    .search-modal {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 300;
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      padding: 14px 18px;
+      width: 320px;
+    }
+
+    .search-modal.show { display: block; }
+
+    .search-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .search-row input {
+      flex: 1;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-row input:focus { border-color: #339af0; }
+
+    .search-row button {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .search-row button:hover { background: #e9ecef; }
+
+    .search-status {
+      font-size: 12px;
+      color: #868e96;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    /* 하이라이트 스타일 */
+    mark {
+      background-color: #ffe066 !important;
+      color: #000000 !important;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
+    /* 메인 문서 종이 레이아웃 */
+    .editor-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 800px;
+      min-height: 80vh;
+      padding: 50px 40px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid #e9ecef;
+      margin-bottom: 40px;
+    }
+
+    .post-header { margin-bottom: 30px; }
+
+    .title-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 2.2em;
+      font-weight: 700;
+      color: #212529;
+      background: transparent;
+      margin-bottom: 12px;
+      font-family: inherit;
+    }
+
+    .subtitle-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 1.1em;
+      color: #868e96;
+      background: transparent;
+      margin-bottom: 25px;
+      font-family: inherit;
+    }
+
+    .title-input::placeholder { color: #adb5bd; }
+    .subtitle-input::placeholder { color: #ced4da; }
+
+    .header-divider {
+      border: none;
+      border-top: 1px solid #f1f3f5;
+      margin-bottom: 30px;
+    }
+
+    .ProseMirror {
+      outline: none;
+      min-height: 50vh;
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .ProseMirror h1 { font-size: 1.8em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
+    .ProseMirror h2 { font-size: 1.4em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
+    .ProseMirror h3 { font-size: 1.2em; margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
+
+    .ProseMirror hr { border: none; margin: 2em 0; }
+    .ProseMirror hr[data-style="line"] { border-top: 1px solid #adb5bd; }
+    .ProseMirror hr[data-style="dashed"] { border-top: 2px dashed #adb5bd; }
+    .ProseMirror hr[data-style="asterisk"] { text-align: center; height: auto; }
+    .ProseMirror hr[data-style="asterisk"]::after {
+      content: "***";
+      font-size: 18px;
+      color: #868e6c;
+      letter-spacing: 0.5em;
+    }
+    .ProseMirror hr[data-style="ornament"] { text-align: center; height: auto; }
+    .ProseMirror hr[data-style="ornament"]::after {
+      content: "◇ ◇ ◇";
+      font-size: 14px;
+      color: #adb5bd;
+      letter-spacing: 0.3em;
+    }
+
+    sup { vertical-align: super; font-size: 0.75em; }
+    sub { vertical-align: sub; font-size: 0.75em; }
+    
+    /* 💡 툴바 버튼 및 드롭다운 항목 hover 스타일 (통일) */
+        .toolbar button:hover, .toolbar select:hover, .counter-item:hover {
+            background-color: #e9ecef !important;
+        }
+
+        /* 💡 찾기 버튼 스타일 (돋보기 이모티콘 제거에 따른 여백 조정) */
+        #btnSearch {
+            padding: 6px 12px;
+        }
+
+        /* 💡 글자 수 카운터 배치 (툴바 오른쪽 끝으로) */
+        .word-counter-wrapper {
+            position: relative;
+            margin-left: auto; /* 중요: 오른쪽 정렬 */
+        }
+  </style>
 </head>
-<body>
+<body class="font-maruburi">
 
-<div class="app-layout">
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <span class="sidebar-title">내 글 목록</span>
-      <div class="sidebar-actions">
-        <button id="btn-add-folder" title="새 폴더">+ 폴더</button>
-        <button id="btn-add-doc" title="새 문서">+ 문서</button>
-      </div>
-    </div>
-    <div class="file-tree" id="file-tree"></div>
-  </div>
-
-  <div class="main-wrapper">
-    <div class="toolbar">
-      <div class="toolbar-section toolbar-left">
-        <button id="btn-toggle-sidebar" title="사이드바 열기/닫기"><i data-lucide="panel-left"></i></button>
-        <div class="save-status" id="save-status">저장됨</div>
-      </div>
-
-      <div class="toolbar-section toolbar-center">
-        <select id="select-font">
-          <option value="" disabled selected>글씨체</option>
-          <option value="Pretendard">프리텐다드</option>
-          <option value="MaruBuri">마루부리</option>
-          <option value="RIDIBatang">리디바탕</option>
-          <option value="NanumMyeongjo">나눔명조</option>
-          <option value="'Noto Serif KR'">본명조</option>
-          <option value="NanumBarunGothic">나눔바른고딕</option>
-        </select>
-
-        <select id="select-heading">
-          <option value="p">본문</option>
-          <option value="h1">제목 1</option>
-          <option value="h2">제목 2</option>
-          <option value="h3">제목 3</option>
-        </select>
-
-        <div class="toolbar-divider"></div>
-
-        <button id="btn-bold" title="굵게"><i data-lucide="bold"></i></button>
-        <button id="btn-italic" title="기울임"><i data-lucide="italic"></i></button>
-        <button id="btn-strike" title="취소선"><i data-lucide="strikethrough"></i></button>
-
-        <div class="toolbar-divider"></div>
-
-        <div class="color-picker-wrapper">
-          <button id="btn-color-palette" title="글자 색상"><i data-lucide="palette"></i></button>
-          <div class="color-palette-popover" id="color-palette-popover">
-            <div class="color-swatch" style="background:#212529" data-color="#212529"></div>
-            <div class="color-swatch" style="background:#868e96" data-color="#868e96"></div>
-            <div class="color-swatch" style="background:#fa5252" data-color="#fa5252"></div>
-            <div class="color-swatch" style="background:#e64980" data-color="#e64980"></div>
-            <div class="color-swatch" style="background:#be4bdb" data-color="#be4bdb"></div>
-            <div class="color-swatch" style="background:#7950f2" data-color="#7950f2"></div>
-            <div class="color-swatch" style="background:#228be6" data-color="#228be6"></div>
-            <div class="color-swatch" style="background:#12b886" data-color="#12b886"></div>
-            <div class="color-swatch" style="background:#40c057" data-color="#40c057"></div>
-            <div class="color-swatch" style="background:#fd7e14" data-color="#fd7e14"></div>
-          </div>
+  <div class="app-layout">
+    <!-- 좌측 사이드바 영역 -->
+    <div id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">원고 목록</span>
+        <div class="sidebar-actions">
+          <button id="btnAddFolder" title="새 폴더">+ 폴더</button>
+          <button id="btnAddFile" title="선택된 폴더에 새 파일 생성">+ 파일</button>
         </div>
-
-        <div class="toolbar-divider"></div>
-
-        <button id="btn-align-left" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
-        <button id="btn-align-center" title="가운데 정렬"><i data-lucide="align-center"></i></button>
-        <button id="btn-align-right" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
-        <button id="btn-align-justify" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
-
-        <div class="toolbar-divider"></div>
-
-        <div class="table-menu-wrapper">
-          <button id="btn-table-menu" title="표 관리"><i data-lucide="table"></i></button>
-          <div class="table-popover" id="table-popover">
-            <button id="btn-table-insert">➕ 표 생성 (3x3)</button>
-            <button id="btn-table-add-row-before">⬆️ 위에 행 추가</button>
-            <button id="btn-table-add-row-after">⬇️ 아래 행 추가</button>
-            <button id="btn-table-add-col-before">⬅️ 왼쪽에 열 추가</button>
-            <button id="btn-table-add-col-after">➡️ 오른쪽에 열 추가</button>
-            <button id="btn-table-delete-row">➖ 행 삭제</button>
-            <button id="btn-table-delete-col">➖ 열 삭제</button>
-            <button id="btn-table-delete">❌ 표 삭제</button>
-          </div>
-        </div>
-
-        <button id="btn-insert-image" title="이미지 삽입"><i data-lucide="image"></i></button>
-        <input type="file" id="input-image-file" accept="image/*" style="display:none;">
-
-        <select id="select-hr">
-          <option value="" disabled selected>구분선</option>
-          <option value="line">실선</option>
-          <option value="dashed">점선</option>
-          <option value="asterisk">별표 (***)</option>
-          <option value="ornament">다이아 (◇◇◇)</option>
-        </select>
       </div>
-
-      <div class="toolbar-section toolbar-right">
-        <button id="btn-open-search" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
-        <div class="word-counter-wrapper">
-          <div class="counter-badge" id="counter-badge">0자</div>
-          <div class="counter-dropdown" id="counter-dropdown">
-            <div class="counter-item active" data-type="char-no-space"><span>공백 제외 글자 수</span><span class="check-mark">✓</span></div>
-            <div class="counter-item" data-type="char-with-space"><span>공백 포함 글자 수</span><span class="check-mark">✓</span></div>
-            <div class="counter-item" data-type="word"><span>단어 수</span><span class="check-mark">✓</span></div>
-          </div>
-        </div>
+      <div id="fileTree" class="file-tree">
+        <!-- JS로 폴더 및 파일 트리가 동적 생성됩니다 -->
       </div>
     </div>
 
+    <!-- 메인 콘텐츠 영역 -->
     <div class="main-content">
-      <div class="editor-container" id="editor-container">
-        <div class="post-header">
-          <input type="text" class="title-input" id="title-input" placeholder="제목을 입력하세요">
-          <input type="text" class="subtitle-input" id="subtitle-input" placeholder="소제목을 입력하세요 (선택)">
-          <hr class="header-divider">
+      <!-- 툴바 영역 -->
+      <div class="toolbar">
+        <button id="btnToggleSidebar" title="사이드바 토글">목록</button>
+        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
+
+        <select id="fontSelect" title="폰트 변경">
+          <optgroup label="명조 계열">
+            <option value="font-maruburi" selected>마루부리</option>
+            <option value="font-bookk-myungjo">부크크명조</option>
+            <option value="font-nanum-myeongjo">나눔명조</option>
+            <option value="font-noto-serif">본명조 (Noto Serif)</option>
+            <option value="font-kopub">KoPub 바탕</option>
+          </optgroup>
+          <optgroup label="고딕 계열">
+            <option value="font-pretendard">프리텐다드</option>
+            <option value="font-nanum-barun">나눔바른고딕</option>
+          </optgroup>
+        </select>
+
+        <select id="headingSelect" title="본문/제목 스타일">
+          <option value="paragraph">본문</option>
+          <option value="1">제목 1</option>
+          <option value="2">제목 2</option>
+          <option value="3">제목 3</option>
+        </select>
+
+        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
+
+        <button id="btnBold" title="굵게 (Ctrl+B)"><b>B</b></button>
+        <button id="btnItalic" title="기울임 (Ctrl+I)"><i>I</i></button>
+        <button id="btnStrike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
+        <button id="btnSub" title="아래 첨자">X<sub>2</sub></button>
+        <button id="btnSup" title="위 첨자">X<sup>2</sup></button>
+
+        <div style="width: 1px; height: 20px; background: #dee2e6; margin: 0 2px;"></div>
+
+        <select id="dividerSelect" class="divider-select" title="구분선 선택">
+          <option value="" disabled selected>구분선 삽입</option>
+          <option value="line">───── (실선)</option>
+          <option value="dashed">╌╌╌╌╌ (점선)</option>
+          <option value="asterisk">*** (아스테리스크)</option>
+          <option value="ornament">◇ ◇ ◇ (문양)</option>
+        </select>
+
+        <button id="btnSearch" title="찾기 및 바꾸기 (Ctrl+F)">찾기</button>
+
+        <!-- 글자 수 카운터 드롭다운 UI -->
+        <div class="word-counter-wrapper">
+          <div id="counterBadge" class="counter-badge">0자</div>
+          <div id="counterDropdown" class="counter-dropdown">
+            <div class="counter-item active" data-type="with-space">
+              <span>공백 포함: <b id="cntWithSpace">0자</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="no-space">
+              <span>공백 제외: <b id="cntNoSpace">0자</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="no-special">
+              <span>공백, 특문 제외: <b id="cntNoSpecial">0자</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+            <div class="counter-item" data-type="word-count">
+              <span>단어 수: <b id="cntWords">0 단어</b></span>
+              <span class="check-mark">✓</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Ctrl+F 찾기 및 바꾸기 모달 창 -->
+      <div id="searchModal" class="search-modal">
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="찾을 단어 입력..." />
+          <button id="btnFindNext">찾기</button>
+        </div>
+        <div class="search-row">
+          <input type="text" id="replaceInput" placeholder="바꿀 단어 입력..." />
+          <button id="btnReplaceAll">모두 바꾸기</button>
+        </div>
+        <div class="search-status">
+          <span id="searchResultCount">단어를 검색하세요</span>
+          <button id="btnCloseSearch" style="padding: 2px 6px; font-size: 11px;">닫기 (Esc)</button>
+        </div>
+      </div>
+
+      <div class="editor-container">
+        <div class="post-header">
+          <input type="text" class="title-input" placeholder="제목 없음" />
+          <input type="text" class="subtitle-input" placeholder="부제목을 입력하세요." />
+          <hr class="header-divider" />
+        </div>
+
         <div id="editor"></div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- 단어 찾기 및 일괄 수정 모달 -->
-<div class="search-modal" id="search-modal">
-  <div class="search-row">
-    <input type="text" id="search-input" placeholder="찾을 단어 입력...">
-    <button id="btn-close-search">✕</button>
-  </div>
-  <div class="search-row">
-    <input type="text" id="replace-input" placeholder="바꿀 단어 입력...">
-    <button id="btn-replace-all">일괄 수정</button>
-  </div>
-  <div class="search-status">
-    <span id="search-count">검색어 대기 중</span>
-  </div>
-</div>
+  <script type="module">
+    import { Editor } from 'https://esm.sh/@tiptap/core@2.2.4';
+    import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.2.4';
+    import Subscript from 'https://esm.sh/@tiptap/extension-subscript@2.2.4';
+    import Superscript from 'https://esm.sh/@tiptap/extension-superscript@2.2.4';
+    import HorizontalRule from 'https://esm.sh/@tiptap/extension-horizontal-rule@2.2.4';
+    import Highlight from 'https://esm.sh/@tiptap/extension-highlight@2.2.4';
 
-<script type="module">
-  import { Editor } from '@tiptap/core';
-  import StarterKit from '@tiptap/starter-kit';
-  import HorizontalRule from '@tiptap/extension-horizontal-rule';
-  import TextStyle from '@tiptap/extension-text-style';
-  import Color from '@tiptap/extension-color';
-  import FontFamily from '@tiptap/extension-font-family';
-  import TextAlign from '@tiptap/extension-text-align';
-  import Image from '@tiptap/extension-image';
-  import Table from '@tiptap/extension-table';
-  import TableRow from '@tiptap/extension-table-row';
-  import TableCell from '@tiptap/extension-table-cell';
-  import TableHeader from '@tiptap/extension-table-header';
+    const titleInput = document.querySelector('.title-input');
+    const subtitleInput = document.querySelector('.subtitle-input');
 
-  // 1. 커스텀 구분선 확장
-  const CustomHorizontalRule = HorizontalRule.extend({
-    addAttributes() {
-      return {
-        'data-style': {
-          default: 'line',
-          parseHTML: element => element.getAttribute('data-style'),
-          renderHTML: attributes => { return { 'data-style': attributes['data-style'] }; },
-        },
-      };
-    },
-  });
-
-  let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
-    { id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [
-        { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>글을 작성해보세요!</p>', title: '첫 번째 글', subtitle: '' }
-      ] }
-  ];
-  let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
-  let counterType = 'char-no-space';
-
-  // 2. 에디터 인스턴스 생성
-  const editor = new Editor({
-    element: document.querySelector('#editor'),
-    extensions: [
-      StarterKit.configure({ horizontalRule: false }), // 기본 HR 끄고 커스텀 HR 사용
-      CustomHorizontalRule,
-      TextStyle, 
-      Color, 
-      FontFamily, // 폰트 확장 추가
-      Image,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Table.configure({ resizable: true }),
-      TableRow, TableHeader, TableCell,
-    ],
-    content: '',
-    onUpdate() { updateWordCount(); triggerAutoSave(); },
-    onSelectionUpdate() { updateToolbarState(); }
-  });
-
-  // 3. 툴바 버튼 상태 업데이트 (활성화 된 포맷 표시)
-  function updateToolbarState() {
-    document.getElementById('btn-bold').classList.toggle('is-active', editor.isActive('bold'));
-    document.getElementById('btn-italic').classList.toggle('is-active', editor.isActive('italic'));
-    document.getElementById('btn-strike').classList.toggle('is-active', editor.isActive('strike'));
-    
-    // 제목 셀렉트박스 동기화
-    const headingSelect = document.getElementById('select-heading');
-    if (editor.isActive('heading', { level: 1 })) headingSelect.value = 'h1';
-    else if (editor.isActive('heading', { level: 2 })) headingSelect.value = 'h2';
-    else if (editor.isActive('heading', { level: 3 })) headingSelect.value = 'h3';
-    else headingSelect.value = 'p';
-  }
-
-  // 4. 서식 버튼 이벤트 리스너 (.chain().focus()를 이용해 클릭 후 에디터로 포커스 반환)
-  document.getElementById('btn-bold').addEventListener('click', () => editor.chain().focus().toggleBold().run());
-  document.getElementById('btn-italic').addEventListener('click', () => editor.chain().focus().toggleItalic().run());
-  document.getElementById('btn-strike').addEventListener('click', () => editor.chain().focus().toggleStrike().run());
-
-  document.getElementById('btn-align-left').addEventListener('click', () => editor.chain().focus().setTextAlign('left').run());
-  document.getElementById('btn-align-center').addEventListener('click', () => editor.chain().focus().setTextAlign('center').run());
-  document.getElementById('btn-align-right').addEventListener('click', () => editor.chain().focus().setTextAlign('right').run());
-  document.getElementById('btn-align-justify').addEventListener('click', () => editor.chain().focus().setTextAlign('justify').run());
-
-  // 5. 드롭다운 변경 이벤트
-  document.getElementById('select-heading').addEventListener('change', (e) => {
-    const v = e.target.value;
-    if (v === 'p') editor.chain().focus().setParagraph().run();
-    else editor.chain().focus().toggleHeading({ level: parseInt(v.replace('h','')) }).run();
-  });
-
-  document.getElementById('select-font').addEventListener('change', (e) => {
-    if (e.target.value) {
-      editor.chain().focus().setFontFamily(e.target.value).run();
-      e.target.value = ''; // 선택 후 초기화하여 깔끔하게
-    }
-  });
-
-  document.getElementById('select-hr').addEventListener('change', (e) => {
-    if (e.target.value) {
-      editor.chain().focus().insertContent({ type: 'horizontalRule', attrs: { 'data-style': e.target.value } }).run();
-      e.target.value = ''; 
-    }
-  });
-
-  // 6. 컬러 피커 제어
-  const paletteBtn = document.getElementById('btn-color-palette');
-  const palettePopover = document.getElementById('color-palette-popover');
-  paletteBtn.addEventListener('click', (e) => { e.stopPropagation(); palettePopover.classList.toggle('show'); });
-  
-  document.querySelectorAll('.color-swatch').forEach(swatch => {
-    swatch.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const color = swatch.getAttribute('data-color');
-      editor.chain().focus().setColor(color).run();
-      palettePopover.classList.remove('show');
+    const CustomHorizontalRule = HorizontalRule.extend({
+      addAttributes() {
+        return {
+          'data-style': {
+            default: 'line',
+            parseHTML: element => element.getAttribute('data-style'),
+            renderHTML: attributes => ({ 'data-style': attributes['data-style'] }),
+          },
+        }
+      },
     });
-  });
 
-  // 7. 표 기능 제어
-  const tableBtn = document.getElementById('btn-table-menu');
-  const tablePopover = document.getElementById('table-popover');
-  tableBtn.addEventListener('click', (e) => { e.stopPropagation(); tablePopover.classList.toggle('show'); });
-  
-  const execTable = (fn) => () => { fn(); tablePopover.classList.remove('show'); };
-  document.getElementById('btn-table-insert').addEventListener('click', execTable(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()));
-  document.getElementById('btn-table-add-row-before').addEventListener('click', execTable(() => editor.chain().focus().addRowBefore().run()));
-  document.getElementById('btn-table-add-row-after').addEventListener('click', execTable(() => editor.chain().focus().addRowAfter().run()));
-  document.getElementById('btn-table-add-col-before').addEventListener('click', execTable(() => editor.chain().focus().addColumnBefore().run()));
-  document.getElementById('btn-table-add-col-after').addEventListener('click', execTable(() => editor.chain().focus().addColumnAfter().run()));
-  document.getElementById('btn-table-delete-row').addEventListener('click', execTable(() => editor.chain().focus().deleteRow().run()));
-  document.getElementById('btn-table-delete-col').addEventListener('click', execTable(() => editor.chain().focus().deleteColumn().run()));
-  document.getElementById('btn-table-delete').addEventListener('click', execTable(() => editor.chain().focus().deleteTable().run()));
+    const editor = new Editor({
+      element: document.querySelector('#editor'),
+      extensions: [
+        StarterKit.configure({ horizontalRule: false }),
+        Subscript,
+        Superscript,
+        CustomHorizontalRule,
+        Highlight.configure({ multicolor: true }),
+      ],
+      content: `<p>여기에 본문을 입력하세요.</p>`,
+      onTransaction({ editor }) {
+        document.getElementById('btnBold').classList.toggle('is-active', editor.isActive('bold'));
+        document.getElementById('btnItalic').classList.toggle('is-active', editor.isActive('italic'));
+        document.getElementById('btnStrike').classList.toggle('is-active', editor.isActive('strike'));
+        document.getElementById('btnSub').classList.toggle('is-active', editor.isActive('subscript'));
+        document.getElementById('btnSup').classList.toggle('is-active', editor.isActive('superscript'));
 
-  // 8. 기타 기능(이미지, 찾기, 파일트리 등 기존 동일 로직)
-  document.getElementById('btn-insert-image').onclick = () => document.getElementById('input-image-file').click();
-  document.getElementById('input-image-file').onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => editor.chain().focus().setImage({ src: event.target.result }).run();
-      reader.readAsDataURL(file);
-    }
-  };
+        const headingSelect = document.getElementById('headingSelect');
+        if (editor.isActive('heading', { level: 1 })) headingSelect.value = '1';
+        else if (editor.isActive('heading', { level: 2 })) headingSelect.value = '2';
+        else if (editor.isActive('heading', { level: 3 })) headingSelect.value = '3';
+        else headingSelect.value = 'paragraph';
 
-  /* 찾기 및 일괄 수정 */
-  const searchModal = document.getElementById('search-modal');
-  const searchInput = document.getElementById('search-input');
-  const searchCount = document.getElementById('search-count');
-  let originalHtmlForSearch = null;
-
-  document.getElementById('btn-open-search').onclick = (e) => {
-    e.stopPropagation(); searchModal.classList.toggle('show');
-    if (searchModal.classList.contains('show')) { originalHtmlForSearch = editor.getHTML(); searchInput.focus(); } 
-    else { clearSearch(); }
-  };
-  document.getElementById('btn-close-search').onclick = () => clearSearch();
-
-  function clearSearch() {
-    searchModal.classList.remove('show');
-    if(originalHtmlForSearch !== null) {
-      const cleanContent = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
-      editor.commands.setContent(cleanContent); originalHtmlForSearch = null;
-    }
-    searchCount.textContent = '검색어 대기 중'; searchInput.value = '';
-  }
-
-  searchInput.oninput = () => {
-    const term = searchInput.value;
-    if (!term) {
-      if(originalHtmlForSearch) editor.commands.setContent(originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, ''));
-      searchCount.textContent = '0건 발견'; return;
-    }
-    if (originalHtmlForSearch === null) originalHtmlForSearch = editor.getHTML();
-    const cleanHtml = originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '');
-    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
-    let matchCount = 0;
-    const highlightedHtml = cleanHtml.replace(regex, (match) => { matchCount++; return `<mark class="search-highlight">${match}</mark>`; });
-    editor.commands.setContent(highlightedHtml);
-    searchCount.textContent = `${matchCount}건 발견`;
-  };
-
-  document.getElementById('btn-replace-all').onclick = () => {
-    const term = searchInput.value;
-    const replaceWith = document.getElementById('replace-input').value;
-    if(!term) return;
-    const cleanHtml = originalHtmlForSearch ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
-    const regex = new RegExp(`(${term})(?![^<]*>|[^<>]*<\/)`, 'gi');
-    const newHtml = cleanHtml.replace(regex, replaceWith);
-    editor.commands.setContent(newHtml);
-    originalHtmlForSearch = newHtml; searchInput.value = ''; searchCount.textContent = '일괄 수정 완료!'; triggerAutoSave();
-  };
-
-  /* 세이브, 로드, 파일트리 */
-  function findNode(nodes, id) {
-    for (let node of nodes) {
-      if (node.id === id) return node;
-      if (node.children) { let res = findNode(node.children, id); if (res) return res; }
-    } return null;
-  }
-  function loadDoc(docId) {
-    const doc = findNode(treeData, docId); if (!doc) return;
-    activeDocId = docId; localStorage.setItem('my_active_doc_id', docId);
-    document.getElementById('title-input').value = doc.title || doc.name || '';
-    document.getElementById('subtitle-input').value = doc.subtitle || '';
-    editor.commands.setContent(doc.content || '');
-    if(originalHtmlForSearch) originalHtmlForSearch = null;
-    updateWordCount(); renderTree();
-  }
-
-  let saveTimer = null;
-  function triggerAutoSave() {
-    const status = document.getElementById('save-status');
-    status.textContent = '저장 중...'; status.className = 'save-status saving';
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      const doc = findNode(treeData, activeDocId);
-      if (doc) {
-        doc.title = document.getElementById('title-input').value;
-        doc.subtitle = document.getElementById('subtitle-input').value;
-        doc.name = doc.title || '제목 없음';
-        doc.content = originalHtmlForSearch !== null ? originalHtmlForSearch.replace(/<mark class="search-highlight">/g, '').replace(/<\/mark>/g, '') : editor.getHTML();
-        localStorage.setItem('my_tree_data', JSON.stringify(treeData));
-        status.textContent = '저장됨'; status.className = 'save-status synced';
-        renderTree();
+        updateWordCount();
+        saveCurrentFileState();
       }
-    }, 800);
-  }
+    });
 
-  function updateWordCount() {
-    const text = editor.getText(); let count = 0;
-    if (counterType === 'char-no-space') count = text.replace(/\s/g, '').length;
-    else if (counterType === 'char-with-space') count = text.length;
-    else if (counterType === 'word') count = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-    document.getElementById('counter-badge').textContent = `${count.toLocaleString()}${counterType === 'word' ? '단어' : '자'}`;
-  }
+    // ----------------------------------------------------
+    // 💡 4. 폴더 및 파일 (사이드바) 안전한 데이터 관리
+    // ----------------------------------------------------
 
-  document.getElementById('btn-add-folder').onclick = () => {
-    const name = prompt("새 폴더 이름을 입력하세요:");
-    if(name) { treeData.push({ id: 'f-' + Date.now(), name, type: 'folder', isOpen: true, children: [] }); renderTree(); triggerAutoSave(); }
-  };
-  document.getElementById('btn-add-doc').onclick = () => {
-    const name = prompt("새 문서 이름을 입력하세요:");
-    if(name) {
-      if(treeData.length === 0) treeData.push({ id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [] });
-      const newDoc = { id: 'd-' + Date.now(), name, type: 'doc', content: '<p>새로운 문서입니다.</p>', title: name, subtitle: '' };
-      treeData[0].children.push(newDoc); renderTree(); loadDoc(newDoc.id); triggerAutoSave();
-    }
-  };
-
-  /* 바탕 클릭 시 팝업 닫기 */
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.color-picker-wrapper')) palettePopover.classList.remove('show');
-    if (!e.target.closest('.table-menu-wrapper')) tablePopover.classList.remove('show');
-    if (!e.target.closest('.word-counter-wrapper')) document.getElementById('counter-dropdown').classList.remove('show');
-  });
-  
-  document.getElementById('counter-badge').onclick = (e) => { e.stopPropagation(); document.getElementById('counter-dropdown').classList.toggle('show'); }
-  document.querySelectorAll('.counter-item').forEach(item => {
-    item.onclick = (e) => {
-      e.stopPropagation(); document.querySelectorAll('.counter-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active'); counterType = item.getAttribute('data-type'); updateWordCount();
-      document.getElementById('counter-dropdown').classList.remove('show');
+    let documentStore = JSON.parse(localStorage.getItem('my_documents')) || {
+      folders: [
+        { id: 'folder-1', name: '기본 폴더' }
+      ],
+      files: [
+        { id: 'file-1', folderId: 'folder-1', title: '첫 번째 원고', subtitle: '', content: '<p>여기에 내용을 작성하세요.</p>' }
+      ],
+      selectedFolderId: null,
+      activeFileId: 'file-1'
     };
-  });
 
-  document.getElementById('btn-toggle-sidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
-  document.getElementById('title-input').oninput = triggerAutoSave;
-  document.getElementById('subtitle-input').oninput = triggerAutoSave;
+    const sidebar = document.getElementById('sidebar');
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+    const fileTree = document.getElementById('fileTree');
+    const btnAddFolder = document.getElementById('btnAddFolder');
+    const btnAddFile = document.getElementById('btnAddFile');
 
-  function renderTree() {
-    const container = document.getElementById('file-tree');
-    container.innerHTML = '';
-    treeData.forEach(folder => {
-      const folderDiv = document.createElement('div'); folderDiv.className = 'tree-folder';
-      const titleDiv = document.createElement('div'); titleDiv.className = 'tree-folder-title';
-      titleDiv.innerHTML = `<span class="folder-label">${folder.isOpen ? '▼' : '▶'} 📁 ${folder.name}</span>`;
-      titleDiv.onclick = () => { folder.isOpen = !folder.isOpen; renderTree(); };
-      folderDiv.appendChild(titleDiv);
-      if (folder.isOpen && folder.children) {
-        folder.children.forEach(doc => {
-          const itemDiv = document.createElement('div'); itemDiv.className = `tree-item ${doc.id === activeDocId ? 'active' : ''}`;
-          itemDiv.innerHTML = `📄 ${doc.name || '제목 없음'}`;
-          itemDiv.onclick = (e) => { e.stopPropagation(); loadDoc(doc.id); };
-          folderDiv.appendChild(itemDiv);
-        });
+    // 사이드바 토글
+    btnToggleSidebar.onclick = () => {
+      sidebar.classList.toggle('collapsed');
+    };
+
+    // 로컬 스토리지 저장
+    function saveStore() {
+      localStorage.setItem('my_documents', JSON.stringify(documentStore));
+    }
+
+    // 현재 작성 중인 파일 상태 동기화
+    function saveCurrentFileState() {
+      if (!documentStore.activeFileId) return;
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (activeFile) {
+        activeFile.title = titleInput.value;
+        activeFile.subtitle = subtitleInput.value;
+        activeFile.content = editor.getHTML();
+        saveStore();
+
+        const activeTreeItem = fileTree.querySelector('.tree-item.active span');
+        if (activeTreeItem) {
+          activeTreeItem.innerText = titleInput.value || '제목 없음';
+        }
       }
-      container.appendChild(folderDiv);
+    }
+
+    // 선택된 파일 읽어와서 에디터에 로드
+    function loadActiveFile() {
+      if (!documentStore.activeFileId) {
+        titleInput.value = '';
+        subtitleInput.value = '';
+        editor.commands.setContent('', false);
+        return;
+      }
+
+      const activeFile = documentStore.files.find(f => f.id === documentStore.activeFileId);
+      if (activeFile) {
+        titleInput.value = activeFile.title || '';
+        subtitleInput.value = activeFile.subtitle || '';
+        editor.commands.setContent(activeFile.content || '<p></p>', false);
+        updateWordCount();
+      }
+    }
+    
+
+    // 더보기 메뉴 닫기 헬퍼 함수
+    function closeAllMenus() {
+      document.querySelectorAll('.menu-dropdown').forEach(el => el.classList.remove('show'));
+    }
+
+    // 💡 화면 전체 어디든 눌렀을 때: 선택된 폴더 해제 & 열려있는 메뉴 닫기
+    document.addEventListener('click', () => {
+      closeAllMenus();
+      if (documentStore.selectedFolderId !== null) {
+        documentStore.selectedFolderId = null;
+        saveStore();
+        renderFileTree();
+      }
     });
+
+    // 사이드바 UI 렌더링
+    function renderFileTree() {
+      fileTree.innerHTML = '';
+
+      documentStore.folders.forEach(folder => {
+        const folderDiv = document.createElement('div');
+        folderDiv.className = 'tree-folder';
+        folderDiv.dataset.folderId = folder.id;
+
+        // 드래그 앤 드롭
+        folderDiv.ondragover = (e) => {
+          e.preventDefault();
+          folderDiv.classList.add('drag-over');
+        };
+
+        folderDiv.ondragleave = () => {
+          folderDiv.classList.remove('drag-over');
+        };
+
+        folderDiv.ondrop = (e) => {
+          e.preventDefault();
+          folderDiv.classList.remove('drag-over');
+          const draggedFileId = e.dataTransfer.getData('text/plain');
+          
+          if (draggedFileId) {
+            const targetFile = documentStore.files.find(f => f.id === draggedFileId);
+            if (targetFile && targetFile.folderId !== folder.id) {
+              targetFile.folderId = folder.id;
+              documentStore.selectedFolderId = folder.id;
+              saveStore();
+              renderFileTree();
+            }
+          }
+        };
+
+        // --- 폴더 타이틀 (점 세개 메뉴 포함) ---
+        const folderTitle = document.createElement('div');
+        const isFolderSelected = folder.id === documentStore.selectedFolderId;
+        folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
+        folderTitle.innerHTML = `
+          <span>📁 ${folder.name}</span>
+          <div class="menu-wrapper">
+            <button class="btn-more" title="메뉴">···</button>
+            <div class="menu-dropdown">
+              <div class="menu-dropdown-item btn-edit-folder">이름 수정</div>
+              <div class="menu-dropdown-item danger btn-del-folder">삭제</div>
+            </div>
+          </div>
+        `;
+
+        // 폴더 선택 / 해제 토글
+        folderTitle.onclick = (e) => {
+          e.stopPropagation(); // document 클릭 이벤트 전파 차단
+          closeAllMenus();
+          if (documentStore.selectedFolderId === folder.id) {
+            documentStore.selectedFolderId = null;
+          } else {
+            documentStore.selectedFolderId = folder.id;
+          }
+          saveStore();
+          renderFileTree();
+        };
+
+        // 점 세 개 버튼 클릭
+        const folderMoreBtn = folderTitle.querySelector('.btn-more');
+        const folderDropdown = folderTitle.querySelector('.menu-dropdown');
+
+        folderMoreBtn.onclick = (e) => {
+          e.stopPropagation();
+          const isShow = folderDropdown.classList.contains('show');
+          closeAllMenus();
+          if (!isShow) folderDropdown.classList.add('show');
+        };
+
+        // 폴더 [이름 수정]
+        folderTitle.querySelector('.btn-edit-folder').onclick = (e) => {
+          e.stopPropagation();
+          closeAllMenus();
+          const newName = prompt('변경할 폴더 이름을 입력하세요:', folder.name);
+          if (newName && newName.trim() !== '') {
+            folder.name = newName.trim();
+            saveStore();
+            renderFileTree();
+          }
+        };
+
+        // 폴더 [삭제]
+        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
+          e.stopPropagation();
+          closeAllMenus();
+          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
+            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
+            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
+            
+            if (documentStore.selectedFolderId === folder.id) {
+              documentStore.selectedFolderId = null;
+            }
+            if (documentStore.files.length > 0) {
+              documentStore.activeFileId = documentStore.files[0].id;
+            } else {
+              documentStore.activeFileId = null;
+            }
+            saveStore();
+            renderFileTree();
+            loadActiveFile();
+          }
+        };
+
+        folderDiv.appendChild(folderTitle);
+
+        // --- 파일 목록 (복제 / 삭제 메뉴 포함) ---
+        const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
+        filesInFolder.forEach(file => {
+          const fileItem = document.createElement('div');
+          fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
+          fileItem.draggable = true;
+          fileItem.innerHTML = `
+            <span>📄 ${file.title || '제목 없음'}</span>
+            <div class="menu-wrapper">
+              <button class="btn-more" title="메뉴">···</button>
+              <div class="menu-dropdown">
+                <div class="menu-dropdown-item btn-duplicate-file">복제</div>
+                <div class="menu-dropdown-item danger btn-del-file">삭제</div>
+              </div>
+            </div>
+          `;
+
+          fileItem.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', file.id);
+            fileItem.classList.add('dragging');
+          };
+
+          fileItem.ondragend = () => {
+            fileItem.classList.remove('dragging');
+          };
+
+          fileItem.onclick = (e) => {
+            e.stopPropagation();
+            closeAllMenus();
+            if (documentStore.activeFileId !== file.id) {
+              saveCurrentFileState();
+              documentStore.activeFileId = file.id;
+              documentStore.selectedFolderId = folder.id;
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          // 파일 점 세 개 버튼 클릭
+          const fileMoreBtn = fileItem.querySelector('.btn-more');
+          const fileDropdown = fileItem.querySelector('.menu-dropdown');
+
+          fileMoreBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isShow = fileDropdown.classList.contains('show');
+            closeAllMenus();
+            if (!isShow) fileDropdown.classList.add('show');
+          };
+
+          // 파일 [복제]
+          fileItem.querySelector('.btn-duplicate-file').onclick = (e) => {
+            e.stopPropagation();
+            closeAllMenus();
+            saveCurrentFileState();
+
+            const duplicatedFile = {
+              id: 'file-' + Date.now(),
+              folderId: file.folderId,
+              title: (file.title || '제목 없음') + ' (사본)',
+              subtitle: file.subtitle || '',
+              content: file.content || '<p></p>'
+            };
+
+            documentStore.files.push(duplicatedFile);
+            documentStore.activeFileId = duplicatedFile.id;
+            saveStore();
+            renderFileTree();
+            loadActiveFile();
+          };
+
+          // 파일 [삭제]
+          fileItem.querySelector('.btn-del-file').onclick = (e) => {
+            e.stopPropagation();
+            closeAllMenus();
+            if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
+              documentStore.files = documentStore.files.filter(f => f.id !== file.id);
+              if (documentStore.activeFileId === file.id) {
+                documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
+              }
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          folderDiv.appendChild(fileItem);
+        });
+
+        fileTree.appendChild(folderDiv);
+      });
+    }
+
+       // 폴더 타이틀
+        const folderTitle = document.createElement('div');
+        const isFolderSelected = folder.id === documentStore.selectedFolderId;
+        folderTitle.className = `tree-folder-title ${isFolderSelected ? 'selected' : ''}`;
+        folderTitle.innerHTML = `
+          <span class="folder-name-text">📁 ${folder.name}</span>
+          <div class="folder-btns">
+            <button class="btn-edit-folder" data-id="${folder.id}">수정</button>
+            <button class="btn-del-folder" data-id="${folder.id}">삭제</button>
+          </div>
+        `;
+
+        // 💡 폴더 이름 변경 함수
+        const renameFolder = () => {
+          const newName = prompt('변경할 폴더 이름을 입력하세요:', folder.name);
+          if (newName && newName.trim() !== '') {
+            folder.name = newName.trim();
+            saveStore();
+            renderFileTree();
+          }
+        };
+
+        // 폴더 타이틀 더블클릭 시 이름 변경
+        folderTitle.ondblclick = (e) => {
+          e.stopPropagation();
+          renameFolder();
+        };
+
+        // 폴더 클릭 토글 (한 번 클릭 시 선택/해제)
+        folderTitle.onclick = (e) => {
+          e.stopPropagation();
+          if (documentStore.selectedFolderId === folder.id) {
+            documentStore.selectedFolderId = null;
+          } else {
+            documentStore.selectedFolderId = folder.id;
+          }
+          saveStore();
+          renderFileTree();
+        };
+
+        // 💡 [수정] 버튼 클릭 시 이름 변경
+        folderTitle.querySelector('.btn-edit-folder').onclick = (e) => {
+          e.stopPropagation();
+          renameFolder();
+        };
+
+        // 폴더 삭제
+        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
+            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
+            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
+            
+            if (documentStore.selectedFolderId === folder.id) {
+              documentStore.selectedFolderId = null;
+            }
+            if (documentStore.files.length > 0) {
+              documentStore.activeFileId = documentStore.files[0].id;
+            } else {
+              documentStore.activeFileId = null;
+            }
+            saveStore();
+            renderFileTree();
+            loadActiveFile();
+          }
+        };
+
+        // 폴더 클릭 토글 (이미 클릭되어 있으면 선택 해제)
+        folderTitle.onclick = (e) => {
+          e.stopPropagation();
+          if (documentStore.selectedFolderId === folder.id) {
+            documentStore.selectedFolderId = null;
+          } else {
+            documentStore.selectedFolderId = folder.id;
+          }
+          saveStore();
+          renderFileTree();
+        };
+
+        // 폴더 삭제
+        folderTitle.querySelector('.btn-del-folder').onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`'${folder.name}' 폴더와 내부 파일들을 삭제하시겠습니까?`)) {
+            documentStore.folders = documentStore.folders.filter(f => f.id !== folder.id);
+            documentStore.files = documentStore.files.filter(f => f.folderId !== folder.id);
+            
+            if (documentStore.selectedFolderId === folder.id) {
+              documentStore.selectedFolderId = null;
+            }
+            if (documentStore.files.length > 0) {
+              documentStore.activeFileId = documentStore.files[0].id;
+            } else {
+              documentStore.activeFileId = null;
+            }
+            saveStore();
+            renderFileTree();
+            loadActiveFile();
+          }
+        };
+
+        folderDiv.appendChild(folderTitle);
+
+        // 폴더 안 파일목록
+        const filesInFolder = documentStore.files.filter(file => file.folderId === folder.id);
+        filesInFolder.forEach(file => {
+          const fileItem = document.createElement('div');
+          fileItem.className = `tree-item ${file.id === documentStore.activeFileId ? 'active' : ''}`;
+          fileItem.draggable = true;
+          fileItem.innerHTML = `
+            <span>${file.title || '제목 없음'}</span>
+            <button class="btn-del-file" data-id="${file.id}">삭제</button>
+          `;
+
+          fileItem.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', file.id);
+            fileItem.classList.add('dragging');
+          };
+
+          fileItem.ondragend = () => {
+            fileItem.classList.remove('dragging');
+          };
+
+          fileItem.onclick = (e) => {
+            e.stopPropagation();
+            if (documentStore.activeFileId !== file.id) {
+              saveCurrentFileState();
+              documentStore.activeFileId = file.id;
+              documentStore.selectedFolderId = folder.id;
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          fileItem.querySelector('.btn-del-file').onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`'${file.title || '제목 없음'}' 파일을 삭제하시겠습니까?`)) {
+              documentStore.files = documentStore.files.filter(f => f.id !== file.id);
+              if (documentStore.activeFileId === file.id) {
+                documentStore.activeFileId = documentStore.files.length > 0 ? documentStore.files[0].id : null;
+              }
+              saveStore();
+              renderFileTree();
+              loadActiveFile();
+            }
+          };
+
+          folderDiv.appendChild(fileItem);
+        });
+
+        fileTree.appendChild(folderDiv);
+      });
+    }
+
+   // 💡 화면 전체 어디든 눌렀을 때 선택된 폴더 해제
+document.addEventListener('click', (e) => {
+  // 이미 선택된 폴더가 있을 때만 동작
+  if (documentStore.selectedFolderId !== null) {
+    documentStore.selectedFolderId = null;
+    saveStore();
+    renderFileTree();
   }
+});
+    // 새 폴더 추가
+    btnAddFolder.onclick = () => {
+      const folderName = prompt('새 폴더 이름을 입력하세요:', '새 폴더');
+      if (folderName) {
+        const newFolder = {
+          id: 'folder-' + Date.now(),
+          name: folderName
+        };
+        documentStore.folders.push(newFolder);
+        documentStore.selectedFolderId = newFolder.id;
+        saveStore();
+        renderFileTree();
+      }
+    };
 
-  renderTree(); loadDoc(activeDocId); lucide.createIcons();
-</script>
+    // 선택된 폴더 안에 새 파일 추가
+    btnAddFile.onclick = () => {
+      if (documentStore.folders.length === 0) {
+        alert('먼저 폴더를 생성해주세요.');
+        return;
+      }
 
+      let targetFolderId = documentStore.selectedFolderId;
+      let targetFolder = documentStore.folders.find(f => f.id === targetFolderId);
+      
+      // 선택된 폴더가 없으면 첫 번째 폴더에 생성
+      if (!targetFolder) {
+        targetFolder = documentStore.folders[0];
+        targetFolderId = targetFolder.id;
+      }
+
+      const fileTitle = prompt(`'${targetFolder.name}' 폴더에 생성할 원고 제목:`, '제목 없음');
+      if (fileTitle !== null) {
+        const newFile = {
+          id: 'file-' + Date.now(),
+          folderId: targetFolderId,
+          title: fileTitle,
+          subtitle: '',
+          content: '<p></p>'
+        };
+        saveCurrentFileState();
+        documentStore.files.push(newFile);
+        documentStore.activeFileId = newFile.id;
+        saveStore();
+        renderFileTree();
+        loadActiveFile();
+      }
+    };
+
+    titleInput.addEventListener('input', saveCurrentFileState);
+    subtitleInput.addEventListener('input', saveCurrentFileState);
+
+    // 초기 실행
+    renderFileTree();
+    loadActiveFile();
+
+    // ----------------------------------------------------
+    // 5. Ctrl+F 실시간 검색 하이라이트 & 바꾸기
+    // ----------------------------------------------------
+
+    const searchModal = document.getElementById('searchModal');
+    const searchInput = document.getElementById('searchInput');
+    const replaceInput = document.getElementById('replaceInput');
+    const btnSearch = document.getElementById('btnSearch');
+    const btnReplaceAll = document.getElementById('btnReplaceAll');
+    const btnCloseSearch = document.getElementById('btnCloseSearch');
+    const searchResultCount = document.getElementById('searchResultCount');
+
+    function clearHighlights() {
+      const html = editor.getHTML();
+      const cleanHTML = html.replace(/<mark[^>]*>(.*?)<\/mark>/gi, '$1');
+      if (html !== cleanHTML) {
+        editor.commands.setContent(cleanHTML, false);
+      }
+    }
+
+    function openSearchModal() {
+      searchModal.classList.add('show');
+      searchInput.focus();
+      searchInput.select();
+    }
+
+    function closeSearchModal() {
+      searchModal.classList.remove('show');
+      searchResultCount.innerText = '단어를 검색하세요';
+      searchInput.value = '';
+      replaceInput.value = '';
+      clearHighlights();
+      editor.commands.focus();
+    }
+
+    btnSearch.onclick = openSearchModal;
+    btnCloseSearch.onclick = closeSearchModal;
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        openSearchModal();
+      }
+      if (e.key === 'Escape' && searchModal.classList.contains('show')) {
+        closeSearchModal();
+      }
+    });
+
+    function performSearch() {
+      const query = searchInput.value;
+      clearHighlights();
+
+      if (!query.trim()) {
+        searchResultCount.innerText = '검색어를 입력하세요';
+        return;
+      }
+
+      const currentHTML = editor.getHTML();
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(?<!<[^>]*)${escapedQuery}(?![^<]*>)`, 'gi');
+      const matches = currentHTML.match(regex);
+      const count = matches ? matches.length : 0;
+
+      if (count > 0) {
+        const highlightedHTML = currentHTML.replace(regex, `<mark>$&</mark>`);
+        editor.commands.setContent(highlightedHTML, false);
+        searchResultCount.innerText = `총 ${count}개 발견`;
+      } else {
+        searchResultCount.innerText = '일치하는 단어가 없습니다';
+      }
+    }
+
+    searchInput.addEventListener('input', performSearch);
+
+    btnReplaceAll.onclick = () => {
+      const searchVal = searchInput.value;
+      const replaceVal = replaceInput.value;
+
+      if (!searchVal) return;
+
+      clearHighlights();
+      const currentHTML = editor.getHTML();
+      const escapedSearch = searchVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(?<!<[^>]*)${escapedSearch}(?![^<]*>)`, 'g');
+      
+      const newHTML = currentHTML.replace(regex, replaceVal);
+
+      editor.commands.setContent(newHTML, false);
+      updateWordCount();
+      saveCurrentFileState();
+      searchResultCount.innerText = '모두 교체되었습니다!';
+      searchInput.value = '';
+    };
+
+    // ----------------------------------------------------
+    // 글자 수 계산
+    // ----------------------------------------------------
+
+    let selectedCountType = 'with-space';
+
+    function updateWordCount() {
+      const titleText = titleInput.value.replace(/\r?\n|\r/g, '');
+      const subtitleText = subtitleInput.value.replace(/\r?\n|\r/g, '');
+      const bodyText = editor.getText().replace(/\r?\n|\r/g, '');
+      const fullText = titleText + subtitleText + bodyText;
+
+      const withSpace = fullText.length;
+      const noSpace = fullText.replace(/\s+/g, '').length;
+      const noSpecial = fullText.replace(/[^a-zA-Z0-9가-힣ㄱ-하-ㅣ]/g, '').length;
+      const trimmed = fullText.trim();
+      const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
+
+      document.getElementById('cntWithSpace').innerText = `${withSpace}자`;
+      document.getElementById('cntNoSpace').innerText = `${noSpace}자`;
+      document.getElementById('cntNoSpecial').innerText = `${noSpecial}자`;
+      document.getElementById('cntWords').innerText = `${wordCount} 단어`;
+
+      const counterBadge = document.getElementById('counterBadge');
+      if (selectedCountType === 'with-space') counterBadge.innerText = `${withSpace}자`;
+      else if (selectedCountType === 'no-space') counterBadge.innerText = `${noSpace}자`;
+      else if (selectedCountType === 'no-special') counterBadge.innerText = `${noSpecial}자`;
+      else if (selectedCountType === 'word-count') counterBadge.innerText = `${wordCount}단어`;
+    }
+
+    titleInput.addEventListener('input', updateWordCount);
+    subtitleInput.addEventListener('input', updateWordCount);
+
+    const counterBadge = document.getElementById('counterBadge');
+    const counterDropdown = document.getElementById('counterDropdown');
+
+    counterBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      counterDropdown.classList.toggle('show');
+    });
+
+    document.querySelectorAll('.counter-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.counter-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        selectedCountType = item.getAttribute('data-type');
+        updateWordCount();
+        counterDropdown.classList.remove('show');
+      });
+    });
+
+    document.addEventListener('click', () => {
+      counterDropdown.classList.remove('show');
+    });
+
+    updateWordCount();
+
+    // ----------------------------------------------------
+    // 방향키 이동 이벤트
+    // ----------------------------------------------------
+
+    titleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        subtitleInput.focus();
+        subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
+      }
+    });
+
+    subtitleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        titleInput.focus();
+        titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+      } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        editor.chain().focus('start').run();
+      }
+    });
+
+    const editorDom = document.querySelector('.ProseMirror');
+    editorDom.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        const { selection } = editor.state;
+        if (selection.$from.pos <= 1) {
+          e.preventDefault();
+          e.stopPropagation();
+          subtitleInput.focus();
+          subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
+        }
+      }
+    }, true);
+
+    // ----------------------------------------------------
+
+    document.getElementById('btnBold').onclick = () => editor.chain().focus().toggleBold().run();
+    document.getElementById('btnItalic').onclick = () => editor.chain().focus().toggleItalic().run();
+    document.getElementById('btnStrike').onclick = () => editor.chain().focus().toggleStrike().run();
+    document.getElementById('btnSub').onclick = () => editor.chain().focus().toggleSubscript().run();
+    document.getElementById('btnSup').onclick = () => editor.chain().focus().toggleSuperscript().run();
+
+    document.getElementById('headingSelect').onchange = (e) => {
+      const val = e.target.value;
+      if (val === 'paragraph') {
+        editor.chain().focus().setParagraph().run();
+      } else {
+        editor.chain().focus().toggleHeading({ level: parseInt(val) }).run();
+      }
+    };
+
+    document.getElementById('fontSelect').onchange = (e) => {
+      document.body.className = e.target.value;
+    };
+
+    document.getElementById('dividerSelect').onchange = (e) => {
+      const style = e.target.value;
+      if (style) {
+        editor.chain().focus().insertContent({
+          type: 'horizontalRule',
+          attrs: { 'data-style': style }
+        }).run();
+        e.target.value = '';
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW Registered!', reg))
+          .catch(err => console.error('SW Registration Failed!', err));
+      });
+    }
+  </script>
 </body>
 </html>
