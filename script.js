@@ -50,10 +50,24 @@ let treeData = JSON.parse(localStorage.getItem('my_tree_data')) || [
       { id: 'd-1', name: '첫 번째 글', type: 'doc', content: '<p>마루부리 폰트로 작성을 시작합니다.</p>', title: '첫 번째 글', subtitle: '' }
     ] }
 ];
+
+let trashData = JSON.parse(localStorage.getItem('my_trash_data')) || [];
 let activeDocId = localStorage.getItem('my_active_doc_id') || 'd-1';
 let docVersions = JSON.parse(localStorage.getItem('my_doc_versions')) || {};
 let countDisplayMode = 'withSpace';
 let selectedTargetNode = null;
+let selectedTrashNode = null;
+
+// 30일(밀리초 기준) 지난 휴지통 항목 자동 영구 삭제 정제
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+function cleanExpiredTrash() {
+  const now = Date.now();
+  trashData = trashData.filter(item => {
+    return (now - (item.deletedAt || now)) < THIRTY_DAYS_MS;
+  });
+  localStorage.setItem('my_trash_data', JSON.stringify(trashData));
+}
+cleanExpiredTrash();
 
 const editor = new Editor({
   element: document.querySelector('#editor'),
@@ -149,7 +163,49 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-// 플로팅 팝오버
+/* --- 대제목 - 소제목 - 본문 방향키(▲/▼) 키보드 탐색 --- */
+const titleInput = document.getElementById('title-input');
+const subtitleInput = document.getElementById('subtitle-input');
+
+titleInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') {
+    // 커서가 대제목 끝에 있거나 전체 선택 중일 때 아래로 이동
+    if (titleInput.selectionEnd === titleInput.value.length) {
+      e.preventDefault();
+      subtitleInput.focus();
+      subtitleInput.setSelectionRange(0, 0);
+    }
+  }
+});
+
+subtitleInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') {
+    if (subtitleInput.selectionStart === 0) {
+      e.preventDefault();
+      titleInput.focus();
+      titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+    }
+  } else if (e.key === 'ArrowDown') {
+    if (subtitleInput.selectionEnd === subtitleInput.value.length) {
+      e.preventDefault();
+      editor.chain().focus('start').run();
+    }
+  }
+});
+
+// 에디터 맨 첫 줄에서 위쪽 화살표 누를 시 소제목으로 이동
+editor.options.element.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') {
+    const { selection } = editor.state;
+    if (selection.$head.pos <= 1) { // 최상단 영역에 위치할 때
+      e.preventDefault();
+      subtitleInput.focus();
+      subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
+    }
+  }
+});
+
+/* --- 플로팅 팝오버 및 단어수 계산 --- */
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
@@ -207,7 +263,7 @@ function updateWordCount() {
   else if (countDisplayMode === 'words') labelEl.textContent = `${words} 단어`;
 }
 
-// 히스토리 버전 관리
+// 히스토리 버전을 저장
 function createVersionSnapshot(docId, note = '자동 저장') {
   if (!docId) return;
   if (!docVersions[docId]) docVersions[docId] = [];
@@ -272,16 +328,31 @@ function renderHistoryList() {
   });
 }
 
-// 트리 및 사이드바 제어
+// 컨텍스트 메뉴 제어
 const contextMenu = document.getElementById('context-menu');
-document.addEventListener('click', () => contextMenu.style.display = 'none');
+const trashContextMenu = document.getElementById('trash-context-menu');
+
+document.addEventListener('click', () => {
+  contextMenu.style.display = 'none';
+  trashContextMenu.style.display = 'none';
+});
 
 function showContextMenu(e, node, parentFolder) {
   e.stopPropagation();
+  trashContextMenu.style.display = 'none';
   selectedTargetNode = { node, parentFolder };
   contextMenu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`;
   contextMenu.style.top = `${Math.min(e.clientY, window.innerHeight - 120)}px`;
   contextMenu.style.display = 'block';
+}
+
+function showTrashContextMenu(e, node) {
+  e.stopPropagation();
+  contextMenu.style.display = 'none';
+  selectedTrashNode = node;
+  trashContextMenu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`;
+  trashContextMenu.style.top = `${Math.min(e.clientY, window.innerHeight - 120)}px`;
+  trashContextMenu.style.display = 'block';
 }
 
 document.getElementById('menu-rename').onclick = () => {
@@ -310,19 +381,93 @@ document.getElementById('menu-copy').onclick = () => {
   renderTree();
 };
 
+/* --- 휴지통 처리 로직 --- */
 document.getElementById('menu-delete').onclick = () => {
   if (!selectedTargetNode) return;
-  if (confirm(`'${selectedTargetNode.node.name}' 항목을 삭제하시겠습니까?`)) {
-    const { node, parentFolder } = selectedTargetNode;
+  const { node, parentFolder } = selectedTargetNode;
+  
+  if (confirm(`'${node.name}' 항목을 휴지통으로 이동하시겠습니까?`)) {
+    const deletedItem = JSON.parse(JSON.stringify(node));
+    deletedItem.deletedAt = Date.now(); // 삭제 날짜 기록
+    trashData.push(deletedItem);
+
     if (parentFolder) {
       parentFolder.children = parentFolder.children.filter(child => child.id !== node.id);
     } else {
       treeData = treeData.filter(f => f.id !== node.id);
     }
+
+    localStorage.setItem('my_trash_data', JSON.stringify(trashData));
     triggerAutoSave();
     renderTree();
+    renderTrashTree();
+
+    // 열려있는 문서 삭제 처리 시 안전 전환
+    if (node.id === activeDocId || (node.children && findNode(node.children, activeDocId))) {
+      const firstAvailableDoc = getFirstDocId(treeData);
+      if (firstAvailableDoc) {
+        loadDoc(firstAvailableDoc);
+      } else {
+        activeDocId = null;
+        document.getElementById('title-input').value = '';
+        document.getElementById('subtitle-input').value = '';
+        editor.commands.setContent('');
+      }
+    }
   }
 };
+
+document.getElementById('menu-restore').onclick = () => {
+  if (!selectedTrashNode) return;
+  
+  const restoredNode = JSON.parse(JSON.stringify(selectedTrashNode));
+  delete restoredNode.deletedAt;
+
+  if (restoredNode.type === 'folder') {
+    treeData.push(restoredNode);
+  } else {
+    if (treeData.length === 0) {
+      treeData.push({ id: 'f-' + Date.now(), name: '기본 폴더', type: 'folder', isOpen: true, children: [] });
+    }
+    treeData[0].children.push(restoredNode);
+  }
+
+  trashData = trashData.filter(t => t.id !== selectedTrashNode.id);
+  localStorage.setItem('my_trash_data', JSON.stringify(trashData));
+  
+  triggerAutoSave();
+  renderTree();
+  renderTrashTree();
+};
+
+document.getElementById('menu-permanent-delete').onclick = () => {
+  if (!selectedTrashNode) return;
+  if (confirm(`'${selectedTrashNode.name}'을(를) 영구히 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.`)) {
+    trashData = trashData.filter(t => t.id !== selectedTrashNode.id);
+    localStorage.setItem('my_trash_data', JSON.stringify(trashData));
+    renderTrashTree();
+  }
+};
+
+document.getElementById('btn-empty-trash').onclick = () => {
+  if (trashData.length === 0) return;
+  if (confirm("휴지통의 모든 항목을 영구 삭제하시겠습니까?")) {
+    trashData = [];
+    localStorage.setItem('my_trash_data', JSON.stringify(trashData));
+    renderTrashTree();
+  }
+};
+
+function getFirstDocId(nodes) {
+  for (let node of nodes) {
+    if (node.type === 'doc') return node.id;
+    if (node.children) {
+      let res = getFirstDocId(node.children);
+      if (res) return res;
+    }
+  }
+  return null;
+}
 
 // 드래그 앤 드롭
 let draggedDocId = null;
@@ -461,6 +606,32 @@ function renderTree() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function renderTrashTree() {
+  const trashContainer = document.getElementById('trash-tree');
+  trashContainer.innerHTML = '';
+
+  if (trashData.length === 0) {
+    trashContainer.innerHTML = '<div style="font-size:12px; color:#868e96; padding: 4px;">휴지통이 비어있습니다.</div>';
+    return;
+  }
+
+  trashData.forEach(item => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'trash-item';
+    const icon = item.type === 'folder' ? '📁' : '📄';
+    
+    itemDiv.innerHTML = `
+      <span class="item-name">${icon} ${item.name || '제목 없음'}</span>
+      <button class="btn-more-options" title="더보기"><i data-lucide="more-vertical"></i></button>
+    `;
+
+    itemDiv.querySelector('.btn-more-options').onclick = (e) => showTrashContextMenu(e, item);
+    trashContainer.appendChild(itemDiv);
+  });
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
 // 사이드바 토글
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -485,6 +656,7 @@ btnSearch.onclick = (e) => {
 };
 document.getElementById('btn-search-close').onclick = () => searchPopover.style.display = 'none';
 
-// 초기화
+// 초기 실행
 renderTree(); 
-loadDoc(activeDocId);
+renderTrashTree();
+if (activeDocId) loadDoc(activeDocId);
