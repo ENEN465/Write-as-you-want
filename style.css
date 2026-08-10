@@ -225,7 +225,9 @@ body {
   color: #e03131;
 }
 
-/* 메인 영역 및 상단바 (가운데 정렬) */
+/* =========================================================
+   3단 구조 상단바 (가운데 정렬 스타일)
+   ========================================================= */
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -240,15 +242,31 @@ body {
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
-.toolbar-content {
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.toolbar-left {
+  justify-content: flex-start;
+}
+
+.toolbar-right {
+  justify-content: flex-end;
+}
+
+.toolbar-center {
   display: flex;
   align-items: center;
   gap: 4px;
+  justify-content: center;
 }
 
 .toolbar button.btn-icon {
