@@ -41,81 +41,77 @@
     <!-- 메인 영역 -->
     <main class="main-wrapper">
       <header class="toolbar">
-        <!-- 1. 왼쪽 영역 (사이드바 토글 - 고정) -->
-        <div class="toolbar-left">
-          <button id="btn-toggle-sidebar" class="btn-icon" title="사이드바 토글">
-            <i data-lucide="panel-left"></i>
-          </button>
-        </div>
-
-        <!-- 3. 중앙 영역 (나머지 도구 가로 일렬 정렬) -->
-        <div class="toolbar-center">
-          <button id="btn-search" class="btn-icon" title="검색 및 바꿈"><i data-lucide="search"></i></button>
-          <button id="btn-history" class="btn-icon" title="버전 히스토리"><i data-lucide="history"></i></button>
-
-          <div class="toolbar-divider"></div>
-
-          <select id="select-font">
-            <option value="MaruBuri" selected>마루부리</option>
-            <option value="BookkMyungjo">부크명조</option>
-            <option value="Pretendard">프리텐다드</option>
-            <option value="Nanum Myeongjo">나눔명조</option>
-            <option value="Noto Serif KR">본명조</option>
-            <option value="Nanum Barun Gothic">나눔바른고딕</option>
-          </select>
-
-          <select id="select-heading">
-            <option value="p">본문</option>
-            <option value="h1">제목 1</option>
-            <option value="h2">제목 2</option>
-            <option value="h3">제목 3</option>
-          </select>
-
-          <div class="toolbar-divider"></div>
-
-          <button id="btn-bold" class="btn-icon" title="굵게"><i data-lucide="bold"></i></button>
-          <button id="btn-italic" class="btn-icon" title="기울임"><i data-lucide="italic"></i></button>
-          <button id="btn-strike" class="btn-icon" title="취소선"><i data-lucide="strikethrough"></i></button>
-          
-          <div class="color-picker-wrapper btn-icon" title="글자 색상">
-            <i data-lucide="palette"></i>
-            <input type="color" id="input-font-color" value="#212529">
-          </div>
-
-          <div class="toolbar-divider"></div>
-
-          <button id="btn-align-left" class="btn-icon" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
-          <button id="btn-align-center" class="btn-icon" title="중앙 정렬"><i data-lucide="align-center"></i></button>
-          <button id="btn-align-right" class="btn-icon" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
-          <button id="btn-align-justify" class="btn-icon" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
-
-          <div class="toolbar-divider"></div>
-
-          <select id="select-hr">
-            <option value="" disabled selected>구분선</option>
-            <option value="line">실선</option>
-            <option value="dashed">점선</option>
-            <option value="asterisk">* * *</option>
-            <option value="ornament">◇ ◇ ◇</option>
-          </select>
-
-          <button id="btn-insert-image" class="btn-icon" title="이미지 삽입"><i data-lucide="image"></i></button>
-          <input type="file" id="input-image-file" accept="image/*" style="display: none;">
-
-          <div class="toolbar-divider"></div>
-
-          <div class="save-status-container">
-            <span id="save-status" class="save-status">저장됨</span>
-          </div>
-        </div>
-
-        <!-- 2. 오른쪽 영역 (단어 수 - 고정) -->
-        <div class="toolbar-right">
-          <div class="word-counter-wrapper">
-            <button id="btn-word-count-toggle" class="word-count-pill-btn">
-              <i data-lucide="file-text"></i>
-              <span id="word-count-label">0 자</span>
+        <div class="toolbar-content">
+          <div class="toolbar-section">
+            <button id="btn-toggle-sidebar" class="btn-icon" title="사이드바 토글">
+              <i data-lucide="panel-left"></i>
             </button>
+            <div class="toolbar-divider"></div>
+
+            <button id="btn-search" class="btn-icon" title="검색 및 바꿈"><i data-lucide="search"></i></button>
+            <button id="btn-history" class="btn-icon" title="버전 히스토리"><i data-lucide="history"></i></button>
+
+            <div class="toolbar-divider"></div>
+            
+            <select id="select-font">
+              <option value="MaruBuri" selected>마루부리</option>
+              <option value="BookkMyungjo">부크명조</option>
+              <option value="Pretendard">프리텐다드</option>
+              <option value="Nanum Myeongjo">나눔명조</option>
+              <option value="Noto Serif KR">본명조</option>
+              <option value="Nanum Barun Gothic">나눔바른고딕</option>
+            </select>
+
+            <select id="select-heading">
+              <option value="p">본문</option>
+              <option value="h1">제목 1</option>
+              <option value="h2">제목 2</option>
+              <option value="h3">제목 3</option>
+            </select>
+
+            <div class="toolbar-divider"></div>
+
+            <button id="btn-bold" class="btn-icon" title="굵게"><i data-lucide="bold"></i></button>
+            <button id="btn-italic" class="btn-icon" title="기울임"><i data-lucide="italic"></i></button>
+            <button id="btn-strike" class="btn-icon" title="취소선"><i data-lucide="strikethrough"></i></button>
+            
+            <div class="color-picker-wrapper btn-icon" title="글자 색상">
+              <i data-lucide="palette"></i>
+              <input type="color" id="input-font-color" value="#212529">
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <button id="btn-align-left" class="btn-icon" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
+            <button id="btn-align-center" class="btn-icon" title="중앙 정렬"><i data-lucide="align-center"></i></button>
+            <button id="btn-align-right" class="btn-icon" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
+            <button id="btn-align-justify" class="btn-icon" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
+
+            <div class="toolbar-divider"></div>
+
+            <select id="select-hr">
+              <option value="" disabled selected>구분선</option>
+              <option value="line">실선</option>
+              <option value="dashed">점선</option>
+              <option value="asterisk">* * *</option>
+              <option value="ornament">◇ ◇ ◇</option>
+            </select>
+
+            <button id="btn-insert-image" class="btn-icon" title="이미지 삽입"><i data-lucide="image"></i></button>
+            <input type="file" id="input-image-file" accept="image/*" style="display: none;">
+
+            <div class="toolbar-divider"></div>
+
+            <div class="word-counter-wrapper">
+              <button id="btn-word-count-toggle" class="word-count-pill-btn">
+                <i data-lucide="file-text"></i>
+                <span id="word-count-label">0 자</span>
+              </button>
+            </div>
+
+            <div class="save-status-container">
+              <span id="save-status" class="save-status">저장됨</span>
+            </div>
           </div>
         </div>
       </header>
