@@ -23,7 +23,7 @@ const SearchHighlightMark = Mark.create({
   renderHTML({ HTMLAttributes }) { return ['span', HTMLAttributes, 0]; },
 });
 
-// 구분선 Extensions
+// 구분선 Extension
 const CustomHorizontalRule = HorizontalRule.extend({
   addAttributes() {
     return {
@@ -58,7 +58,7 @@ let countDisplayMode = 'withSpace';
 let selectedTargetNode = null;
 let selectedTrashNode = null;
 
-// 30일(밀리초 기준) 지난 휴지통 항목 자동 영구 삭제 정제
+// 30일 만료 휴지통 정제
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 function cleanExpiredTrash() {
   const now = Date.now();
@@ -91,7 +91,7 @@ const editor = new Editor({
   onTransaction() { updateToolbarState(); }
 });
 
-// 폰트 매핑 (기본값 마루부리)
+// 폰트 선택
 const selectFontEl = document.getElementById('select-font');
 const fontMap = {
   'MaruBuri': "'MaruBuri', serif",
@@ -108,7 +108,7 @@ selectFontEl.addEventListener('change', (e) => {
   editor.chain().focus().setFontFamily(fontValue).run();
 });
 
-// 색상 변경
+// 색상 선택
 const colorInput = document.getElementById('input-font-color');
 colorInput.addEventListener('input', (e) => {
   editor.chain().focus().setColor(e.target.value).run();
@@ -163,41 +163,37 @@ document.getElementById('input-image-file').onchange = (e) => {
   }
 };
 
-/* --- 대제목 - 소제목 - 본문 방향키(▲/▼) 키보드 탐색 --- */
+/* --- 대제목 - 소제목 - 본문 키보드 방향키(▲/▼) 완전한 포커스 수정을 반영 --- */
 const titleInput = document.getElementById('title-input');
 const subtitleInput = document.getElementById('subtitle-input');
 
+// 대제목에서 아래 키(ArrowDown) 누를 때 -> 소제목 이동
 titleInput.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowDown') {
-    // 커서가 대제목 끝에 있거나 전체 선택 중일 때 아래로 이동
-    if (titleInput.selectionEnd === titleInput.value.length) {
-      e.preventDefault();
-      subtitleInput.focus();
-      subtitleInput.setSelectionRange(0, 0);
-    }
+  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    e.preventDefault();
+    subtitleInput.focus();
+    subtitleInput.setSelectionRange(0, 0);
   }
 });
 
+// 소제목에서 위/아래 키 누를 때
 subtitleInput.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp') {
-    if (subtitleInput.selectionStart === 0) {
-      e.preventDefault();
-      titleInput.focus();
-      titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
-    }
-  } else if (e.key === 'ArrowDown') {
-    if (subtitleInput.selectionEnd === subtitleInput.value.length) {
-      e.preventDefault();
-      editor.chain().focus('start').run();
-    }
+    e.preventDefault();
+    titleInput.focus();
+    titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+  } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    e.preventDefault();
+    editor.chain().focus('start').run();
   }
 });
 
-// 에디터 맨 첫 줄에서 위쪽 화살표 누를 시 소제목으로 이동
+// 에디터 본문 최상단에서 위(ArrowUp) 누르면 소제목 이동
 editor.options.element.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp') {
     const { selection } = editor.state;
-    if (selection.$head.pos <= 1) { // 최상단 영역에 위치할 때
+    // 맨 첫 줄 맨 앞에 있을 경우
+    if (selection.$head.pos <= 1) {
       e.preventDefault();
       subtitleInput.focus();
       subtitleInput.setSelectionRange(subtitleInput.value.length, subtitleInput.value.length);
@@ -205,7 +201,7 @@ editor.options.element.addEventListener('keydown', (e) => {
   }
 });
 
-/* --- 플로팅 팝오버 및 단어수 계산 --- */
+/* --- 글자수 계산 및 팝업 --- */
 const wordCountBtn = document.getElementById('btn-word-count-toggle');
 const wordCountPopover = document.getElementById('word-count-popover');
 
@@ -228,10 +224,6 @@ document.addEventListener('click', (e) => {
     wordCountPopover.style.display = 'none';
   }
 });
-
-window.addEventListener('scroll', () => {
-  wordCountPopover.style.display = 'none';
-}, true);
 
 document.querySelectorAll('.word-count-option').forEach(opt => {
   opt.onclick = (e) => {
@@ -263,7 +255,7 @@ function updateWordCount() {
   else if (countDisplayMode === 'words') labelEl.textContent = `${words} 단어`;
 }
 
-// 히스토리 버전을 저장
+// 스냅샷
 function createVersionSnapshot(docId, note = '자동 저장') {
   if (!docId) return;
   if (!docVersions[docId]) docVersions[docId] = [];
@@ -328,7 +320,7 @@ function renderHistoryList() {
   });
 }
 
-// 컨텍스트 메뉴 제어
+// 우클릭 컨텍스트 메뉴 처리
 const contextMenu = document.getElementById('context-menu');
 const trashContextMenu = document.getElementById('trash-context-menu');
 
@@ -381,14 +373,14 @@ document.getElementById('menu-copy').onclick = () => {
   renderTree();
 };
 
-/* --- 휴지통 처리 로직 --- */
+/* --- 휴지통 이동 / 복원 / 삭제 --- */
 document.getElementById('menu-delete').onclick = () => {
   if (!selectedTargetNode) return;
   const { node, parentFolder } = selectedTargetNode;
   
   if (confirm(`'${node.name}' 항목을 휴지통으로 이동하시겠습니까?`)) {
     const deletedItem = JSON.parse(JSON.stringify(node));
-    deletedItem.deletedAt = Date.now(); // 삭제 날짜 기록
+    deletedItem.deletedAt = Date.now();
     trashData.push(deletedItem);
 
     if (parentFolder) {
@@ -402,7 +394,6 @@ document.getElementById('menu-delete').onclick = () => {
     renderTree();
     renderTrashTree();
 
-    // 열려있는 문서 삭제 처리 시 안전 전환
     if (node.id === activeDocId || (node.children && findNode(node.children, activeDocId))) {
       const firstAvailableDoc = getFirstDocId(treeData);
       if (firstAvailableDoc) {
@@ -427,7 +418,7 @@ document.getElementById('menu-restore').onclick = () => {
     treeData.push(restoredNode);
   } else {
     if (treeData.length === 0) {
-      treeData.push({ id: 'f-' + Date.now(), name: '기본 폴더', type: 'folder', isOpen: true, children: [] });
+      treeData.push({ id: 'f-1', name: '기본 폴더', type: 'folder', isOpen: true, children: [] });
     }
     treeData[0].children.push(restoredNode);
   }
@@ -469,7 +460,7 @@ function getFirstDocId(nodes) {
   return null;
 }
 
-// 드래그 앤 드롭
+// 드래그앤드롭
 let draggedDocId = null;
 function setupDragAndDrop(itemEl, docId) {
   itemEl.draggable = true;
