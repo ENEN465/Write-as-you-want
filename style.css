@@ -226,7 +226,7 @@ body {
 }
 
 /* =========================================================
-   상단바 레이아웃 규격 고정 (3분할: 좌/중/우)
+   상단바 레이아웃 (기존 원복 상태)
    ========================================================= */
 .main-wrapper {
   flex: 1;
@@ -238,59 +238,37 @@ body {
 
 .toolbar {
   height: 46px;
-  min-height: 46px;
-  max-height: 46px;
   border-bottom: 1px solid #dee2e6;
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 16px;
   box-sizing: border-box;
-  white-space: nowrap;
-  flex-wrap: nowrap; /* 절대 두 줄로 변경되지 않음 */
-  overflow-x: auto;
 }
 
-/* 1. 상단바 왼쪽 고정 영역 */
-.toolbar-left {
+.toolbar-content {
   display: flex;
   align-items: center;
-  min-width: 100px;
-  flex: 0 0 100px;
+  gap: 8px;
 }
 
-/* 3. 상단바 중앙 가로 일렬 영역 */
-.toolbar-center {
+.toolbar-section {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 4px;
-  flex: 1;
-}
-
-/* 2. 상단바 오른쪽 고정 영역 */
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 100px;
-  flex: 0 0 100px;
 }
 
 .toolbar button.btn-icon {
   background: none;
   border: none;
-  padding: 4px;
+  padding: 6px;
   border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #495057;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
 }
 
 .toolbar button.btn-icon:hover {
@@ -302,22 +280,11 @@ body {
   color: #1c7ed6;
 }
 
-/* 4. 아이콘 크기 규격화 */
-.toolbar button.btn-icon svg,
-.btn-more-options svg,
-.icon-btn-sm svg,
-.color-picker-wrapper svg {
-  width: 16px !important;
-  height: 16px !important;
-  stroke-width: 2px;
-}
-
 .save-status-container {
   width: 55px;
   text-align: center;
   display: inline-block;
-  margin-left: 2px;
-  flex-shrink: 0;
+  margin-left: 4px;
 }
 
 .save-status {
@@ -327,20 +294,18 @@ body {
 
 .toolbar select {
   font-size: 13px;
-  padding: 3px 6px;
+  padding: 4px 8px;
   border: 1px solid #ced4da;
   border-radius: 4px;
   outline: none;
   background: #fff;
-  flex-shrink: 0;
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 16px;
+  height: 18px;
   background-color: #dee2e6;
   margin: 0 4px;
-  flex-shrink: 0;
 }
 
 .color-picker-wrapper {
@@ -359,31 +324,24 @@ body {
 
 .word-counter-wrapper {
   position: relative;
-  flex-shrink: 0;
 }
 
 .word-count-pill-btn {
   background: #e9ecef;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   padding: 4px 10px;
-  font-size: 13px;
-  color: #343a40;
+  font-size: 12px;
+  color: #495057;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   transition: background 0.15s;
-  white-space: nowrap;
 }
 
 .word-count-pill-btn:hover {
   background: #dee2e6;
-}
-
-.word-count-pill-btn svg {
-  width: 14px !important;
-  height: 14px !important;
 }
 
 .word-count-popover {
