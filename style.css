@@ -225,9 +225,7 @@ body {
   color: #e03131;
 }
 
-/* =========================================================
-   상단바 레이아웃 (기존 원복 상태)
-   ========================================================= */
+/* 메인 영역 및 상단바 (가운데 정렬) */
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -248,12 +246,6 @@ body {
 }
 
 .toolbar-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.toolbar-section {
   display: flex;
   align-items: center;
   gap: 4px;
