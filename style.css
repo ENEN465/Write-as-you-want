@@ -617,7 +617,7 @@ body {
   color: #868e96;
   margin-bottom: 20px;
   font-family: var(--editor-content-font) !important;
-  background: transparent;
+  background: transparent; 
 }
 
 .header-divider {
