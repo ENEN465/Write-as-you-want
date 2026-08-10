@@ -30,7 +30,6 @@ body {
   position: relative;
 }
 
-/* 사이드바 배치 개선 */
 .sidebar-overlay {
   display: none;
   position: absolute;
@@ -139,7 +138,6 @@ body {
   flex: 1;
 }
 
-/* 하단 고정 휴지통 CSS */
 .trash-section {
   border-top: 2px solid #ced4da;
   background-color: #e9ecef;
@@ -227,7 +225,9 @@ body {
   color: #e03131;
 }
 
-/* 툴바 */
+/* =========================================================
+   상단바 레이아웃 규격 고정 (3분할: 좌/중/우)
+   ========================================================= */
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -239,21 +239,43 @@ body {
 .toolbar {
   height: 46px;
   min-height: 46px;
+  max-height: 46px;
   border-bottom: 1px solid #dee2e6;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 16px;
   box-sizing: border-box;
-  overflow-y: hidden;
   white-space: nowrap;
+  flex-wrap: nowrap; /* 절대 두 줄로 변경되지 않음 */
+  overflow-x: auto;
 }
 
-.toolbar-section {
+/* 1. 상단바 왼쪽 고정 영역 */
+.toolbar-left {
   display: flex;
   align-items: center;
+  min-width: 100px;
+  flex: 0 0 100px;
+}
+
+/* 3. 상단바 중앙 가로 일렬 영역 */
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 4px;
+  flex: 1;
+}
+
+/* 2. 상단바 오른쪽 고정 영역 */
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 100px;
+  flex: 0 0 100px;
 }
 
 .toolbar button.btn-icon {
@@ -280,19 +302,22 @@ body {
   color: #1c7ed6;
 }
 
+/* 4. 아이콘 크기 규격화 */
 .toolbar button.btn-icon svg,
 .btn-more-options svg,
-.icon-btn-sm svg {
+.icon-btn-sm svg,
+.color-picker-wrapper svg {
   width: 16px !important;
   height: 16px !important;
   stroke-width: 2px;
 }
 
 .save-status-container {
-  width: 65px;
+  width: 55px;
   text-align: center;
   display: inline-block;
-  margin-left: 4px;
+  margin-left: 2px;
+  flex-shrink: 0;
 }
 
 .save-status {
@@ -307,6 +332,7 @@ body {
   border-radius: 4px;
   outline: none;
   background: #fff;
+  flex-shrink: 0;
 }
 
 .toolbar-divider {
@@ -333,6 +359,7 @@ body {
 
 .word-counter-wrapper {
   position: relative;
+  flex-shrink: 0;
 }
 
 .word-count-pill-btn {
@@ -347,6 +374,7 @@ body {
   align-items: center;
   gap: 6px;
   transition: background 0.15s;
+  white-space: nowrap;
 }
 
 .word-count-pill-btn:hover {
@@ -384,7 +412,6 @@ body {
   background-color: #f8f9fa;
 }
 
-/* 구분선 CSS */
 #editor .ProseMirror hr {
   margin: 2.2em 0;
   border: none;
@@ -425,7 +452,6 @@ body {
   display: inline-block;
 }
 
-/* 히스토리 모달 */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -501,7 +527,6 @@ body {
   margin-left: 6px;
 }
 
-/* 검색 팝업 */
 .search-popover-box {
   position: absolute;
   top: 50px;
@@ -560,7 +585,6 @@ body {
   border-color: #228be6;
 }
 
-/* 에디터 본문 */
 .main-content {
   flex: 1;
   overflow-y: auto;
