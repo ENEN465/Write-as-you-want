@@ -3,205 +3,199 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Write as you want</title>
-  <link rel="icon" type="image/webp" href="icon.webp">
-
-  <!-- 웹 폰트 CDN 사전 로드 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/maruburi/MaruBuri.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/webfontworld/naver/NanumBarunGothic.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Bd.woff2">
-
+  <title>마크다운 문서 에디터</title>
+  <link rel="stylesheet" href="style.css">
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="app-layout">
+    <!-- 사이드바 오버레이 (모바일) -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-<div class="app-layout">
-  <!-- 모바일용 사이드바 오버레이 -->
-  <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-  <!-- 사이드바 -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-title-wrapper">
-        <span class="sidebar-title">내 글 목록</span>
-      </div>
-      <div class="sidebar-actions">
-        <button id="btn-add-folder" title="새 폴더">+ 폴더</button>
-        <button id="btn-add-doc" title="새 문서">+ 문서</button>
-      </div>
-    </div>
-    <!-- 파일/폴더 트리 영역 -->
-    <div class="file-tree" id="file-tree"></div>
-  </div>
-
-  <!-- 메인 영역 -->
-  <div class="main-wrapper">
-    <!-- 툴바 (상단바) -->
-    <div class="toolbar">
-      <div class="toolbar-section toolbar-left">
-        <button id="btn-toggle-sidebar" class="btn-icon" title="사이드바 열기/닫기">
-          <i data-lucide="panel-left"></i>
-        </button>
-        <div class="save-status-container">
-          <span class="save-status" id="save-status">저장됨</span>
+    <!-- 사이드바 -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">문서 목록</span>
+        <div class="sidebar-actions">
+          <button id="btn-add-folder" title="새 폴더">+ 폴더</button>
+          <button id="btn-add-doc" title="새 문서">+ 문서</button>
         </div>
       </div>
+      
+      <!-- 파일 트리 목록 -->
+      <div id="file-tree" class="file-tree"></div>
 
-      <div class="toolbar-section toolbar-center">
-        <!-- 폰트 선택 (기본값 마루부리) -->
-        <select id="select-font">
-          <option value="MaruBuri" selected>마루부리</option>
-          <option value="BookkMyungjo">부크크명조</option>
-          <option value="Pretendard">프리텐다드</option>
-          <option value="Nanum Myeongjo">나눔명조</option>
-          <option value="Noto Serif KR">본명조</option>
-          <option value="Nanum Barun Gothic">나눔바른고딕</option>
-        </select>
-        
-        <!-- 제목/본문 선택 -->
-        <select id="select-heading">
-          <option value="p">본문</option>
-          <option value="h1">제목 1</option>
-          <option value="h2">제목 2</option>
-          <option value="h3">제목 3</option>
-        </select>
-
-        <div class="toolbar-divider"></div>
-
-        <!-- 서식 버튼 -->
-        <button id="btn-bold" class="btn-icon" title="굵게"><i data-lucide="bold"></i></button>
-        <button id="btn-italic" class="btn-icon" title="기울임"><i data-lucide="italic"></i></button>
-        <button id="btn-strike" class="btn-icon" title="취소선"><i data-lucide="strikethrough"></i></button>
-
-        <div class="toolbar-divider"></div>
-
-        <!-- 글자 색상 선택기 -->
-        <div class="color-picker-wrapper">
-          <button id="btn-color-palette" class="btn-icon" title="글자 색상" type="button"><i data-lucide="palette"></i></button>
-          <input type="color" id="input-font-color" value="#212529">
+      <!-- 휴지통 영역 -->
+      <div class="trash-section">
+        <div id="trash-header" class="trash-header">
+          <span>🗑️ 휴지통</span>
+          <button id="btn-empty-trash" class="btn-empty-trash" title="휴지통 비우기">비우기</button>
         </div>
-
-        <div class="toolbar-divider"></div>
-
-        <!-- 정렬 버튼 -->
-        <button id="btn-align-left" class="btn-icon" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
-        <button id="btn-align-center" class="btn-icon" title="가운데 정렬"><i data-lucide="align-center"></i></button>
-        <button id="btn-align-right" class="btn-icon" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
-        <button id="btn-align-justify" class="btn-icon" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
-
-        <div class="toolbar-divider"></div>
-
-        <!-- 이미지 및 구분선 -->
-        <button id="btn-insert-image" class="btn-icon" title="이미지 삽입"><i data-lucide="image"></i></button>
-        <input type="file" id="input-image-file" accept="image/*" style="display:none;">
-
-        <select id="select-hr">
-          <option value="" disabled selected>구분선</option>
-          <option value="line">실선</option>
-          <option value="dashed">점선</option>
-          <option value="asterisk">별표 (***)</option>
-          <option value="ornament">다이아 (◇◇◇)</option>
-        </select>
-
-        <div class="toolbar-divider"></div>
-
-        <!-- 찾기 버튼 -->
-        <button id="btn-search" class="btn-icon" title="찾기 및 바꾸기"><i data-lucide="search"></i></button>
-        
-        <!-- 버전 기록 버튼 -->
-        <button id="btn-history" class="btn-icon" title="버전 기록 및 복원"><i data-lucide="history"></i></button>
+        <div id="trash-tree" class="trash-tree"></div>
       </div>
+    </aside>
 
-      <div class="toolbar-section toolbar-right">
-        <!-- 글자 수 세기 버튼 -->
-        <div class="word-counter-wrapper">
-          <button id="btn-word-count-toggle" class="word-count-pill-btn" type="button">
-            <span id="word-count-label">0 자</span>
-            <i data-lucide="chevron-down"></i>
+    <!-- 메인 영역 -->
+    <main class="main-wrapper">
+      <!-- 상단 툴바 -->
+      <header class="toolbar">
+        <div class="toolbar-section">
+          <button id="btn-toggle-sidebar" class="btn-icon" title="사이드바 토글">
+            <i data-lucide="panel-left"></i>
           </button>
+          <div class="toolbar-divider"></div>
+          
+          <!-- 폰트 선택 -->
+          <select id="select-font">
+            <option value="MaruBuri" selected>마루부리</option>
+            <option value="BookkMyungjo">부크명조</option>
+            <option value="Pretendard">프리텐다드</option>
+            <option value="Nanum Myeongjo">나눔명조</option>
+            <option value="Noto Serif KR">본명조</option>
+            <option value="Nanum Barun Gothic">나눔바른고딕</option>
+          </select>
+
+          <!-- 제목 스타일 -->
+          <select id="select-heading">
+            <option value="p">본문</option>
+            <option value="h1">제목 1</option>
+            <option value="h2">제목 2</option>
+            <option value="h3">제목 3</option>
+          </select>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 서식 버튼 -->
+          <button id="btn-bold" class="btn-icon" title="굵게"><i data-lucide="bold"></i></button>
+          <button id="btn-italic" class="btn-icon" title="기울임"><i data-lucide="italic"></i></button>
+          <button id="btn-strike" class="btn-icon" title="취소선"><i data-lucide="strikethrough"></i></button>
+          
+          <!-- 글자 색상 -->
+          <div class="color-picker-wrapper btn-icon" title="글자 색상">
+            <i data-lucide="palette"></i>
+            <input type="color" id="input-font-color" value="#212529">
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 정렬 -->
+          <button id="btn-align-left" class="btn-icon" title="왼쪽 정렬"><i data-lucide="align-left"></i></button>
+          <button id="btn-align-center" class="btn-icon" title="중앙 정렬"><i data-lucide="align-center"></i></button>
+          <button id="btn-align-right" class="btn-icon" title="오른쪽 정렬"><i data-lucide="align-right"></i></button>
+          <button id="btn-align-justify" class="btn-icon" title="양쪽 정렬"><i data-lucide="align-justify"></i></button>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 구분선 선택 -->
+          <select id="select-hr">
+            <option value="" disabled selected>구분선</option>
+            <option value="line">실선</option>
+            <option value="dashed">점선</option>
+            <option value="asterisk">* * *</option>
+            <option value="ornament">◇ ◇ ◇</option>
+          </select>
+
+          <!-- 이미지 첨부 -->
+          <button id="btn-insert-image" class="btn-icon" title="이미지 삽입"><i data-lucide="image"></i></button>
+          <input type="file" id="input-image-file" accept="image/*" style="display: none;">
+        </div>
+
+        <div class="toolbar-section">
+          <!-- 히스토리 / 검색 -->
+          <button id="btn-search" class="btn-icon" title="검색 및 바꿈"><i data-lucide="search"></i></button>
+          <button id="btn-history" class="btn-icon" title="버전 히스토리"><i data-lucide="history"></i></button>
+          
+          <!-- 글자수 카운터 -->
+          <div class="word-counter-wrapper">
+            <button id="btn-word-count-toggle" class="word-count-pill-btn">
+              <i data-lucide="file-text"></i>
+              <span id="word-count-label">0 자</span>
+            </button>
+          </div>
+
+          <!-- 저장 상태 -->
+          <div class="save-status-container">
+            <span id="save-status" class="save-status">저장됨</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 글자수 팝오버 -->
+      <div id="word-count-popover" class="word-count-popover" style="display: none;">
+        <div class="word-count-option active" data-mode="withSpace">
+          <span>공백 포함</span>
+          <span id="cnt-with-space">0자</span>
+        </div>
+        <div class="word-count-option" data-mode="noSpace">
+          <span>공백 제외</span>
+          <span id="cnt-no-space">0자</span>
+        </div>
+        <div class="word-count-option" data-mode="noSpaceSpecial">
+          <span>공백/특수문자 제외</span>
+          <span id="cnt-no-spec">0자</span>
+        </div>
+        <div class="word-count-option" data-mode="words">
+          <span>단어 수</span>
+          <span id="cnt-words">0 단어</span>
         </div>
       </div>
-    </div>
 
-    <!-- 완전히 독립된 플로팅 글자 수 선택 팝오버 (Fixed layer) -->
-    <div class="word-count-popover" id="word-count-popover" style="display: none;">
-      <div class="word-count-option active" data-mode="withSpace">
-        <span>공백 포함: <span id="cnt-with-space">0자</span></span>
-        <i data-lucide="check" class="check-icon"></i>
-      </div>
-      <div class="word-count-option" data-mode="noSpace">
-        <span>공백 제외: <span id="cnt-no-space">0자</span></span>
-        <i data-lucide="check" class="check-icon"></i>
-      </div>
-      <div class="word-count-option" data-mode="noSpaceSpecial">
-        <span>공백, 특문 제외: <span id="cnt-no-spec">0자</span></span>
-        <i data-lucide="check" class="check-icon"></i>
-      </div>
-      <div class="word-count-option" data-mode="words">
-        <span>단어 수: <span id="cnt-words">0 단어</span></span>
-        <i data-lucide="check" class="check-icon"></i>
-      </div>
-    </div>
-
-    <!-- 찾기/바꾸기 팝업 -->
-    <div class="search-popover-box" id="search-popover-box" style="display: none;">
-      <div class="search-top-row">
-        <input type="text" id="input-search" placeholder="찾을 단어" class="search-input-field">
-        <span class="search-count-badge" id="search-count-badge">0 / 0</span>
-        <button id="btn-search-prev" class="icon-btn-sm" title="이전"><i data-lucide="chevron-up"></i></button>
-        <button id="btn-search-next" class="icon-btn-sm" title="다음"><i data-lucide="chevron-down"></i></button>
-        <button id="btn-toggle-replace" class="icon-btn-sm" title="바꾸기 열기/닫기"><i data-lucide="repeat"></i></button>
-        <button id="btn-search-close" class="icon-btn-sm" title="닫기">✕</button>
-      </div>
-
-      <div class="replace-bottom-row" id="replace-bottom-row" style="display: none;">
-        <input type="text" id="input-replace" placeholder="바꿀 단어" class="replace-input-field">
-        <button id="btn-replace-one" class="action-btn-sm highlight-btn">바꾸기</button>
-        <button id="btn-replace-all" class="action-btn-sm">모두 바꾸기</button>
-      </div>
-    </div>
-
-    <!-- 히스토리(버전 관리) 모달 -->
-    <div class="modal-overlay" id="history-modal" style="display: none;">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>버전 히스토리</h3>
-          <button id="btn-close-history" class="icon-btn-sm">✕</button>
+      <!-- 검색 팝업 -->
+      <div id="search-popover-box" class="search-popover-box" style="display: none;">
+        <div class="search-top-row">
+          <input type="text" id="search-input" class="search-input-field" placeholder="찾을 내용">
+          <span id="search-count" class="search-count-badge">0/0</span>
+          <button id="btn-search-prev" class="icon-btn-sm"><i data-lucide="chevron-up"></i></button>
+          <button id="btn-search-next" class="icon-btn-sm"><i data-lucide="chevron-down"></i></button>
+          <button id="btn-search-close" class="icon-btn-sm"><i data-lucide="x"></i></button>
         </div>
-        <div class="modal-body">
-          <p class="modal-desc">주기적으로 버전이 자동 저장됩니다. 원하는 버전으로 언제든 복원 가능합니다.</p>
-          <ul id="history-list" class="history-list"></ul>
+        <div class="replace-bottom-row">
+          <input type="text" id="replace-input" class="replace-input-field" placeholder="바꿀 내용">
+          <button id="btn-replace" class="action-btn-sm">바꾸기</button>
+          <button id="btn-replace-all" class="action-btn-sm highlight-btn">모두 바꾸기</button>
         </div>
       </div>
-    </div>
 
-    <!-- 에디터 영역 -->
-    <div class="main-content">
-      <div class="editor-container" id="editor-container">
-        <div class="post-header">
-          <input type="text" class="title-input" id="title-input" placeholder="제목을 입력하세요">
-          <input type="text" class="subtitle-input" id="subtitle-input" placeholder="소제목을 입력하세요 (선택)">
+      <!-- 에디터 본문 영역 -->
+      <div class="main-content">
+        <div class="editor-container">
+          <input type="text" id="title-input" class="title-input" placeholder="대제목을 입력하세요">
+          <input type="text" id="subtitle-input" class="subtitle-input" placeholder="소제목을 입력하세요">
           <hr class="header-divider">
+          <div id="editor"></div>
         </div>
-        <div id="editor"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 우클릭 컨텍스트 메뉴 -->
+  <div id="context-menu" class="context-menu" style="display: none;">
+    <div id="menu-rename" class="menu-item">이름 변경</div>
+    <div id="menu-copy" class="menu-item">복사본 만들기</div>
+    <div id="menu-delete" class="menu-item danger">휴지통으로 이동</div>
+  </div>
+
+  <!-- 휴지통 항목용 컨텍스트 메뉴 -->
+  <div id="trash-context-menu" class="context-menu" style="display: none;">
+    <div id="menu-restore" class="menu-item">복원하기</div>
+    <div id="menu-permanent-delete" class="menu-item danger">영구 삭제</div>
+  </div>
+
+  <!-- 히스토리 모달 -->
+  <div id="history-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>버전 히스토리</h3>
+        <button id="btn-close-history" class="icon-btn-sm"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">자동 저장된 이전 버전 목록입니다. 복원 시 현재 문서 상태는 백업됩니다.</p>
+        <ul id="history-list" class="history-list"></ul>
       </div>
     </div>
   </div>
-</div>
 
-<!-- 사이드바 드롭다운 메뉴 -->
-<div class="context-menu" id="context-menu" style="display: none;">
-  <div class="menu-item" id="menu-rename">이름 수정</div>
-  <div class="menu-item" id="menu-copy">복사</div>
-  <div class="menu-item" id="menu-move">다른 폴더로 이동</div>
-  <div class="menu-item danger" id="menu-delete">삭제</div>
-</div>
-
-<script type="module" src="script.js"></script>
-
+  <script type="module" src="script.js"></script>
 </body>
 </html>
