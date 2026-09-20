@@ -1,0 +1,62 @@
+/* ==========================================================
+   editor.css — 제목과 본문 영역
+   ========================================================== */
+
+.doc-title {
+  display: block;
+  width: 100%;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  resize: none;
+  overflow: hidden;
+
+  font-family: var(--editor-font-family);
+  font-size: var(--title-font-size);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  caret-color: var(--color-accent);
+
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.doc-title::placeholder {
+  color: var(--color-placeholder);
+}
+
+.doc-body {
+  position: relative;
+  flex: 1;
+  min-height: 50vh;
+  outline: 0;
+
+  font-family: var(--editor-font-family);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
+  color: var(--color-ink);
+  caret-color: var(--color-accent);
+
+  /* 연속 공백·들여쓰기를 그대로 유지하고, 한글은 어절 단위로 줄바꿈합니다. */
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.doc-body p {
+  margin: 0 0 var(--editor-paragraph-gap);
+}
+
+/* 본문이 비어 있을 때만 안내 문구를 보여 줍니다. (JS가 is-empty 클래스를 토글) */
+.doc-body.is-empty::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--color-placeholder);
+  pointer-events: none;
+}

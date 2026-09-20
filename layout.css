@@ -1,0 +1,45 @@
+/* ==========================================================
+   layout.css — 화면 골격
+   .app > .topbar + .workspace > .page
+   (사이드바는 5단계에서 .app 안에 추가합니다.)
+   ========================================================== */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: var(--topbar-height);
+  padding-inline: clamp(1rem, 3vw, 1.75rem);
+  background: var(--color-paper);
+}
+
+.topbar__name {
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--color-ink-muted);
+  user-select: none;
+}
+
+.workspace {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  cursor: text;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--page-width);
+  padding: clamp(1.5rem, 7vh, 4.5rem) clamp(1.25rem, 4vw, 2rem) 30vh;
+}

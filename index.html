@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>write-as-you-want</title>
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+  <div class="app" id="app">
+
+    <header class="topbar" id="topbar">
+      <span class="topbar__name">write-as-you-want</span>
+    </header>
+
+    <main class="workspace" id="workspace">
+      <article class="page" id="page">
+        <textarea
+          id="doc-title"
+          class="doc-title"
+          rows="1"
+          placeholder="제목"
+          aria-label="제목"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+
+        <div
+          id="doc-body"
+          class="doc-body"
+          contenteditable="true"
+          role="textbox"
+          aria-multiline="true"
+          aria-label="본문"
+          spellcheck="false"
+          autocorrect="off"
+          autocapitalize="off"
+          data-placeholder="여기에 글을 써 보세요."
+        ><p><br></p></div>
+      </article>
+    </main>
+
+  </div>
+
+  <!-- 일반 스크립트 방식: index.html을 더블클릭해서 바로 열어도 동작합니다. -->
+  <script src="js/editor.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

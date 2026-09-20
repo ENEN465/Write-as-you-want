@@ -1,0 +1,54 @@
+/* ==========================================================
+   base.css — 디자인 토큰과 기본 리셋
+   이후 단계에서 값을 바꿀 때는 이 파일의 토큰만 수정합니다.
+   ========================================================== */
+
+:root {
+  /* 색상 */
+  --color-paper: #ffffff;
+  --color-ink: #1d2126;
+  --color-ink-muted: #9299a3;
+  --color-placeholder: #c5cad1;
+  --color-accent: #3a6df0;
+  --color-selection: rgba(58, 109, 240, 0.22);
+
+  /* 글꼴 (시스템 기본 글꼴. 폰트 4종은 4단계에서 적용) */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
+
+  /* 에디터 */
+  --editor-font-family: var(--font-sans);
+  --editor-font-size: 1.125rem;
+  --editor-line-height: 1.9;
+  --editor-paragraph-gap: 0.9em;
+  --title-font-size: 2rem;
+
+  /* 레이아웃 */
+  --page-width: 43rem;
+  --topbar-height: 3rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-selection);
+}
