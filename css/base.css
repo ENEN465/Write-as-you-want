@@ -19,8 +19,8 @@
   /* 에디터 */
   --editor-font-family: var(--font-sans);
   --editor-font-size: 1.125rem;
-  --editor-line-height: 1.9;
-  --editor-paragraph-gap: 0.9em;
+  --editor-line-height: 1.7;
+  --editor-paragraph-gap: 0.5em;
   --title-font-size: 2rem;
 
   /* 레이아웃 */
